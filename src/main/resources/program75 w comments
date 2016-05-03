@@ -1,0 +1,60 @@
+# Program number  2:
+# This program allocates 75 words of dynamic memory (from the Hypo user dynamic
+# memory) using Mem_alloc system call described in the MTOPS handout.
+# It fills (sets) the allocated memory with numbers 2, 4, 6, 8, …, 150.
+# After setting the memory, the program frees the 150 words of dynamic memory
+# using Mem_free system call described in the MTOPS handout. Then it halts.
+
+# Instructions used:
+# NAME      OP-CODE Description
+# Halt      0       Halt execution
+# Add       1       Op1 op1 + op2
+# Subtract  2       Op1 op1 – op2
+# Move      5       Op1 op2
+
+# Branch on minus   7   If Op1 < 0 then C next word of the instruction. 
+#                       Op2 is not used.
+
+# System Call       12  Op1 has system call ID as immediate operand. That is, 
+#                       second word of the instruction has the system call 
+#                       identifier.  Op2 is not used.
+
+# Addressing modes used:
+# 0 Invalid/not used    Mode digit is not used in the instruction
+# 1 Register mode	The specified general purpose register contains the 
+#                       operand value.
+
+# 3 Autoincrement	Register content is incremented by 1 after fetching the 
+#                       operand value
+
+# 6 Immediate mode      Next word contains the operand value. Operand value is
+#                       in the main memory as part of the instruction.
+#                       A general purpose register is not used.
+#                       Address is in the program counter.
+
+#Address-Content/Value
+#  op M R M R     op: operation code; M: mode; R: register
+31 5  1 2 6 0   # Assign the size of the memory request to GPR # 2.
+32   75         # 150 is also the limit for the loop count.
+33 12 6 0 0 0   # Requests a memory stack from the operating system
+34   4          # The number four is the code for requesting memory.
+35  7 1 0 0 0   # End if system call returns error
+36   46
+37  5 1 4 1 1   # Copies the first allocated address of the process's newly 
+                # acquired memory from GPR # 1 to GPR # 4.
+
+38  1 1 5 6 0   # Increment count value by two.
+39   2
+40  5 3 4 1 5   # Assign the appropriate number to the current memory address 
+                #The address in GPR #4 and value count in GPR # 5 is 
+                #auto incremented by the autoincrement mode by one.
+41  5 1 6 1 5   # Copies current value of count to general purpose register number 6
+42  2 1 6 6 0   # Compares current value of count to its maximum amount through              
+43   150        #subtraction
+44  7 1 6 0 0   # Loops if maximum value for count has not been reached.
+45   38
+
+46  12
+46  0 0 0 0 0   # Halt in the case of a system call error or this program finishing
+-1   31         # Origin Statement for absolute loader method to set program
+                #counter to the start of the program (31).
