@@ -1,0 +1,48 @@
+Roody: See comments below.
+
+The content of each word is ONE integer number. 
+There are no spaces between the digits.
+For example, 5 1 6 5 0 must be 51650.
+
+There was no halt instruction in the assembly language code. However, there is in this program.
+
+There is not content in location 0. Opcode 6 is branch instruction and not origin.
+
+These issues are fixed.
+
+# Homework #1 machine code to calculate:
+# T = 1 + 2 + 3 + 4 + 5 + 6 + … + 99 + 100
+# and R = (2*T – 100) / 200
+
+Address-Content/Value
+   op M R M R 
+  1	 1		# Initialize variable T = 1
+  2	 2		# Initialize variable R = 2
+
+
+  3	51650	# Initialize a register for variable T
+  4	 2
+  5	51260	# Initialize register T's adder = 2
+  6	 2
+
+  7	11612	# loop, Add to T
+  8	11260	# Increment adder operand by 1
+  9	 1 
+
+ 10	51312	# Temporary copy of the temporyAdder = adder
+			
+ 11 21360	# Test the temporary	adder for temporyAdder = 0
+ 12	 101		
+ 13	71300	# Test the loop for the stopping condition:
+ 14	 8		#if (temporyAdder < 0) loop
+
+ 15	51750	# Initialize variable R = 2 to gpr 7
+ 16	 3
+
+ 17	31716	# multiply: 2 * T
+ 18	21760	# subtract: R - 100
+ 29	 100
+ 20	41760	# divide: R / 200
+ 21	 200
+ 22	00000# halt
+ -1	 4		# End of program, PC = 4

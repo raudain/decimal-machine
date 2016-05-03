@@ -1,0 +1,70 @@
+# Program number  3:
+# This program allocates 100 words of dynamic memory (from the Hypo user dynamic
+# memory) using Mem_alloc system call described in the MTOPS handout.
+# It fills (sets) the allocated memory with numbers that are decreasing from 100
+# to 1. After setting the memory, the program frees the 100 words of dynamic
+# memory using Mem_free system call described in the MTOPS handout. Then it halts.
+
+# Instructions used:
+# NAME    OP CODE
+# Halt      0   Halt execution
+# Add       1   Op1 op1 + op2
+# Subtract  2   Op1 op1 – op2
+# Move      5   Op1 op2
+
+# Branch on minus   7   If Op1 < 0 then PC next word of the instruction. 
+#                       Op2 is not used.
+
+#Branch on Plus     8   If Op1 > 0 then PC next word of the instruction.
+#                       Op2 is not used.
+
+
+# System Call       12  Op1 has system call ID as immediate operand. That is, 
+#                       second word of the instruction has the system call 
+#                       identifier.  Op2 is not used.
+
+# Addressing modes used:
+# 0 Invalid/not used    Mode digit is not used in the instruction
+# 1 Register mode	The specified general purpose register contains the 
+#                       operand value.
+
+# 3 Autoincrement	Register contains the address of the operand; 
+#                       Operand value is in the main memory. Register content is
+#                       incremented by 1 after fetching the operand value
+
+# 5 Direct mode         Next word contains the address of the operand. 
+#                       Operand value is in the main memory. A general purpose
+#                       register is not used. Use PC to get the address.
+
+# 6 Immediate mode      Next word contains the operand value. Operand value is
+#                       in the main memory as part of the instruction.
+#                       A general purpose register is not used.
+#                       Address is in the program counter.
+
+#Address-Content/Value
+#  op M R M R
+51 5  1 2 6 0   # Assign the size of the memory request to GPR # 2.
+52   100        
+53 12 6 0 0 0   # Requests a memory stack from the operating system
+54   4          # The number four is the code for requesting memory.
+55  7 1 0 0 0   # End if system call returns error
+56   67
+57  5 1 4 1 1   # Copies the first allocated address of the process's newly 
+                #acquired memory from GPR # 1 to GPR # 4.
+
+58  1 1 5 6 0   # Add 101 to count value.
+59   101
+
+60  2 1 5 6 0   # Decrement count value by one.
+61   1
+62  9 1 5 0 0   # End of loop when count is zero.
+63   67
+64  5 3 4 1 5   # Assign the appropriate number to the current memory address 
+                #The address in GPR #4 and value count in GPR # 5 is 
+                #auto incremented by the auto-increment mode by one.
+65  8 1 5 0 0   # Loops if count is positive.
+66   60
+
+67  0 0 0 0 0   # Halt in the case of a system call error or this program finishing
+-1   51         # Origin Statement for absolute loader method to set program
+                #counter to the start of the program (31).
