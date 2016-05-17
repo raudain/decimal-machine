@@ -6,17 +6,19 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import operating.systems.internals.DecimalMachine.Memory_Address_Book;
 import operating.systems.internals.DecimalMachine.Stopped_Execution_Reason_Code;
 import operating.systems.internals.DecimalMachine.Machine;
 
-public class App implements Memory_Address_Book, Stopped_Execution_Reason_Code {
+public class App implements Stopped_Execution_Reason_Code {
 
 	private static final Logger logger = LogManager.getLogger("App");
 	private boolean firstInput;
+	private final byte highestPriority;
 
 	public App() {
+		
 		firstInput = true;
+		highestPriority = 127;
 	}
 
 	public static Machine init() {
@@ -80,12 +82,14 @@ public class App implements Memory_Address_Book, Stopped_Execution_Reason_Code {
 	 */
 	public static void main(String[] args) {
 
-		// Priority one is the lowest priority, and 255 is the highest
-		short priority = 255;
-
 		Machine hdm = init();
 		App app = new App();
+		
+		// Priority one is the lowest priority, and 127 is the highest
+		byte priority = app.highestPriority;
+		
 		String firstCommandLineInput = app.getInput();
+		
 		// If shutdown command is entered before any programs are entered
 		if ("shutdown".equals(firstCommandLineInput)) {
 			hdm.ISRshutdownSystem();
@@ -214,7 +218,7 @@ public class App implements Memory_Address_Book, Stopped_Execution_Reason_Code {
 				 * priority which is zero.
 				 */
 				if (priority == 0)
-					priority = 255;
+					priority = app.highestPriority;
 
 				try {
 					hdm.createProcess(commandLineInput, priority);
@@ -222,7 +226,7 @@ public class App implements Memory_Address_Book, Stopped_Execution_Reason_Code {
 					e.printStackTrace();
 				}
 			}// end of if statement
-		}// end of while not shutdown outter loop
+		}// end of while not shutdown outer loop
 		hdm.ISRshutdownSystem();
 		System.out.println("System is shutting down");
 	} // end of main method

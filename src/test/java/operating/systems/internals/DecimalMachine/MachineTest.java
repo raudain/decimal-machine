@@ -1,43 +1,58 @@
 package operating.systems.internals.DecimalMachine;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.FileNotFoundException;
 
 import org.junit.Test;
 
 public class MachineTest {
 
-	@Test
-	public void addDirectoryTest() {
-		
+	/*@Test
+	public void addPathTest() {
+
 		final Machine machine = new Machine();
-		final String DIRECTORY = "C:\\Users\\roody.audain\\"
-				+ "workspace\\Concepts\\"
-				+ "DecimalMachine\\src\\main\\"
-				+ "resources\\";
+		final String path = "target/classes/";
 		final String FILE_NAME = "p75";
-		final String STATUS = machine.addDirectory(FILE_NAME);
-		
-		assert (STATUS.equals(DIRECTORY + FILE_NAME));
-	}
-	
-	@Test
-	public void absoluteLoaderPositiveTest() {
-		
-		final Machine machine = new Machine();
-		final String FILE_NAME = "p75";
-		final short STATUS = machine.absoluteLoader(FILE_NAME);
-		
-		assert (STATUS >= 0);
+		final String d = machine.addPath(FILE_NAME);
+		boolean b = d.equals(path + FILE_NAME);
+		assertTrue(b);
 	}
 
 	@Test
-	public void absoluteLoaderFileNotFoundTest() {
-		
+	public void absoluteLoaderPositiveTest() throws FileNotFoundException {
+
+		final Machine machine = new Machine();
+		final String FILE_NAME = "p75";
+		final short STATUS = (Short) machine.absoluteLoader(FILE_NAME);
+
+		assertTrue(STATUS >= 0);
+	}
+
+	@Test(expected = FileNotFoundException.class)
+	public void absoluteLoaderFileNotFoundTest() throws FileNotFoundException {
+
 		final Machine machine = new Machine();
 		final String FILE_NAME = "imaginary";
-		final short FILE_NOT_FOUND_INDICATOR = -5;
-		final short STATUS = machine.absoluteLoader(FILE_NAME);
+		machine.absoluteLoader(FILE_NAME);
+	}*/
+
+	@Test
+	public void insertIntoReadyQueueTest() {
 		
-		assert (FILE_NOT_FOUND_INDICATOR == STATUS);
+		final Machine machine = new Machine();
+		byte b = 1;
+		machine.insertIntoReadyQueue(b);
+	}
+	
+	@Test
+	public void printHeaderTest() {
+		final Machine machine = new Machine();
+		machine.printHeader();
+	}
+	
+	public void printRQTest() {
+		final Machine machine = new Machine();
+		machine.printRq();
 	}
 }

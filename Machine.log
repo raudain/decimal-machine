@@ -22,3 +22,35 @@
 2016-04-13 18:28:05,428 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
 2016-04-13 18:34:31,000 INFO Machine_Implementation [main] The loader has reach the end of p75's code
 2016-04-13 18:34:31,016 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 16:40:28,473 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 16:41:06,500 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 16:44:02,589 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:44:58,554 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:44:58,555 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 16:46:07,965 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:47:03,606 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:48:20,224 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:49:44,232 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 16:52:11,979 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-13 17:18:49,543 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 17:23:44,351 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 17:24:06,011 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 17:25:21,853 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-13 17:27:17,281 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:13:54,436 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:15:18,436 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:15:57,036 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:17:05,080 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:17:05,082 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:19:20,467 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:19:20,467 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:22:48,938 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:22:48,938 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:23:12,901 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:23:12,901 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:28:25,682 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:28:25,682 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:29:05,785 INFO Machine_Implementation [main] The loader has reach the end of p75's code
+2016-05-14 16:29:05,787 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
+2016-05-14 16:41:12,462 INFO Machine_Implementation [main] Printing all process control blocks in ready queue:
+2016-05-14 16:41:12,463 INFO Machine_Implementation [main] Address	Index	Value
