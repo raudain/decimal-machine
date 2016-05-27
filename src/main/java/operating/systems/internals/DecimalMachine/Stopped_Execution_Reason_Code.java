@@ -2,7 +2,7 @@ package operating.systems.internals.DecimalMachine;
 
 /**
  *
- * @author roody
+ * @author Roody
  */
 public interface Stopped_Execution_Reason_Code {
 	final short PROCEED = 1; // The process can execute after the system call

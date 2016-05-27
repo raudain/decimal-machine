@@ -13,6 +13,7 @@ public class Process_Control_Block {
 	private final char READY_STATE;
 	final char WAITING_STATE;
 	private final byte PC_INDEX;
+	private final byte GPU_INDEX;
 
 	public Process_Control_Block() {
 
@@ -27,6 +28,7 @@ public class Process_Control_Block {
 		READY_STATE = 'R';
 		WAITING_STATE = 'W';
 		PC_INDEX = 19;
+		GPU_INDEX = 10;
 	}
 
 	private void setProcessId(Main_Memory mainMemory, short PcbPointer, short processId) {
@@ -97,14 +99,14 @@ public class Process_Control_Block {
 		return (short) mainMemory.fetch((short) (PcbPointer + NEXT_PCB_INDEX));
 	}
 
-	public void setProgramCounter(Main_Memory mainMemory, short PcbPointer, short programCounter) {
+	public void setProgramCounter(Main_Memory mainMemory, short pcbPointer, short programCounter) {
 
-		mainMemory.load(PcbPointer + PC_INDEX, programCounter);
+		mainMemory.load(pcbPointer + PC_INDEX, programCounter);
 	}
 	
-	public void setPriority(Main_Memory mainMemory, short PcbPointer, short priority) {
+	public void setPriority(Main_Memory mainMemory, short pcbPointer, short priority) {
 
-		mainMemory.load(PcbPointer + PRIORITY_INDEX, priority);
+		mainMemory.load(pcbPointer + PRIORITY_INDEX, priority);
 	}
 	
 	public byte getNextPcbIndex() {
@@ -122,4 +124,16 @@ public class Process_Control_Block {
 		return PROCESS_ID_INDEX;
 	}
 	
+	public byte getProcessId(Main_Memory mainMemory, short pcbPointer) {
+		
+		return (byte) mainMemory.fetch((short) (pcbPointer + PROCESS_ID_INDEX));
+	}
+	
+	public void getGPRs(Main_Memory mainMemory, Central_Processing_Unit CPU, short pcbPointer) {
+		
+		byte numberOfGPRs = CPU.getNumberOfGPRs();
+		int[] a = new int[numberOfGPRs];
+		for (int i = 0; i < numberOfGPRs + 1; i++)
+			a[i] = mainMemory.fetch((short) (pcbPointer + GPU_INDEX + i));
+	}
 }

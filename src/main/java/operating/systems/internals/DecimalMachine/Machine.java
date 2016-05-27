@@ -28,13 +28,6 @@ import org.apache.logging.log4j.Logger;
  */
 public class Machine implements Stopped_Execution_Reason_Code {
 
-	private long[] gpr; // General Purpose Registers
-
-	private short pc; // Program Counter
-						// ????????????????????????????????????????????????????????????
-
-	private short sp; // Stack Pointer
-						// ?????????????????????????????????????????????????????????????????
 	// private byte psr; // Processor status register
 	private long clock = 0; // system clock
 
@@ -49,7 +42,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	// Process Control Block memory free list set to be empty;
 
-	private static final Logger logger = LogManager.getLogger("Machine_Implementation");
+	private static final Logger logger = LogManager.getLogger("Machine");
 
 	private final Process_Control_Block PCB = new Process_Control_Block();
 
@@ -58,29 +51,15 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	private byte priority;
 	
 	private byte processId;
+	
+	private final Central_Processing_Unit CPU;
 
-	/**
-	 * Set all virtual hardware component variables to 0 and loads free memory
-	 * space data
-	 */
 	public Machine() {
-		// Initialize all hardware components to zero
-		gpr = new long[LAST_GPR + 1];
-		// initialize all memory locations to zero;
 
-		// initialize all General purpose registers to 0
-		pc = 0; // 0 == start of memory
-
-		sp = 0; // 4000 == start of stack/heap memory
-				// ????????????????????????????????????????????????????????
-
+		CPU = new Central_Processing_Unit();
 		MEMORY = new Main_Memory();
-		// psr = 0; // Processor status register
-		// ???????????????????????????????????????????????????????
-
 		READY_STATE_INDICATOR = 'R';
 		priority = 1;
-		
 		processId = 1;
 
 	} // end of constructor
@@ -176,28 +155,6 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 		System.out.println("The end of the ready queue has been reached.");
 	} // end of PrintPCB module
-
-	public void dumpRegisters() {
-
-		int address = 0;
-
-		// print register titles
-		System.out.println("GPRs:\tG0\tG1\tG2\tG3\tG4\tG5\tG6\tG7\tSP\tPC");
-
-		// print register values
-		while (address <= LAST_GPR)
-			System.out.printf("\t%d", gpr[address++]);
-	}
-
-	public void dumpStackPointer() {
-
-		// print stack pointer and program counter value
-		logger.info("\t%d\n", sp);
-	}
-
-	public void programCounter() {
-		logger.info("\t%d\n", pc);
-	}
 
 	final byte OK = 0;
 
@@ -478,22 +435,22 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 *            The higher the priority the more chances the process will get
 	 *            resources
 	 */
-	void createProcessSystemCall(short processId) {
+	public void createProcessSystemCall(short processId) {
 		// Allocate space for Process Control Block
-		short PcbPointer = MEMORY.allocateOSMemory(); // return value contains address
+		short pcbPointer = MEMORY.allocateOSMemory(); // return value contains address
 												// or error
-		if (PcbPointer < Main_Memory.getFirst_Os_Memory_Address()
-				|| PcbPointer > Main_Memory.getLast_Os_Memory_Address()) {
-			System.out.println("Error: Memory alocation from OS free space has failed");
+		if (pcbPointer < Main_Memory.getFirst_Os_Memory_Address()
+				|| pcbPointer > Main_Memory.getLast_Os_Memory_Address()) {
+			logger.error("Memory alocation from OS free space has failed");
 			gpr[0] = INVALID_ADDRESS;
 		}
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
-		PCB.setPcb(MEMORY, PcbPointer, processId, priority, 'W');
+		PCB.setPcb(MEMORY, pcbPointer, processId, priority, 'W');
 
 		// Insert PCB into Ready Queue according to the scheduling algorithm
-		byte status = insertIntoWaitingQueue(PcbPointer);
+		byte status = insertIntoWaitingQueue(pcbPointer);
 
 		if (status != OK)
 			gpr[0] = status;
@@ -502,12 +459,13 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	} // end of create child process system call module
 
+	
 	private void restoreCPU(short PCBpointer) {
 		
-		logger.info("Now running process #" + memory[PCBpointer + PROCESS_ID_INDEX]);
+		logger.info("Now running process #" + PCB.getProcessId(MEMORY, PCBpointer));
 		// PCBpointer is assumed to be correct
 
-		// Copy CPU register values from PCB into the CPU registers
+		// Gets the central processing unit's general purpose registers values from memory back into the CPU registers
 		byte gprPCBindex = 10;
 		gpr[0] = memory[PCBpointer + gprPCBindex++];
 		gpr[1] = memory[PCBpointer + gprPCBindex++];
