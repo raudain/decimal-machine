@@ -28,11 +28,11 @@ import org.apache.logging.log4j.Logger;
         19                  PC
  */
 
-public class Main_Memory {
-
-	private int[] memory; // main memory
+public class Application_Memory {
 
 	private final short SIZE_OF_MEMORY;
+	
+	private int[] memory; // main memory
 
 	// end marker for PCB PCBmemoryFreeList freeHeapMemory and other lists.
 	public static final byte END_OF_LIST_INDICATOR = -1;
@@ -41,15 +41,13 @@ public class Main_Memory {
 
 	private final short LAST_USER_MEMORY_ADDRESS;
 
-	private final short FIRST_TEMPORARY_MEMORY_ADDRESS;
+	private short firstHeapAddress;
 
 	private short osMemoryPointer;
 	
-	private final int USER_FREE_MEMORY_SIZE_INDEX;
+	private final short FREE_HEAP_SIZE_INDEX;
 	
-	private final short USER_FREE_MEMORY_SIZE;
-	
-	private final short FIRST_OS_MEMORY_ADDRESS;
+	private short freeHeapSize;
 	
 	private static final Logger logger = LogManager.getLogger("Main Memory");
 	
@@ -57,17 +55,15 @@ public class Main_Memory {
 	
 	private final byte PCB_SIZE;
 
-	public Main_Memory() {
+	public Application_Memory() {
 
 		SIZE_OF_MEMORY = 7999;
 		memory = new int[SIZE_OF_MEMORY];
 		LAST_USER_MEMORY_ADDRESS = 3999;
-		FIRST_TEMPORARY_MEMORY_ADDRESS = 4000;
-		FIRST_OS_MEMORY_ADDRESS = 6000;
-		osMemoryPointer = FIRST_OS_MEMORY_ADDRESS;
+		firstHeapAddress = 4000;
 		firstFreeTemporaryMemoryPointer  = END_OF_LIST_INDICATOR;
-		USER_FREE_MEMORY_SIZE_INDEX = FIRST_TEMPORARY_MEMORY_ADDRESS + 1;
-		USER_FREE_MEMORY_SIZE = 2000;
+		FREE_HEAP_SIZE_INDEX = FIRST_HEAP_MEMORY_ADDRESS + 1; // create free heap class
+		freeHeapSize = 2000;
 		PCB = new Process_Control_Block();
 		PCB_SIZE = PCB.getSize();
 		
@@ -103,17 +99,11 @@ public class Main_Memory {
 		
 		// User free memory has 2000 locations
 		load(USER_FREE_MEMORY_SIZE_INDEX, USER_FREE_MEMORY_SIZE);
-		 
-		// End of operating system's memory
-		memory[FIRST_OS_MEMORY_ADDRESS] = END_OF_LIST_INDICATOR;
-		
-		// OS free memory is 2000 locations
-		memory[FIRST_OS_MEMORY_ADDRESS + 1] = 2000;
 	}
 	
 	public short getFirstTemporaryMemoryAddress() {
 		
-		return FIRST_TEMPORARY_MEMORY_ADDRESS;
+		return FIRST_HEAP_MEMORY_ADDRESS;
 	}
 	
 	public void load(int address, int code) {
@@ -283,38 +273,6 @@ public class Main_Memory {
 		return notOK; // ErrorNoFreeMemory is constant set to < 0
 	} // end of Allocate OS Memory() module
 	
-	/**
-	 * initializePCB fills out some PCB values for a ready process.
-	 * 
-	 * @param PCBpointer
-	 *            Start of a particular process control block about to be
-	 *            zeroed.
-	 */
-	public void initializePCB(short PCBpointer, byte processId, byte priority, char state) {
-		// Initialize all values to zero
-		for (int i = 0; i < PCB_SIZE; i++)
-			memory[PCBpointer + i] = 0;
-
-		byte Priorityindex = 4;
-
-		// END_OF_LIST_MARKER is a constant set to -1
-		memory[PCBpointer + PCB.getNextPcbIndex()] = Main_Memory.END_OF_LIST_INDICATOR;
-
-		/*
-		 * ProcessID is a global variable and is initialized to 1. Allocate PID
-		 * and set it in the PCB pid zero is invalid
-		 */
-		memory[PCBpointer + PCB.getProcessIdIndex()] = processId;
-		
-		// always set to default priority which is 128
-		memory[PCBpointer + Priorityindex] = priority;
-		
-		// always set to ready state which is 'R'
-		memory[PCBpointer + PCB.getStateIndex()] = state; 
-
-
-		return;
-	} // end of Initialize PCB method
 	
 	public short getFirstFreeTemporaryMemoryPointer() {
 		

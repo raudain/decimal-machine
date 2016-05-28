@@ -33,12 +33,12 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	private final byte LAST_GPR = 7; // size of cpu register minus one
 
-	private final byte END_OF_LIST_MARKER = Main_Memory.END_OF_LIST_INDICATOR;
+	private final byte END_OF_LIST_MARKER = Application_Memory.END_OF_LIST_INDICATOR;
 	private short RqPointer = END_OF_LIST_MARKER; // Ready Queue set to empty
 													// list
 	private short WQ = END_OF_LIST_MARKER;
 
-	private final Main_Memory MEMORY;
+	private final Application_Memory AM;
 
 	// Process Control Block memory free list set to be empty;
 
@@ -53,11 +53,15 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	private byte processId;
 	
 	private final Central_Processing_Unit CPU;
+	
+	private final Operating_System_Memory OSM;
 
 	public Machine() {
 
 		CPU = new Central_Processing_Unit();
-		MEMORY = new Main_Memory();
+		AM = new Application_Memory();
+		OSM = new Operating_System_Memory();
+		
 		READY_STATE_INDICATOR = 'R';
 		priority = 1;
 		processId = 1;
@@ -105,9 +109,9 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			short address = machineCode.nextShort();
 
 			// valid address
-			if (address > INVALID_ADDRESS && address < MEMORY.getFirstTemporaryMemoryAddress())
+			if (address > INVALID_ADDRESS && address < AM.getFirstTemporaryMemoryAddress())
 				// store program
-				MEMORY.load(address, machineCode.nextInt());
+				AM.load(address, machineCode.nextInt());
 
 			else if (address <= INVALID_ADDRESS) {
 				logger.info("The loader has reach the end of " + fileName + "'s code");
@@ -137,7 +141,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		String header = printHeader();
 		logger.info(header);
 		while (currentPointer != END_OF_LIST_MARKER) {
-			short nextPointer = (short) MEMORY.fetch((short) (currentPointer + PCB.getNextPcbIndex()));
+			short nextPointer = (short) AM.fetch((short) (currentPointer + PCB.getNextPcbIndex()));
 
 			if (nextPointer == currentPointer) {
 				logger.error("The link list for the ready queue " + "has a self reference!");
@@ -146,7 +150,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 			byte PCBindex;
 			for (PCBindex = 0; PCBindex < PCB.getSize(); PCBindex++)
-				logger.info(currentPointer + "\t" + PCBindex + "\t" + MEMORY.fetch(currentPointer++));
+				logger.info(currentPointer + "\t" + PCBindex + "\t" + AM.fetch(currentPointer++));
 
 			currentPointer = nextPointer;
 
@@ -174,47 +178,54 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 * 
 	 * @return
 	 */
-	public void insertIntoReadyQueue(short PcbPointer) {
+	public void insertIntoReadyQueue(short pcbPointer) {
 		// Insert PCB according to the Priority Round Robin algorithm
 		// Use priority in the PCB to find the correct place to insert.
 		short previousPointer = END_OF_LIST_MARKER;
-		short currentPointer = RqPointer;
+		short tempPointer = RqPointer;
 
 		// Check for invalid PCB memory address
-		if (Main_Memory.withinOsMemory(PcbPointer)) {
+		if (Application_Memory.withinOsMemory(pcbPointer)) {
 			logger.error("The process control block pointer is invalid");
 			return;
 		}
 
 		// set state to ready state
-		PCB.setState(MEMORY, PcbPointer, READY_STATE_INDICATOR);
+		PCB.setState(OSM, pcbPointer, READY_STATE_INDICATOR);
 
 		// set next pointer to end of list
-		PCB.setNextPcbPointer(MEMORY, PcbPointer, END_OF_LIST_MARKER);
+		PCB.setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
 
 		if (isReadyQueueEmpty()) {
-			RqPointer = PcbPointer;
+			RqPointer = pcbPointer;
 			return;
 		}
 
 		// Walk thru RQ and find the place to insert
 		// PCB will be inserted at the end of its priority
 		byte priorityIndex = PCB.getPriorityIndex();
-		while (currentPointer != END_OF_LIST_MARKER) {
+		while (tempPointer != END_OF_LIST_MARKER) {
+			
+			// priortity of the program being inserted
+			Byte priority1 = PCB.getPriority(OSM, pcbPointer);
+			
+			// priortity of the program that was already inserted
+			Byte priority2 = PCB.getPriority(OSM, tempPointer);
+			
 			// if a memory location to insert is found
-			if (MEMORY.fetch((short) (PcbPointer + priorityIndex)) > MEMORY.fetch((short) (currentPointer + priorityIndex))) {
-				if (previousPointer == END_OF_LIST_MARKER) {
+			if (priority1 > priority2) {
+				if (tempPointer == END_OF_LIST_MARKER) {
 					// Enter PCB in the front of the list as first entry
-					PCB.setNextPcbPointer(MEMORY, PcbPointer, RqPointer);
-					RqPointer = PcbPointer;
-					logger.info("[PID: #" + MEMORY.fetch((short) (PcbPointer + PCB.getProcessIdIndex()))
+					PCB.setNextPcbPointer(OSM, pcbPointer, RqPointer);
+					RqPointer = pcbPointer;
+					logger.info("[PID: #" + PCB.getProcessId(OSM, pcbPointer)
 							+ "] has entered the top of the ready queue");
 					printRq();
 					return;
 				}
 				// enter PCB in the middle of the list
-				PCB.setNextPcbPointer(MEMORY, PcbPointer, PCB.getNextPcbPointer(MEMORY, previousPointer));
-				PCB.setNextPcbPointer(MEMORY, previousPointer, PcbPointer);
+				PCB.setNextPcbPointer(OSM, pcbPointer, PCB.getNextPcbPointer(OSM, previousPointer));
+				PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
 
 				logger.info("PCB enters in the middle of the ready queue ");
 				printRq();
@@ -223,13 +234,13 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			} else // PCB to be inserted has lower or equal priority to the
 					// current PCB in RQ
 			{ // go to the next PCB in RQ
-				previousPointer = currentPointer;
-				currentPointer = (short) PCB.getNextPcbPointer(MEMORY, currentPointer);
+				previousPointer = tempPointer;
+				tempPointer = PCB.getNextPcbPointer(OSM, tempPointer);
 			}
 		} // end of while loop
 
 		// Insert PCB at the end of the RQ
-		PCB.setNextPcbPointer(MEMORY, previousPointer, PcbPointer);
+		PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
 
 		System.out.println("PCB enters at the bottom of the ready queue ");
 		printRq();
@@ -239,7 +250,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	/**
 	 * Gives the next free memory addresses block of the requested size to
-	 * programs upon request
+	 * a program
 	 * 
 	 * @param requestedSize
 	 *            The amount of memory requested by a program.
@@ -255,7 +266,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		final byte notOK = -1;
 		
 		// Allocate memory from OS free space, which is organized as link
-		if (MEMORY.getFirstFreeTemporaryMemoryPointer() == END_OF_LIST_MARKER) {
+		if (AM.getFirstFreeTemporaryMemoryPointer() == END_OF_LIST_MARKER) {
 			System.out.println("Error: There is no heap memory free");
 			return NO_MEMORY_FREE; // ErrorNoFreeMemory is constant set to < 0
 		}
@@ -268,25 +279,23 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		if (requestedSize == 1)
 			requestedSize = 2; // Minimum allocated memory is 2 locations
 
-		Short currentPointer = MEMORY.getFirstFreeTemporaryMemoryPointer();
-		short previousPointer = (short) MEMORY.fetch(currentPointer);
-		while (currentPointer != END_OF_LIST_MARKER) {
-			// Check each block in the link list until block with requested
-			// memory size is found ??need better comments???????
-			Integer i = MEMORY.fetch((short) (currentPointer + 1));
+		Short tempPointer1 = AM.getFirstFreeTemporaryMemoryPointer();
+		short tempPointer2 = (short) AM.fetch(tempPointer1);
+		/* Check each block in the link list until block with requested memory size is found */
+		while (tempPointer1 != END_OF_LIST_MARKER) {
 
-			// Found block with requested size. Adjust pointers
+			Short i = AM.fetch((short) (tempPointer1 + 1));
+
+			// if free memory block is the exact size needed. Adjust pointers
 			if (i.equals(requestedSize)) {
-				if (currentPointer.equals(MEMORY.getFirstFreeTemporaryMemoryPointer())) // first
-																						// block
+				// first block
+				if (currentPointer.equals(MEMORY.getFirstFreeTemporaryMemoryPointer())) 
 				{
 					// first entry is pointer to next block
 					MEMORY.setFirstFreeTemporaryMemoryPointer(currentPointer);
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER); // reset
-																		// next
-																		// pointer
-					// in the allocated
-					// block
+					// reset next pointer
+					MEMORY.load(currentPointer, END_OF_LIST_MARKER); 
+					// in the allocated block
 					return currentPointer; // return memory address
 				} else // not first block
 				{
@@ -299,8 +308,8 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				}
 				// Found block with size greater than requested size
 			} else if (MEMORY.fetch( (short) (currentPointer + 1)) > requestedSize) {
-				if (currentPointer == MEMORY.getFirstFreeTemporaryMemoryPointer()) // first
-																		// block
+				// first block
+				if (currentPointer == MEMORY.getFirstFreeTemporaryMemoryPointer()) 
 				{
 					// move next block pointer
 					MEMORY.load(currentPointer + requestedSize, MEMORY.fetch(currentPointer));
@@ -319,11 +328,9 @@ public class Machine implements Stopped_Execution_Reason_Code {
 					
 					// address of reduced block
 					MEMORY.load(previousPointer, currentPointer + requestedSize); 
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER); // reset
-																	// next
-																	// pointer
-					// in the allocated
-					// block
+					// reset next pointer
+					MEMORY.load(currentPointer, END_OF_LIST_MARKER); 
+					// in the allocated block
 					return currentPointer; // return memory address
 				}
 			} else // small block
@@ -349,8 +356,8 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		// Allocate space for Process Control Block
 		short PcbPointer = MEMORY.allocateOSMemory(); // return value contains address
 												// or error
-		if (PcbPointer < Main_Memory.getFirst_Os_Memory_Address()
-				|| PcbPointer > Main_Memory.getLast_Os_Memory_Address()) {
+		if (PcbPointer < Application_Memory.getFirst_Os_Memory_Address()
+				|| PcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
 			System.out.println("Error: Memory alocation from OS free space has failed");
 			return INVALID_ADDRESS;
 		}
@@ -397,8 +404,8 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		// Allocate space for Process Control Block
 		short PcbPointer = MEMORY.allocateOSMemory(); // return value contains address
 												// or error
-		if (PcbPointer < Main_Memory.getFirst_Os_Memory_Address()
-				|| PcbPointer > Main_Memory.getLast_Os_Memory_Address()) {
+		if (PcbPointer < Application_Memory.getFirst_Os_Memory_Address()
+				|| PcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
 			System.out.println("Error: Memory alocation from OS free space has failed");
 			return INVALID_ADDRESS;
 		}
@@ -425,24 +432,14 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		return OK;
 	} // end of CreateProcess module
 
-	/**
-	 * createProcessSystemCall gets a child process ready to receive a message.
-	 * 
-	 * @param filename
-	 *            name of file in the local directory to be loaded
-	 *            
-	 * @param priority
-	 *            The higher the priority the more chances the process will get
-	 *            resources
-	 */
 	public void createProcessSystemCall(short processId) {
 		// Allocate space for Process Control Block
 		short pcbPointer = MEMORY.allocateOSMemory(); // return value contains address
 												// or error
-		if (pcbPointer < Main_Memory.getFirst_Os_Memory_Address()
-				|| pcbPointer > Main_Memory.getLast_Os_Memory_Address()) {
+		if (pcbPointer < Application_Memory.getFirst_Os_Memory_Address()
+				|| pcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
 			logger.error("Memory alocation from OS free space has failed");
-			gpr[0] = INVALID_ADDRESS;
+			CPU.setGeneralPurposeRegister((byte) 0, INVALID_ADDRESS);
 		}
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
@@ -453,38 +450,11 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		byte status = insertIntoWaitingQueue(pcbPointer);
 
 		if (status != OK)
-			gpr[0] = status;
+			CPU.setGeneralPurposeRegister((byte) 0, status);
 		else
-			gpr[0] = OK;
+			CPU.setGeneralPurposeRegister((byte) 0, OK);
 
 	} // end of create child process system call module
-
-	
-	private void restoreCPU(short PCBpointer) {
-		
-		logger.info("Now running process #" + PCB.getProcessId(MEMORY, PCBpointer));
-		// PCBpointer is assumed to be correct
-
-		// Gets the central processing unit's general purpose registers values from memory back into the CPU registers
-		byte gprPCBindex = 10;
-		gpr[0] = memory[PCBpointer + gprPCBindex++];
-		gpr[1] = memory[PCBpointer + gprPCBindex++];
-		gpr[2] = memory[PCBpointer + gprPCBindex++];
-		gpr[3] = memory[PCBpointer + gprPCBindex++];
-		gpr[4] = memory[PCBpointer + gprPCBindex++];
-		gpr[5] = memory[PCBpointer + gprPCBindex++];
-		gpr[6] = memory[PCBpointer + gprPCBindex++];
-		gpr[7] = memory[PCBpointer + gprPCBindex++];
-		// Restore SP and PC
-		sp = (short) memory[PCBpointer + gprPCBindex++];
-		pc = (short) memory[PCBpointer + gprPCBindex];
-
-		// Set system mode to User mode
-		// byte userMode = 2;
-		// psr = userMode; // UserMode is 1, OSMode is 0.
-
-		printRq();
-	} // end of dispatcher module
 	
 	/**
 	 * Sets RQ to the the next process control block and sets the NEXT_PCB_INEX
@@ -494,33 +464,39 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 * @return process control block pointer of the process to be run
 	 */
 	public short selectFromRQ() {
-		short PcbPointer = RqPointer; // PCBpointer points to first entry in RQ
+		short pcbPointer = RqPointer; // PCBpointer points to first entry in RQ
 
-		if (PCB.getNextPcbPointer(MEMORY, PcbPointer) != END_OF_LIST_MARKER)
+		if (PCB.getNextPcbPointer(MEMORY, pcbPointer) != END_OF_LIST_MARKER)
 			// Set RQ to point to the next process control block
-			RqPointer = PCB.getNextPcbPointer(MEMORY, PcbPointer);
+			RqPointer = PCB.getNextPcbPointer(MEMORY, pcbPointer);
 
 		// Set next point to EOL in the PCB
-		PCB.setNextPcbPointer(MEMORY, PcbPointer, END_OF_LIST_MARKER);
+		PCB.setNextPcbPointer(MEMORY, pcbPointer, END_OF_LIST_MARKER);
 
-		restoreCPU(PcbPointer);
-
-		return PcbPointer;
+		// restore CPU
+		int[] gprValues = PCB.getGprValues(MEMORY, pcbPointer, CPU.getNumberOfGPRs());
+		CPU.setGeneralPurposeRegisters(gprValues);
+		CPU.setStackPointer(PCB.getStackPointer(MEMORY, pcbPointer));
+		CPU.setProgramCounter(PCB.getProgramCounter(MEMORY, pcbPointer));
+		
+		return pcbPointer;
 	} // end of select process from the ready queue module
 
 	public void saveContext(short PCBpointer) {
-		byte gprPCBindex = 10;
-		memory[PCBpointer + gprPCBindex++] = gpr[0];
-		memory[PCBpointer + gprPCBindex++] = gpr[1];
-		memory[PCBpointer + gprPCBindex++] = gpr[2];
-		memory[PCBpointer + gprPCBindex++] = gpr[3];
-		memory[PCBpointer + gprPCBindex++] = gpr[4];
-		memory[PCBpointer + gprPCBindex++] = gpr[5];
-		memory[PCBpointer + gprPCBindex++] = gpr[6];
-		memory[PCBpointer + gprPCBindex++] = gpr[7];
-		// Restore SP and PC
-		memory[PCBpointer + gprPCBindex++] = sp;
-		memory[PCBpointer + gprPCBindex] = pc;
+		
+		for (int i = 0; i <= CPU.getNumberOfGPRs() + 1; i++) {
+			PCB.setGeneralPurposeRegister(register, instruction);memory[PCBpointer + gprPCBindex++] = gpr[0];
+			memory[PCBpointer + gprPCBindex++] = gpr[1];
+			memory[PCBpointer + gprPCBindex++] = gpr[2];
+			memory[PCBpointer + gprPCBindex++] = gpr[3];
+			memory[PCBpointer + gprPCBindex++] = gpr[4];
+			memory[PCBpointer + gprPCBindex++] = gpr[5];
+			memory[PCBpointer + gprPCBindex++] = gpr[6];
+			memory[PCBpointer + gprPCBindex++] = gpr[7];
+			// Restore SP and PC
+			memory[PCBpointer + gprPCBindex++] = sp;
+			memory[PCBpointer + gprPCBindex] = pc;
+		}
 
 		return;
 	} // end of SaveContext() function
@@ -599,7 +575,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 		case REGISTERDEFERRED: // Operand address is in the register
 			if (gpr[register] >= FIRST_USER_MEMORY_ADDRESS
-					&& gpr[register] <= Main_Memory.getLast_Os_Memory_Address()) {
+					&& gpr[register] <= Application_Memory.getLast_Os_Memory_Address()) {
 				op = new Operand((short) gpr[register], memory[(int) gpr[register]]);
 			} else {
 				System.out.println("Error: Invalid address found fetching operand in " + "autoincrement mode");
@@ -618,7 +594,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		case AUTODECREMENT: // Autodecrement mode
 			gpr[register] -= 1; // Decrement register value by 1
 			// Operand address is in the register. Operand value is in memory
-			if (gpr[register] > FIRST_USER_MEMORY_ADDRESS && gpr[register] <= Main_Memory.getLast_Os_Memory_Address()) {
+			if (gpr[register] > FIRST_USER_MEMORY_ADDRESS && gpr[register] <= Application_Memory.getLast_Os_Memory_Address()) {
 				op = new Operand((short) gpr[register], INVALID_VALUE);
 
 			} else {
@@ -630,7 +606,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 		case DIRECT: // Direct mode
 			// Operand address is memory. Operand value is in memory
-			if (memory[pc] > FIRST_USER_MEMORY_ADDRESS && memory[pc] <= Main_Memory.getLast_Os_Memory_Address()) {
+			if (memory[pc] > FIRST_USER_MEMORY_ADDRESS && memory[pc] <= Application_Memory.getLast_Os_Memory_Address()) {
 				op = new Operand((short) memory[pc], memory[(int) memory[pc]]);
 			} else {
 				System.out.println("Error: Invalid address");
@@ -642,7 +618,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			break;
 
 		case IMMEDIATE: // Immediate mode
-			if (pc > FIRST_USER_MEMORY_ADDRESS && pc <= Main_Memory.getLast_Os_Memory_Address()) {
+			if (pc > FIRST_USER_MEMORY_ADDRESS && pc <= Application_Memory.getLast_Os_Memory_Address()) {
 				op = new Operand(pc, memory[pc]); // operand value is in memory
 				this.pc++;// increment program counter by one
 			} else {
@@ -689,7 +665,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		byte systemCallCode;
 		while (ticks < TIME_SLICE) {
 			// Fetch (read) the first word of the instruction pointed by PC
-			if (pc <= Main_Memory.getLast_Os_Memory_Address()) {
+			if (pc <= Application_Memory.getLast_Os_Memory_Address()) {
 				mar = pc;
 				/*
 				 * Advances program counter by 1 to the address of next
@@ -826,7 +802,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				else
 					memory[operand1.address] = result;
 
-				// Increment overall clock and this timeslice
+				// Increment overall clock and this time slice
 				clock += 3;
 				ticks += 3;
 
@@ -925,7 +901,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				break;
 
 			case 6: // Branch or jump instruction
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Main_Memory.getLast_Os_Memory_Address()) {
+				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
 					System.out.println("Error: Invalid address");
 					return INVALID_ADDRESS;
 				}
@@ -958,7 +934,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				break;
 
 			case 8: // Branch on plus
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Main_Memory.getLast_Os_Memory_Address()) {
+				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
 					System.out.println("Error: Invalid address");
 					return INVALID_ADDRESS;
 				}
@@ -978,7 +954,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				break;
 
 			case 9: // branch on zero
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Main_Memory.getLast_Os_Memory_Address()) {
+				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
 					System.out.println("Error: Invalid address");
 					return INVALID_ADDRESS;
 				}
@@ -997,7 +973,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 				break;
 
 			case 10: // Push
-				if (sp < FIRST_TEMPORARY_MEMORY_ADDRESS || sp >= Main_Memory.getFirst_Os_Memory_Address()) {
+				if (sp < FIRST_TEMPORARY_MEMORY_ADDRESS || sp >= Application_Memory.getFirst_Os_Memory_Address()) {
 					System.out.println("Error: Invalid stack address");
 					return INVALID_ADDRESS;
 				}
@@ -1135,7 +1111,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		if (size == 1)
 			size = 2; // minimum allocated size
 
-		if (pointer < FIRST_TEMPORARY_MEMORY_ADDRESS || pointer + size >= Main_Memory.getFirst_Os_Memory_Address()) {
+		if (pointer < FIRST_TEMPORARY_MEMORY_ADDRESS || pointer + size >= Application_Memory.getFirst_Os_Memory_Address()) {
 			System.out.print(
 					"Error: The free temporary memory method has failed due to " + "receiving an invalid address ");
 			return INVALID_ADDRESS; // INVALID_ADDRESS is a constant set to -1
@@ -1180,7 +1156,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 */
 	byte freeOSmemory(short ptr) // return value contains OK or error code
 	{
-		if (ptr < Main_Memory.getFirst_Os_Memory_Address() || ptr > Main_Memory.getLast_Os_Memory_Address()) // MaxMemoryAddress
+		if (ptr < Application_Memory.getFirst_Os_Memory_Address() || ptr > Application_Memory.getLast_Os_Memory_Address()) // MaxMemoryAddress
 		// is
 		// a
 		// constant
@@ -1192,7 +1168,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			return INVALID_ADDRESS; // ErrorInvalidMemoryAddress is constantset
 									// to < 0
 		}
-		if (ptr + PCB_SIZE > Main_Memory.getLast_Os_Memory_Address()) { // Invalid
+		if (ptr + PCB_SIZE > Application_Memory.getLast_Os_Memory_Address()) { // Invalid
 																		// size
 			System.out.print("Error: An invalid address was referenced. " + "OS memory was not returned.");
 			return INVALID_ADDRESS; // All error codes are less than 0.
@@ -1333,7 +1309,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		short currentPointer = WQ;
 
 		// Check for invalid PCB memory address
-		if (PCBptr < Main_Memory.getFirst_Os_Memory_Address() || PCBptr > Main_Memory.getLast_Os_Memory_Address()) {
+		if (PCBptr < Application_Memory.getFirst_Os_Memory_Address() || PCBptr > Application_Memory.getLast_Os_Memory_Address()) {
 			System.out.println("Error: The process control block pointer is invalid");
 			return INVALID_ADDRESS; // ErrorInvalidMemoryAddress is constantset
 									// to < 0

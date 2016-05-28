@@ -40,6 +40,7 @@ public class Central_Processing_Unit {
 	public Central_Processing_Unit() {
 		
 		NUMBER_OF_REGISTERS = 8;
+		generalPurposeRegisters = new int[NUMBER_OF_REGISTERS];
 	}
 	
 	public byte getNumberOfGPRs() {
@@ -47,9 +48,10 @@ public class Central_Processing_Unit {
 		return NUMBER_OF_REGISTERS;
 	}
 	
-	public void setGeneralPurposeRegisters(int[] a) {
+	public void setGeneralPurposeRegisters(int[] gprValues) {
 		
-		generalPurposeRegisters.clone();
+		for (byte i = 0; i <= NUMBER_OF_REGISTERS + 1; i++) 
+			setGeneralPurposeRegister(i, gprValues[i]);
 	}
 	
 	public void dumpRegisters() {
@@ -69,7 +71,22 @@ public class Central_Processing_Unit {
 	}
 
 	public void dumpProgramCounter() {
+		
 		logger.info("\t%d\n", programCounter);
 	}
-
+	
+	public void setGeneralPurposeRegister(byte register, int instruction) {
+		
+		generalPurposeRegisters[register] = instruction;
+	}
+	
+	public void setStackPointer(short sp) {
+		
+		stackPointer = sp;
+	}
+	
+	public void setProgramCounter(short pc) {
+		
+		programCounter = pc;
+	}
 }
