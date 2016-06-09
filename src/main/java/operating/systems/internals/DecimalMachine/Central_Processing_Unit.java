@@ -3,9 +3,9 @@ package operating.systems.internals.DecimalMachine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Central_Processing_Unit {
-	
-	private int[] generalPurposeRegisters;
+import operating.systems.internals.Memory.Memory;
+
+public class Central_Processing_Unit extends Memory{
 	
 	/*
 	 * A program counter is a register 
@@ -31,27 +31,19 @@ public class Central_Processing_Unit {
 	 */
 	private short stackPointer;
 	
-	private final byte NUMBER_OF_REGISTERS;
-	
 	private static final Logger logger = LogManager.getLogger("Machine_Implementation");
 
 	// psr = 0; // Processor status register
 	
-	public Central_Processing_Unit() {
+	public Central_Processing_Unit(byte size) {
 		
-		NUMBER_OF_REGISTERS = 8;
-		generalPurposeRegisters = new int[NUMBER_OF_REGISTERS];
-	}
-	
-	public byte getNumberOfGPRs() {
-		
-		return NUMBER_OF_REGISTERS;
+		super(size);
 	}
 	
 	public void setGeneralPurposeRegisters(int[] gprValues) {
 		
-		for (byte i = 0; i <= NUMBER_OF_REGISTERS + 1; i++) 
-			setGeneralPurposeRegister(i, gprValues[i]);
+		for (byte i = 0; i <= getSize() + 1; i++) 
+			load(i, gprValues[i]);
 	}
 	
 	public void dumpRegisters() {
@@ -60,8 +52,8 @@ public class Central_Processing_Unit {
 		logger.info("GPRs:\tG0\tG1\tG2\tG3\tG4\tG5\tG6\tG7\tSP\tPC");
 
 		// print register values
-		for (int i = 0; i <= NUMBER_OF_REGISTERS; i++)
-			System.out.printf("\t%d", generalPurposeRegisters[i]);
+		for (short i = 0; i <= getSize(); i++)
+			logger.info("\t%d", fetch(i));
 	}
 	
 	public void dumpStackPointer() {
@@ -75,18 +67,29 @@ public class Central_Processing_Unit {
 		logger.info("\t%d\n", programCounter);
 	}
 	
-	public void setGeneralPurposeRegister(byte register, int instruction) {
-		
-		generalPurposeRegisters[register] = instruction;
-	}
 	
 	public void setStackPointer(short sp) {
 		
 		stackPointer = sp;
 	}
 	
+	public short getStackPointer() {
+		
+		return stackPointer;
+	}
+	
 	public void setProgramCounter(short pc) {
 		
 		programCounter = pc;
+	}
+	
+	public short getProgramCounter() {
+		
+		return programCounter;
+	}
+	
+	public void incrementProgramCounter() {
+		
+		programCounter++;
 	}
 }

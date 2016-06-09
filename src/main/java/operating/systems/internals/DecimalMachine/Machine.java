@@ -7,7 +7,12 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import operating.systems.internals.Memory.Application_Memory;
+import operating.systems.internals.Memory.Simple_Memory;
+
 /**
+ * Facade design pattern for Memory and CPU
+ * 
  * byte: The byte data type is an 8-bit signed two's complement integer. It has
  * a minimum value of -128 and a maximum value of 127 (inclusive).
  * 
@@ -21,6 +26,7 @@ import org.apache.logging.log4j.Logger;
  * long: The long data type is a 64-bit signed two's complement integer. It has
  * a minimum value of -9,223,372,036,854,775,808 and a maximum value of
  * 9,223,372,036,854,775,807 (inclusive).
+ * 
  * 
  * @author Roody Audain
  * @version 03 August 2013
@@ -44,31 +50,49 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	private static final Logger logger = LogManager.getLogger("Machine");
 
-	private final Process_Control_Block PCB = new Process_Control_Block();
+	private final Process_Control_Block PCB;
 
 	private final char READY_STATE_INDICATOR;
-	
+
 	private byte priority;
-	
+
 	private byte processId;
-	
+
 	private final Central_Processing_Unit CPU;
+
+	private final Simple_Memory OSM;
+
+	private final byte SIZE_OF_AM;
+
+	private final byte SIZE_OF_OSM;
+
+	private final Simple_Memory HM;
 	
-	private final Operating_System_Memory OSM;
+	private final byte NUMBER_OF_REGISTERS;
+	
+	private final byte SIZE_OF_HM;
+	
+	private short ticks;
 
 	public Machine() {
 
-		CPU = new Central_Processing_Unit();
-		AM = new Application_Memory();
-		OSM = new Operating_System_Memory();
-		
+		SIZE_OF_AM = 75;
+		SIZE_OF_OSM = 75;
+		NUMBER_OF_REGISTERS = 11;
+		SIZE_OF_HM = 50;
+
+		CPU = new Central_Processing_Unit(NUMBER_OF_REGISTERS);
+		AM = new Application_Memory(SIZE_OF_AM);
+		OSM = new Simple_Memory(SIZE_OF_OSM);
+		HM = new Simple_Memory(SIZE_OF_HM);
+		PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
+
 		READY_STATE_INDICATOR = 'R';
 		priority = 1;
 		processId = 1;
+		ticks = 0;
 
 	} // end of constructor
-
-	final byte INVALID_ADDRESS = -1;
 
 	public String addPath(String fileName) {
 
@@ -80,12 +104,15 @@ public class Machine implements Stopped_Execution_Reason_Code {
 
 	/**
 	 * Open the file containing HYPO machine program and load the content into
-	 * user memory. On successful load, return the PC value in the last line. On
-	 * failure, return appropriate error code
+	 * the application partition of memory. On successful load, return the PC
+	 * value in the last line. On failure, return appropriate error code.
 	 * 
 	 * @param filename
 	 *            Name of the executable file to be loaded into main memory
+	 * 
 	 * @throws FileNotFoundException
+	 * 
+	 * @return First address of the program
 	 */
 	public short absoluteLoader(String fileName) throws FileNotFoundException {
 
@@ -108,12 +135,12 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			// read address, content from file
 			short address = machineCode.nextShort();
 
-			// valid address
-			if (address > INVALID_ADDRESS && address < AM.getFirstTemporaryMemoryAddress())
+			// if valid address
+			if (AM.isValidAddress(address))
 				// store program
 				AM.load(address, machineCode.nextInt());
 
-			else if (address <= INVALID_ADDRESS) {
+			else if (address == AM.getEndIndicator()) {
 				logger.info("The loader has reach the end of " + fileName + "'s code");
 				short origin = machineCode.nextShort();
 				machineCode.close();
@@ -185,7 +212,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		short tempPointer = RqPointer;
 
 		// Check for invalid PCB memory address
-		if (Application_Memory.withinOsMemory(pcbPointer)) {
+		if (AM.isValidAddress(pcbPointer)) {
 			logger.error("The process control block pointer is invalid");
 			return;
 		}
@@ -205,21 +232,21 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		// PCB will be inserted at the end of its priority
 		byte priorityIndex = PCB.getPriorityIndex();
 		while (tempPointer != END_OF_LIST_MARKER) {
-			
+
 			// priortity of the program being inserted
 			Byte priority1 = PCB.getPriority(OSM, pcbPointer);
-			
+
 			// priortity of the program that was already inserted
 			Byte priority2 = PCB.getPriority(OSM, tempPointer);
-			
+
 			// if a memory location to insert is found
 			if (priority1 > priority2) {
 				if (tempPointer == END_OF_LIST_MARKER) {
 					// Enter PCB in the front of the list as first entry
 					PCB.setNextPcbPointer(OSM, pcbPointer, RqPointer);
 					RqPointer = pcbPointer;
-					logger.info("[PID: #" + PCB.getProcessId(OSM, pcbPointer)
-							+ "] has entered the top of the ready queue");
+					logger.info(
+							"[PID: #" + PCB.getProcessId(OSM, pcbPointer) + "] has entered the top of the ready queue");
 					printRq();
 					return;
 				}
@@ -249,146 +276,43 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	} // end of insert process into ready queue module
 
 	/**
-	 * Gives the next free memory addresses block of the requested size to
-	 * a program
-	 * 
-	 * @param requestedSize
-	 *            The amount of memory requested by a program.
-	 * @return Error status or the first address for the memory block the is
-	 *         given.
-	 */
-	public int allocateTemporaryMemory(short requestedSize) {
-		// Allocate memory from User free space, which is organized as link
-		// copy OS code and modify to use freeHeapMemory
-
-		final byte NO_MEMORY_FREE = -11;
-		final byte INVALID_SIZE = -12;
-		final byte notOK = -1;
-		
-		// Allocate memory from OS free space, which is organized as link
-		if (AM.getFirstFreeTemporaryMemoryPointer() == END_OF_LIST_MARKER) {
-			System.out.println("Error: There is no heap memory free");
-			return NO_MEMORY_FREE; // ErrorNoFreeMemory is constant set to < 0
-		}
-
-		if (requestedSize < 0 || requestedSize > 2000) {
-			System.out.println("Error: Invalid heap size");
-			return INVALID_SIZE; // ErrorInvalidMemorySize is constant < 0
-		}
-
-		if (requestedSize == 1)
-			requestedSize = 2; // Minimum allocated memory is 2 locations
-
-		Short tempPointer1 = AM.getFirstFreeTemporaryMemoryPointer();
-		short tempPointer2 = (short) AM.fetch(tempPointer1);
-		/* Check each block in the link list until block with requested memory size is found */
-		while (tempPointer1 != END_OF_LIST_MARKER) {
-
-			Short i = AM.fetch((short) (tempPointer1 + 1));
-
-			// if free memory block is the exact size needed. Adjust pointers
-			if (i.equals(requestedSize)) {
-				// first block
-				if (currentPointer.equals(MEMORY.getFirstFreeTemporaryMemoryPointer())) 
-				{
-					// first entry is pointer to next block
-					MEMORY.setFirstFreeTemporaryMemoryPointer(currentPointer);
-					// reset next pointer
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER); 
-					// in the allocated block
-					return currentPointer; // return memory address
-				} else // not first block
-				{
-					// point to next block
-					MEMORY.load(previousPointer, MEMORY.fetch(currentPointer));
-
-					// reset next pointer in the allocated block
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER);
-					return currentPointer; // return memory address
-				}
-				// Found block with size greater than requested size
-			} else if (MEMORY.fetch( (short) (currentPointer + 1)) > requestedSize) {
-				// first block
-				if (currentPointer == MEMORY.getFirstFreeTemporaryMemoryPointer()) 
-				{
-					// move next block pointer
-					MEMORY.load(currentPointer + requestedSize, MEMORY.fetch(currentPointer));
-					MEMORY.load(currentPointer + requestedSize + 1, MEMORY.fetch((short) (currentPointer + 1)) - requestedSize);
-					// address of reduced block
-					MEMORY.setFirstFreeTemporaryMemoryPointer((short) (currentPointer + requestedSize));
-					// reset next pointer in the allocated block
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER);
-
-					return currentPointer; // return memory address
-				} else // not first block
-				{
-					// move next block pointer
-					MEMORY.load(currentPointer + requestedSize, MEMORY.fetch(currentPointer)); 
-					MEMORY.load(currentPointer + requestedSize + 1, MEMORY.fetch((short) (currentPointer + 1)) - requestedSize);
-					
-					// address of reduced block
-					MEMORY.load(previousPointer, currentPointer + requestedSize); 
-					// reset next pointer
-					MEMORY.load(currentPointer, END_OF_LIST_MARKER); 
-					// in the allocated block
-					return currentPointer; // return memory address
-				}
-			} else // small block
-			{ // look at next block
-				previousPointer = currentPointer;
-				currentPointer = (short) MEMORY.fetch(currentPointer);
-			}
-		} // end of while loop
-
-		System.out.println("Error: No free stack memory error");
-		return notOK; // ErrorNoFreeMemory is constant set to < 0
-	} // end of allocate user memory module
-
-	/**
 	 * createProcess gets the null program ready to be run.
 	 * 
+	 * 
 	 */
-	public short createProcess() throws FileNotFoundException {
-		
+	public void createProcess() throws FileNotFoundException {
+
 		String filename = "C:\\Users\\roody.audain\\workspace\\Concepts\\DecimalMachine"
 				+ "\\src\\main\\resources\\Null_Process";
 
 		// Allocate space for Process Control Block
-		short PcbPointer = MEMORY.allocateOSMemory(); // return value contains address
-												// or error
-		if (PcbPointer < Application_Memory.getFirst_Os_Memory_Address()
-				|| PcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
-			System.out.println("Error: Memory alocation from OS free space has failed");
-			return INVALID_ADDRESS;
-		}
+		short PcbPointer = OSM.allocate(PCB.getSize()); // return value contains
+														// address
+		// or error
+		if (PcbPointer < AM.getFirstMemoryAddress() || PcbPointer > AM.getSize())
+			logger.error("Memory alocation from OS free space has failed");
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
-		PCB.initialize(MEMORY, PcbPointer, processId++, priority++, 'R');
+		PCB.initialize(OSM, PcbPointer, processId++, priority++, 'R');
 
-		// Load the program
-		Short load;
+		// get the program's address of it's first instruction
+		Short programOrigin;
+		programOrigin = (Short) absoluteLoader(filename);
 
-		load = (Short) absoluteLoader(filename);
-
-		if (load <= INVALID_ADDRESS || load >= MEMORY.getFirstTemporaryMemoryAddress()) {
-			logger.error("The Program's origin address is out of range."
-					+ " Program counter cannot be set correctly");
-			return INVALID_ADDRESS;
-		}
+		if (AM.isValidAddress(programOrigin))
+			logger.error("The Program's origin address is out of range." + " Program counter cannot be set correctly");
 
 		// store PC value in the PCB of the process
-		PCB.setProgramCounter(MEMORY, PcbPointer, load); 
+		PCB.setProgramCounter(OSM, PcbPointer, programOrigin);
 
 		// Store stack information in the PCB – SP, pointer, and size
 		// not implemented
 
-		PCB.setPriority(MEMORY, PcbPointer, priority); // Set priority
+		PCB.setPriority(OSM, PcbPointer, priority); // Set priority
 
 		// Insert PCB into Ready Queue according to the scheduling algorithm
 		insertIntoReadyQueue(PcbPointer);
-
-		return OK;
 	} // end of CreateProcess method
 
 	/**
@@ -400,62 +324,51 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 *            The higher the priority the more chances the process will get
 	 *            resources
 	 */
-	public short createProcess(String filename, byte priority) throws FileNotFoundException {
+	public void createProcess(String filename, byte priority) throws FileNotFoundException {
 		// Allocate space for Process Control Block
-		short PcbPointer = MEMORY.allocateOSMemory(); // return value contains address
-												// or error
-		if (PcbPointer < Application_Memory.getFirst_Os_Memory_Address()
-				|| PcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
-			System.out.println("Error: Memory alocation from OS free space has failed");
-			return INVALID_ADDRESS;
-		}
+		short pcbPointer = OSM.allocate(PCB.getSize()); // return value contains
+														// address
+		// or error
+		if (!AM.isValidAddress(pcbPointer))
+			logger.error("Memory alocation from OS free space has failed");
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
-		PCB.initialize(MEMORY, PcbPointer, processId++, priority++, 'R');
+		PCB.initialize(OSM, pcbPointer, processId++, priority++, 'R');
 
 		// Load the program
 		Short load;
 		load = (Short) absoluteLoader(filename);
-		
-		 // store PC value in the PCB of the process
-		PCB.setProgramCounter(MEMORY, PcbPointer, load);
+
+		// store PC value in the PCB of the process
+		PCB.setProgramCounter(OSM, pcbPointer, load);
 
 		// Store stack information in the PCB – SP, pointer, and size
 		// not implemented
 
-		PCB.setPriority(MEMORY, PcbPointer, priority);
+		PCB.setPriority(OSM, pcbPointer, priority);
 
 		// Insert PCB into Ready Queue according to the scheduling algorithm
-		insertIntoReadyQueue(PcbPointer);
-
-		return OK;
+		insertIntoReadyQueue(pcbPointer);
 	} // end of CreateProcess module
 
 	public void createProcessSystemCall(short processId) {
 		// Allocate space for Process Control Block
-		short pcbPointer = MEMORY.allocateOSMemory(); // return value contains address
-												// or error
-		if (pcbPointer < Application_Memory.getFirst_Os_Memory_Address()
-				|| pcbPointer > Application_Memory.getLast_Os_Memory_Address()) {
+		short pcbPointer = OSM.allocate(PCB.getSize());
+		if (!AM.isValidAddress(pcbPointer)) {
 			logger.error("Memory alocation from OS free space has failed");
-			CPU.setGeneralPurposeRegister((byte) 0, INVALID_ADDRESS);
+			CPU.load( 0, -2);
 		}
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
-		PCB.setPcb(MEMORY, pcbPointer, processId, priority, 'W');
+		PCB.setPcb(OSM, pcbPointer, processId, priority, 'W');
 
 		// Insert PCB into Ready Queue according to the scheduling algorithm
-		byte status = insertIntoWaitingQueue(pcbPointer);
-
-		if (status != OK)
-			CPU.setGeneralPurposeRegister((byte) 0, status);
-		else
-			CPU.setGeneralPurposeRegister((byte) 0, OK);
+		insertIntoWaitingQueue(pcbPointer);
 
 	} // end of create child process system call module
-	
+
 	/**
 	 * Sets RQ to the the next process control block and sets the NEXT_PCB_INEX
 	 * of the process control block at the top of the control block (varible
@@ -466,39 +379,29 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	public short selectFromRQ() {
 		short pcbPointer = RqPointer; // PCBpointer points to first entry in RQ
 
-		if (PCB.getNextPcbPointer(MEMORY, pcbPointer) != END_OF_LIST_MARKER)
+		if (PCB.getNextPcbPointer(OSM, pcbPointer) != END_OF_LIST_MARKER)
 			// Set RQ to point to the next process control block
-			RqPointer = PCB.getNextPcbPointer(MEMORY, pcbPointer);
+			RqPointer = PCB.getNextPcbPointer(OSM, pcbPointer);
 
 		// Set next point to EOL in the PCB
-		PCB.setNextPcbPointer(MEMORY, pcbPointer, END_OF_LIST_MARKER);
+		PCB.setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
 
 		// restore CPU
-		int[] gprValues = PCB.getGprValues(MEMORY, pcbPointer, CPU.getNumberOfGPRs());
+		int[] gprValues = PCB.getGprValues(OSM, pcbPointer, (byte) CPU.getSize());
 		CPU.setGeneralPurposeRegisters(gprValues);
-		CPU.setStackPointer(PCB.getStackPointer(MEMORY, pcbPointer));
-		CPU.setProgramCounter(PCB.getProgramCounter(MEMORY, pcbPointer));
-		
+		CPU.setStackPointer(PCB.getStackPointer(OSM, pcbPointer));
+		CPU.setProgramCounter(PCB.getProgramCounter(OSM, pcbPointer));
+
 		return pcbPointer;
 	} // end of select process from the ready queue module
 
 	public void saveContext(short PCBpointer) {
-		
-		for (int i = 0; i <= CPU.getNumberOfGPRs() + 1; i++) {
-			PCB.setGeneralPurposeRegister(register, instruction);memory[PCBpointer + gprPCBindex++] = gpr[0];
-			memory[PCBpointer + gprPCBindex++] = gpr[1];
-			memory[PCBpointer + gprPCBindex++] = gpr[2];
-			memory[PCBpointer + gprPCBindex++] = gpr[3];
-			memory[PCBpointer + gprPCBindex++] = gpr[4];
-			memory[PCBpointer + gprPCBindex++] = gpr[5];
-			memory[PCBpointer + gprPCBindex++] = gpr[6];
-			memory[PCBpointer + gprPCBindex++] = gpr[7];
-			// Restore SP and PC
-			memory[PCBpointer + gprPCBindex++] = sp;
-			memory[PCBpointer + gprPCBindex] = pc;
-		}
 
-		return;
+		for (byte i = 0; i <= CPU.getSize() + 1; i++) 
+			PCB.load(i, CPU.fetch(i));
+		
+			PCB.setStackPointer(CPU.getStackPointer());
+			PCB.setProgramCounter(CPU.getProgramCounter());
 	} // end of SaveContext() function
 
 	// There are six different addressing modes in the HYPO machine. They are
@@ -540,9 +443,10 @@ public class Machine implements Stopped_Execution_Reason_Code {
 												// unsuccessful error code
 
 	final byte FIRST_USER_MEMORY_ADDRESS = 0;
+	byte invalidIndicator = -1;
 
 	/**
-	 * Task Description: fetches an operands
+	 * Task Description: fetches an operand
 	 * 
 	 * @param OpMode
 	 *            Operand mode value
@@ -552,91 +456,468 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 *            Output Parameters OpAddress Address of operand OpValue Operand
 	 *            value when mode and GPR are valid
 	 *
-	 * @return Operand including the operands address (if valid) and value. if
+	 * @return Instruction including the Instruction address (if valid) and value. if
 	 *         operand is invalid then it's address is -1 and value is -616.
 	 */
-	Operand fetchOperand(byte addressingMode, // Operand mode, input parameter
+	public Instruction getInstruction(byte addressingMode, // Operand mode, input parameter
 			byte register) // operand GPR, input parameter
 	{
 		final short INVALID_VALUE = 616;
 
-		Operand op = new Operand(INVALID); // return operand
+		Instruction op = new Instruction(INVALID); // return operand
 		// Fetch operand value based on the operand mode
+		short reg = (short) CPU.fetch(register);
+		short pc = CPU.getProgramCounter();
 		switch (addressingMode) {
 		case INVALID:
-			op = new Operand(INVALID_MODE);
+			op = new Instruction(INVALID_MODE);
 
 			break;
 
 		case REGISTER:
-			op = new Operand(INVALID_ADDRESS, gpr[register]);
+			op = new Instruction(invalidIndicator, CPU.fetch(register));
 
 			break;
 
-		case REGISTERDEFERRED: // Operand address is in the register
-			if (gpr[register] >= FIRST_USER_MEMORY_ADDRESS
-					&& gpr[register] <= Application_Memory.getLast_Os_Memory_Address()) {
-				op = new Operand((short) gpr[register], memory[(int) gpr[register]]);
+		// Operand address is in the register
+		case REGISTERDEFERRED: 
+			if (CPU.isValidAddress(register)) {
+				//?????
+				op = new Instruction((short) CPU.fetch(register), AM.fetch((short) CPU.fetch(register)));
 			} else {
-				System.out.println("Error: Invalid address found fetching operand in " + "autoincrement mode");
-				op = new Operand(INVALID_ADDRESS);
+				logger.error("Invalid address found fetching operand in " + "autoincrement mode");
+				op = new Instruction(invalidIndicator);
 			}
 
 			break;
 
 		// Increments register by one after fetching address
 		case AUTOINCREMENT:
-			op = new Operand((short) gpr[register], (short) gpr[register]);
-			gpr[register] += 1; // Increment register value by 1
+			op = new Instruction(reg, reg);
+			// Increment register value by 1
+			CPU.load(register, reg + 1);
 
 			break;
 
-		case AUTODECREMENT: // Autodecrement mode
-			gpr[register] -= 1; // Decrement register value by 1
+		// Autodecrement mode
+		case AUTODECREMENT: 
+			// Decrement register value by 1
+			CPU.load(register, reg - 1); 
 			// Operand address is in the register. Operand value is in memory
-			if (gpr[register] > FIRST_USER_MEMORY_ADDRESS && gpr[register] <= Application_Memory.getLast_Os_Memory_Address()) {
-				op = new Operand((short) gpr[register], INVALID_VALUE);
+			if (CPU.isValidAddress(reg)) {
+				op = new Instruction(reg, INVALID_VALUE);
 
 			} else {
-				System.out.println("Error: Invalid address");
-				op = new Operand(INVALID_ADDRESS);
+				logger.error("Invalid address");
+				op = new Instruction(invalidIndicator);
 			}
 
 			break;
 
 		case DIRECT: // Direct mode
 			// Operand address is memory. Operand value is in memory
-			if (memory[pc] > FIRST_USER_MEMORY_ADDRESS && memory[pc] <= Application_Memory.getLast_Os_Memory_Address()) {
-				op = new Operand((short) memory[pc], memory[(int) memory[pc]]);
+			int operandAtPc = AM.fetch(pc);
+			if (AM.isValidAddress((short) operandAtPc)) {
+				op = new Instruction((short) operandAtPc, AM.fetch((short) operandAtPc));
 			} else {
-				System.out.println("Error: Invalid address");
-				op = new Operand(INVALID_ADDRESS);
+				logger.error("Invalid address");
+				op = new Instruction(invalidIndicator);
 			}
 
-			this.pc++;
+			CPU.setProgramCounter((short) (pc + 1));
 
 			break;
 
 		case IMMEDIATE: // Immediate mode
-			if (pc > FIRST_USER_MEMORY_ADDRESS && pc <= Application_Memory.getLast_Os_Memory_Address()) {
-				op = new Operand(pc, memory[pc]); // operand value is in memory
-				this.pc++;// increment program counter by one
+			if (AM.isValidAddress(pc)) {
+				// operand value is in memory
+				op = new Instruction(pc, AM.fetch(pc)); 
+				// increment program counter by one
+				CPU.incrementProgramCounter();
 			} else {
-				System.out.println("Error: Invalid address");
-				op = new Operand(INVALID_ADDRESS);
+				logger.error("Invalid address");
+				op = new Instruction(invalidIndicator);
 			}
 
 			break;
 
 		default: // Invalid mode
-			System.out.println("Error: Fetched operand has unkown mode.");
-			op = new Operand(INVALID_MODE);
+			logger.error("Fetched operand has unkown mode.");
+			op = new Instruction(INVALID_MODE);
 
 		} // end of switch OpMode
 
 		return op; // return successful or unsuccessful operand fetch
 	} // end of FetchOperand module
 
+	public byte executeInstruction() {
+		
+		short address; // Memory Address Register
+		int instruction; // Instruction Register
+		byte systemCallCode;
+		final byte DIVIDE_BY_ZERO = -8;
+		final byte INVALID_OPCODE = -10;
+		// Fetch (read) the first word of the instruction pointed by PC
+					short pc = CPU.getProgramCounter();	
+					if (AM.isValidAddress(pc)) {
+						address = pc;
+						/*
+						 * Advances program counter by 1 to the address of next
+						 * instuction.
+						 */
+						CPU.incrementProgramCounter();
+						instruction = AM.fetch(address);
+					} else {
+						logger.error("The program is leaving the designated program memory");
+						return invalidIndicator;
+					}
+
+					/*
+					 * Decode the first word of the instruction into opcode, mode and
+					 * gpr using integer division and modulo operators. Example machine
+					 * code: oc M R M R 5 4 3 2 1
+					 */
+					byte operationCode = (byte) (instruction / 10000); // Integer division, gives opcode
+					if (!Instruction.isValidOperationCode(operationCode)) {
+						logger.error("Invalid operation code");
+						return INVALID_OPCODE;
+					}
+					// Modulo gives machine code line minus the opcode
+
+					short remainder = (short) (instruction % 10000);
+					// assigns the addressing mode for the left hand operand
+					byte operand1Mode = (byte) (remainder / 1000);
+					if (operand1Mode > 6 || operand1Mode < 0) {
+						logger.error("Operand one has invalid mode");
+						return INVALID_MODE;
+					}
+
+					/*
+					 * gets the machine code minus the opcode and the addressing mode
+					 * for the left hand operand
+					 */
+					remainder %= 1000;
+					byte operand1GPR = (byte) (remainder / 100); // assigns the left
+																	// hand operand
+					if (Instruction.isVaildOperand(operand1GPR)) {
+						logger.error("invalid general purpose register address");
+						return invalidIndicator;
+					}
+					// gets the machine code for the the right hand operand and
+					// addressing mode
+					remainder %= 100;
+					// assigns the addressing mode for the right hand operand
+					byte operand2Mode = (byte) (remainder / 10);
+					if (operand2Mode > 6 || operand2Mode < 0) {
+						logger.error("Operand two has invalid mode");
+						return INVALID_MODE;
+					}
+					byte operand2GPR = (byte) (remainder % 10); // assigns the right had
+																// operand
+					if (operand2GPR > LAST_GPR || operand2GPR < 0) {
+						logger.error("Invalid general purpose register address");
+						return invalidIndicator;
+					}
+					// Execute Cycle
+					// In the execute cycle, fetch operand value(s) based on the opcode
+					// since different opcode has different number of operands
+					
+		Instruction operand1 = getInstruction(operand1Mode, operand1GPR);
+		Instruction operand2 = getInstruction(operand2Mode, operand2GPR);
+		switch (operationCode) {
+		case 0: // halt
+			logger.info("\n The CPU has reached a halt " + "instruction.");
+			logger.info("Dumping CPU registers and used " + "temporary memory.");
+			CPU.dumpRegisters();
+
+			// Increment overall clock and this timeslice
+			clock += 12;
+			ticks += 12;
+
+			return HALTED;
+
+		case 1: // add operation code
+			if (operand1.status < 0 || operand2.status < 0) {
+				System.out.println("Error: Unsuccessful operand fetch " + "for add instruction");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			/*
+			 * Add the operand values and store the result into Operand
+			 * one's address
+			 */
+			int result = operand1.value + operand2.value;
+
+			if (operand1Mode == REGISTER)
+				CPU.load(operand1GPR, result);
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the add operation.
+			 */
+			else
+				HM.load(operand1.address, result);
+
+			// Increment overall clock and this timeslice
+			clock += 3;
+			ticks += 3;
+
+			break;
+
+		case 2: // Subtract
+			if (operand1.status < 0 || operand2.status < 0) {
+				System.out.println("Error: Unsuccessful operand fetch for " + "subtract instruction");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			// Subtract the operand values and store the result into Op1
+			// location
+			result = operand1.value - operand2.value;
+
+			if (operand1Mode == REGISTER)
+				CPU.load(operand1GPR, result);
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the subtract operation.
+			 */
+			else
+				HM.load(operand1.address, result);
+
+			// Increment overall clock and this time slice
+			clock += 3;
+			ticks += 3;
+
+			break;
+
+		case 3: // Multiply
+			if (operand1.status < 0 || operand2.status < 0) {
+				logger.error("Unsuccesful operand fetch for multiply instruction");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			// Add the operand values and store the result into Op1 location
+			result = operand1.value * operand2.value;
+
+			if (operand1Mode == REGISTER)
+				CPU.load(operand1GPR, result);
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the multiply operation.
+			 */
+			else
+				HM.load(operand1.address, result);
+
+			// Increment overall clock and this time slice
+			clock += 6;
+			ticks += 6;
+
+			break;
+
+		case 4: // Divide
+			if (operand1.status < 0 || operand2.status < 0) {
+				logger.error("Unsuccessful operand fetch for" + "divide instruction");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			if (operand1.value == 0) {
+				logger.error("Cannot divide by zero");
+				return DIVIDE_BY_ZERO;
+			}
+
+			// Divide the operand values and store the result into Op1
+			// location
+			result = operand1.value / operand2.value;
+
+			if (operand1Mode == REGISTER)
+				CPU.load(operand1GPR, result);
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the divide operation.
+			 */
+			else
+				HM.load(operand1.address, result);
+
+			// Increment overall clock and this timeslice
+			clock += 6;
+			ticks += 6;
+
+			break;
+
+		case 5: // Move
+			if (operand1.status < 0 || operand2.status < 0) {
+				logger.error("Unsuccessful operand fetch for a" + "move instruction");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			if (operand1Mode == REGISTER)
+				CPU.load(operand1GPR, operand2.value);
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the divide operation.
+			 */
+			else
+				HM.load(operand1.address, operand2.value);
+
+			// Increment overall clock and this timeslice
+			clock += 2;
+			ticks += 2;
+
+			break;
+
+		case 6: // Branch or jump instruction
+			if (AM.isValidAddress(pc)) {
+				logger.error("Invalid address");
+				return invalidIndicator;
+			}
+
+			CPU.setProgramCounter((short) HM.fetch(pc));
+
+			// Increment overall clock and this timeslice
+			clock += 2;
+			ticks += 2;
+
+			break;
+
+		case 7: // Branch on minus
+			if (pc < FIRST_USER_MEMORY_ADDRESS || pc > LAST_USER_MEMORY_ADDRESS) {
+				System.out.println("Error: Invalid address");
+				return INVALID_ADDRESS;
+			}
+
+			if (operand1.value < 0)
+				pc = (short) memory[pc]; // Store branch address in the PC
+
+			else
+				pc++; // No branch, skip branch address to go to next
+						// instruction
+
+			// Increment overall clock and this timeslice
+			clock += 4;
+			ticks += 4;
+
+			break;
+
+		case 8: // Branch on plus
+			if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
+				logger.error("Invalid address");
+				return INVALID_ADDRESS;
+			}
+
+			// Store branch address in the PC is true
+			if (operand1.value > 0)
+				pc = (short) memory[pc];
+
+			// No branch, skip branch address to go to next instruction
+			else
+				pc++;
+
+			// Increment overall clock and this timeslice
+			clock += 4;
+			ticks += 4;
+
+			break;
+
+		case 9: // branch on zero
+			if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
+				logger.error("Invalid address");
+				return INVALID_ADDRESS;
+			}
+
+			// Store branch address in the PC is true
+			if (operand1.value == 0)
+				pc = (short) memory[pc];
+			// No branch, skip branch address to go to next instruction
+			else
+				pc++;
+
+			// Increment overall clock and this timeslice
+			clock += 4;
+			ticks += 4;
+
+			break;
+
+		case 10: // Push
+			if (sp < FIRST_TEMPORARY_MEMORY_ADDRESS || sp >= Application_Memory.getFirst_Os_Memory_Address()) {
+				logger.error("Invalid stack address");
+				return INVALID_ADDRESS;
+			}
+
+			memory[sp] = operand1.value;
+			sp++;
+
+			// Increment overall clock and this timeslice
+			clock += 2;
+			ticks += 2;
+
+			break;
+
+		case 11: // Pop
+			if (operand1Mode == REGISTER)
+				gpr[operand1GPR] = memory[sp];
+
+			else if (operand1Mode == IMMEDIATE) {
+				logger.error("Operand one's mode cannot be immediate");
+				return INVALID_MODE;
+			}
+
+			/*
+			 * Store result in memory location for all other valid
+			 * addressing mode for the divide operation.
+			 */
+			else
+				memory[operand1.address] = memory[sp];
+
+			sp--;
+
+			// Increment overall clock and this timeslice
+			clock += 2;
+			ticks += 2;
+
+			break;
+
+		case 12: // System call
+			if (operand1.status < 0) {
+				System.out.println("Error: Unsuccessful operand fetch for system call");
+				return UNSUCCESSFUL_OPERAND_FETCH;
+			}
+
+			systemCallCode = systemCall((byte) operand1.value);
+
+			// Increment overall clock and this timeslice
+			clock += 12;
+			ticks += 12;
+
+			return systemCallCode;
+		} // end of opcode switch statement
+	}
 	/**
 	 * The execute program function executes the program or programs that have
 	 * already loaded in the main memory. This function executes one instruction
@@ -648,383 +929,20 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 * instruction execution time. It returns the status of execution as an byte
 	 * value.
 	 * 
-	 * @return An error code, 10 for halt or system call code. Error codes:
-	 *         invalid address = -1 invalid mode = -6 divide by zero = -8
-	 *         unsuccessful operand fetch = -9 invalid operation code = -10
+	 * @return An error code, 10 for halt or system call code. 
+	 * 	Error codes:
+	 *         invalid address: -1 
+	 *         invalid mode: -6 
+	 *         divide by zero: -8
+	 *         unsuccessful operand fetch: -9 
+	 *         invalid operation code: -10
 	 */
 	public short executeProgram() {
-		short mar; // Memory Address Register
-		int mbr; // Memory Buffer Register
-		int ir; // Instruction register
-
-		final byte DIVIDE_BY_ZERO = -8;
-		final byte INVALID_OPCODE = -10;
-
-		short ticks = 0;
-
-		byte systemCallCode;
-		while (ticks < TIME_SLICE) {
-			// Fetch (read) the first word of the instruction pointed by PC
-			if (pc <= Application_Memory.getLast_Os_Memory_Address()) {
-				mar = pc;
-				/*
-				 * Advances program counter by 1 to the address of next
-				 * instuction.
-				 */
-				pc++;
-				mbr = (int) memory[mar];
-			} else {
-				System.out.println("Error: The program is leaving the designated program memory");
-				return INVALID_ADDRESS;
-			}
-
-			/*
-			 * Decode the first word of the instruction into opcode, mode and
-			 * gpr using integer division and modulo operators example machine
-			 * code: oc M R M R 5 4 3 2 1
-			 */
-			ir = mbr;
-			int opcode = ir / 10000; // Integer division, gives opcode
-			if (opcode > 12 || opcode < 0) {
-				System.out.println("Error: Invalid operation code");
-				return INVALID_OPCODE;
-			}
-			// Modulo gives machine code line minus the opcode
-
-			short remainder = (short) (ir % 10000);
-			// assigns the addressing mode for the left hand operand
-			byte operand1Mode = (byte) (remainder / 1000);
-			if (operand1Mode > 6 || operand1Mode < 0) {
-				System.out.println("Error: Operand one has invalid mode");
-				return INVALID_MODE;
-			}
-
-			/*
-			 * gets the machine code minus the opcode and the addressing mode
-			 * for the left hand operand
-			 */
-			remainder %= 1000;
-			byte operand1GPR = (byte) (remainder / 100); // assigns the left
-															// hand operand
-			if (operand1GPR > LAST_GPR || operand1GPR < 0) {
-				System.out.println("Error: invalid general purpose register address");
-				return INVALID_ADDRESS;
-			}
-			// gets the machine code for the the right hand operand and
-			// addressing mode
-			remainder %= 100;
-			// assigns the addressing mode for the right hand operand
-			byte operand2Mode = (byte) (remainder / 10);
-			if (operand2Mode > 6 || operand2Mode < 0) {
-				System.out.println("Error: Operand two has invalid mode");
-				return INVALID_MODE;
-			}
-			byte operand2GPR = (byte) (remainder % 10); // assigns the right had
-														// operand
-			if (operand2GPR > LAST_GPR || operand2GPR < 0) {
-				System.out.println("Error: Invalid general purpose register address");
-				return INVALID_ADDRESS;
-			}
-			// Execute Cycle
-			// In the execute cycle, fetch operand value(s) based on the opcode
-			// since different opcode has different number of operands
-
-			Operand operand1 = fetchOperand(operand1Mode, operand1GPR);
-			Operand operand2 = fetchOperand(operand2Mode, operand2GPR);
-
-			switch (opcode) {
-			case 0: // halt
-				System.out.println("\nThe CPU has reached a halt " + "instruction.");
-				System.out.println("Dumping CPU registers and used " + "temporary memory.");
-				dumpMemory();
-
-				// Increment overall clock and this timeslice
-				clock += 12;
-				ticks += 12;
-
-				return HALTED;
-
-			case 1: // add operation code
-				if (operand1.status < 0 || operand2.status < 0) {
-					System.out.println("Error: Unsuccessful operand fetch " + "for add instruction");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				/*
-				 * Add the operand values and store the result into Operand
-				 * one's address
-				 */
-				long result = operand1.value + operand2.value;
-
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = result;
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the add operation.
-				 */
-				else
-					memory[operand1.address] = result;
-
-				// Increment overall clock and this timeslice
-				clock += 3;
-				ticks += 3;
-
-				break;
-
-			case 2: // Subtract
-				if (operand1.status < 0 || operand2.status < 0) {
-					System.out.println("Error: Unsuccessful operand fetch for " + "subtract instruction");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				// Subtract the operand values and store the result into Op1
-				// location
-				result = operand1.value - operand2.value;
-
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = result;
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the subtract operation.
-				 */
-				else
-					memory[operand1.address] = result;
-
-				// Increment overall clock and this time slice
-				clock += 3;
-				ticks += 3;
-
-				break;
-
-			case 3: // Multiply
-				if (operand1.status < 0 || operand2.status < 0) {
-					System.out.println("Error: Unsuccesful operand fetch for multiply instruction");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				// Add the operand values and store the result into Op1 location
-				result = operand1.value * operand2.value;
-
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = result;
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the multiply operation.
-				 */
-				else
-					memory[operand1.address] = result;
-
-				// Increment overall clock and this timeslice
-				clock += 6;
-				ticks += 6;
-
-				break;
-
-			case 4: // Divide
-				if (operand1.status < 0 || operand2.status < 0) {
-					System.out.println("Error: Unsuccessful operand fetch for" + "divide instruction");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				if (operand1.value == 0) {
-					System.out.println("Error: Cannot divide by zero");
-					return DIVIDE_BY_ZERO;
-				}
-
-				// Divide the operand values and store the result into Op1
-				// location
-				result = operand1.value / operand2.value;
-
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = result;
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the divide operation.
-				 */
-				else
-					memory[operand1.address] = result;
-
-				// Increment overall clock and this timeslice
-				clock += 6;
-				ticks += 6;
-
-				break;
-
-			case 5: // Move
-				if (operand1.status < 0 || operand2.status < 0) {
-					System.out.println("Error: Unsuccessful operand fetch for a" + "move instruction");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = operand2.value;
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the divide operation.
-				 */
-				else
-					memory[operand1.address] = operand2.value;
-
-				// Increment overall clock and this timeslice
-				clock += 2;
-				ticks += 2;
-
-				break;
-
-			case 6: // Branch or jump instruction
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
-					System.out.println("Error: Invalid address");
-					return INVALID_ADDRESS;
-				}
-
-				pc = (short) memory[pc];
-
-				// Increment overall clock and this timeslice
-				clock += 2;
-				ticks += 2;
-
-				break;
-
-			case 7: // Branch on minus
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > LAST_USER_MEMORY_ADDRESS) {
-					System.out.println("Error: Invalid address");
-					return INVALID_ADDRESS;
-				}
-
-				if (operand1.value < 0)
-					pc = (short) memory[pc]; // Store branch address in the PC
-
-				else
-					pc++; // No branch, skip branch address to go to next
-							// instruction
-
-				// Increment overall clock and this timeslice
-				clock += 4;
-				ticks += 4;
-
-				break;
-
-			case 8: // Branch on plus
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
-					System.out.println("Error: Invalid address");
-					return INVALID_ADDRESS;
-				}
-
-				// Store branch address in the PC is true
-				if (operand1.value > 0)
-					pc = (short) memory[pc];
-
-				// No branch, skip branch address to go to next instruction
-				else
-					pc++;
-
-				// Increment overall clock and this timeslice
-				clock += 4;
-				ticks += 4;
-
-				break;
-
-			case 9: // branch on zero
-				if (pc < FIRST_USER_MEMORY_ADDRESS || pc > Application_Memory.getLast_Os_Memory_Address()) {
-					System.out.println("Error: Invalid address");
-					return INVALID_ADDRESS;
-				}
-
-				// Store branch address in the PC is true
-				if (operand1.value == 0)
-					pc = (short) memory[pc];
-				// No branch, skip branch address to go to next instruction
-				else
-					pc++;
-
-				// Increment overall clock and this timeslice
-				clock += 4;
-				ticks += 4;
-
-				break;
-
-			case 10: // Push
-				if (sp < FIRST_TEMPORARY_MEMORY_ADDRESS || sp >= Application_Memory.getFirst_Os_Memory_Address()) {
-					System.out.println("Error: Invalid stack address");
-					return INVALID_ADDRESS;
-				}
-
-				memory[sp] = operand1.value;
-				sp++;
-
-				// Increment overall clock and this timeslice
-				clock += 2;
-				ticks += 2;
-
-				break;
-
-			case 11: // Pop
-				if (operand1Mode == REGISTER)
-					gpr[operand1GPR] = memory[sp];
-
-				else if (operand1Mode == IMMEDIATE) {
-					System.out.println("Error: Operand one's mode cannot be immediate");
-					return INVALID_MODE;
-				}
-
-				/*
-				 * Store result in memory location for all other valid
-				 * addressing mode for the divide operation.
-				 */
-				else
-					memory[operand1.address] = memory[sp];
-
-				sp--;
-
-				// Increment overall clock and this timeslice
-				clock += 2;
-				ticks += 2;
-
-				break;
-
-			case 12: // System call
-				if (operand1.status < 0) {
-					System.out.println("Error: Unsuccessful operand fetch for system call");
-					return UNSUCCESSFUL_OPERAND_FETCH;
-				}
-
-				systemCallCode = systemCall((byte) operand1.value);
-
-				// Increment overall clock and this timeslice
-				clock += 12;
-				ticks += 12;
-
-				return systemCallCode;
-			} // end of opcode switch statement
+	
+		short timeSlice = 200;
+		while (ticks < timeSlice) {
+			
+			executeInstruction();
 		} // end of while loop
 
 		System.out.println("Time slice complete");
@@ -1111,7 +1029,8 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		if (size == 1)
 			size = 2; // minimum allocated size
 
-		if (pointer < FIRST_TEMPORARY_MEMORY_ADDRESS || pointer + size >= Application_Memory.getFirst_Os_Memory_Address()) {
+		if (pointer < FIRST_TEMPORARY_MEMORY_ADDRESS
+				|| pointer + size >= Application_Memory.getFirst_Os_Memory_Address()) {
 			System.out.print(
 					"Error: The free temporary memory method has failed due to " + "receiving an invalid address ");
 			return INVALID_ADDRESS; // INVALID_ADDRESS is a constant set to -1
@@ -1156,7 +1075,8 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 */
 	byte freeOSmemory(short ptr) // return value contains OK or error code
 	{
-		if (ptr < Application_Memory.getFirst_Os_Memory_Address() || ptr > Application_Memory.getLast_Os_Memory_Address()) // MaxMemoryAddress
+		if (ptr < Application_Memory.getFirst_Os_Memory_Address()
+				|| ptr > Application_Memory.getLast_Os_Memory_Address()) // MaxMemoryAddress
 		// is
 		// a
 		// constant
@@ -1169,7 +1089,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 									// to < 0
 		}
 		if (ptr + PCB_SIZE > Application_Memory.getLast_Os_Memory_Address()) { // Invalid
-																		// size
+			// size
 			System.out.print("Error: An invalid address was referenced. " + "OS memory was not returned.");
 			return INVALID_ADDRESS; // All error codes are less than 0.
 		}
@@ -1191,7 +1111,7 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		return OK;
 	} // end of free operating system memory module
 
-	void allocateTemporaryMemorySystemCall() {
+	public void allocateTemporaryMemorySystemCall() {
 		// Allocate memory from user free list
 		// Return status from the function is either the address of allocated
 		// memory or an error code
@@ -1293,9 +1213,9 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		return status;
 	} // end of system call module
 
-	final byte reasonForWaitingIndex = 3;
-	final byte waitingForMessageCode = 7;
-
+	private final byte reasonForWaitingIndex = 3;
+	private final byte waitingForMessageCode = 7;
+	private final char WAITING_STATE = 'W';
 	/**
 	 * insertIntoWaitingQueue populates the waiting queue with process which
 	 * need to wait. Process are always inserted at the bottom of the waiting
@@ -1303,26 +1223,24 @@ public class Machine implements Stopped_Execution_Reason_Code {
 	 * 
 	 * @param PCBptr
 	 *            memory address of the process's process control block.
+	 *            
+	 * @return
 	 */
-	byte insertIntoWaitingQueue(short PCBptr) {
+	public void insertIntoWaitingQueue(short pcbPointer) {
 		short previousPointer = END_OF_LIST_MARKER;
 		short currentPointer = WQ;
 
 		// Check for invalid PCB memory address
-		if (PCBptr < Application_Memory.getFirst_Os_Memory_Address() || PCBptr > Application_Memory.getLast_Os_Memory_Address()) {
-			System.out.println("Error: The process control block pointer is invalid");
-			return INVALID_ADDRESS; // ErrorInvalidMemoryAddress is constantset
-									// to < 0
+		if (AM.isValidAddress(pcbPointer)) {
+			logger.error("The process control block pointer is invalid");
 		}
 
-		memory[PCBptr + STATE_INDEX] = WAITING_STATE; // set state to ready
-														// state
-		memory[PCBptr + NEXT_PCB_INDEX] = END_OF_LIST_MARKER; // set next
+		PCB.setState(OSM, pcbPointer, WAITING_STATE);
+		PCB.setNextPcbPointer(OSM, PcbPointer, nextPointer);memory[PCBptr + NEXT_PCB_INDEX] = END_OF_LIST_MARKER; // set next
 																// pointer
 																// to
-		// end of list
-
-		if (WQ == END_OF_LIST_MARKER) // RQ is empty
+		// end of list. RQ is empty
+		if (WQ == END_OF_LIST_MARKER) 
 		{
 			WQ = PCBptr;
 			return OK;
@@ -1333,8 +1251,6 @@ public class Machine implements Stopped_Execution_Reason_Code {
 			currentPointer = (short) memory[currentPointer + NEXT_PCB_INDEX];
 		} // end of while loop
 		memory[previousPointer + NEXT_PCB_INDEX] = PCBptr;
-
-		return OK;
 	} // end of insert process into waiting queue module
 
 	final byte INVALID_PID = -30;
@@ -1455,21 +1371,31 @@ public class Machine implements Stopped_Execution_Reason_Code {
 		return;
 	} // end of ISR shutdown system module
 
-} // End of Homework class
+} // End of Machine class
 
-class Operand {
+class Instruction {
 	short address;
-	long value;
+	int value;
 	byte status;
 
-	public Operand(short address, long value) {
+	public Instruction(short address, int value) {
 		this.address = address;
 		this.value = value;
 		this.status = 0;// 0 == Successful operand creation
 	}
 
-	public Operand(byte status)// Unsuccessful operand creation
+	public Instruction(byte status)// Unsuccessful operand creation
 	{
 		this.status = status; // stores error code.
+	}
+	
+	public static boolean isValidOperationCode(byte operationCode) {
+		
+		return operationCode > 12 || operationCode < 0;
+	}
+	
+	public static boolean isVaildOperand(byte operand) {
+		
+		return operand > LAST_GPR || operand < 0;
 	}
 }

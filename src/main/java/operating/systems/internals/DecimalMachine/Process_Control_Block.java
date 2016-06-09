@@ -1,6 +1,9 @@
 package operating.systems.internals.DecimalMachine;
 
-public class Process_Control_Block {
+import operating.systems.internals.Memory.Application_Memory;
+import operating.systems.internals.Memory.Simple_Memory;
+
+public class Process_Control_Block extends Central_Processing_Unit{
 
 	private final byte PRIORITY_INDEX;
 	private final byte SIZE;
@@ -15,12 +18,11 @@ public class Process_Control_Block {
 	private final byte PC_INDEX;
 	private final byte GPU_INDEX;
 	private final byte SP_INDEX;
-	
-	private int[] generalPurposeRegisters;
-	private final Central_Processing_Unit CPU;
 
-	public Process_Control_Block() {
+	public Process_Control_Block(byte numberOfRegisters) {
 
+		super(numberOfRegisters);
+		
 		PRIORITY_INDEX = 4;
 		SIZE = 20;
 		NEXT_PCB_INDEX = 0;
@@ -34,14 +36,11 @@ public class Process_Control_Block {
 		PC_INDEX = 19;
 		GPU_INDEX = 10;
 		SP_INDEX = 18;
-		
-		CPU = new Central_Processing_Unit();
-		generalPurposeRegisters = new int[CPU.getNumberOfGPRs()];
 	}
 
-	private void setProcessId(Operating_System_Memory OSM, short PcbPointer, short processId) {
+	private void setProcessId(Simple_Memory OSM, short pcbPointer, short processId) {
 		
-		OSM.load(PcbPointer + PROCESS_ID_INDEX, processId);
+		OSM.load(pcbPointer + PROCESS_ID_INDEX, processId);
 	}
 	
 	/**
@@ -55,29 +54,29 @@ public class Process_Control_Block {
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public void setPcb(Operating_System_Memory OSM, short PcbPointer, short processId, byte priority, char state) {
+	public void setPcb(Simple_Memory OSM, short pcbPointer, short processId, byte priority, char state) {
 		// Initialize all values to zero
 		for (int i = 0; i < SIZE; i++)
-			OSM.load(PcbPointer + i, 0);
+			OSM.load(pcbPointer + i, 0);
 
 		byte Priorityindex = 4;
 		final short DefaultPriority = 128;
 
 		// END_OF_LIST_MARKER is a constant set to -1
-		setNextPcbPointer(OSM, PcbPointer, END_OF_LIST_MARKER);
+		setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
 
-		setProcessId(OSM, PcbPointer, processId);
+		setProcessId(OSM, pcbPointer, processId);
 		
 		// DefaultPriority is a constant set to 128
-		setPriority(OSM, PcbPointer, priority);
+		setPriority(OSM, pcbPointer, priority);
 		
 		// Ready State is a constant set to 'W'
-		setState(OSM, PcbPointer, state);
+		setState(OSM, pcbPointer, state);
 
 		return;
 	} // end of set process control block
 
-	public byte getSize() {
+	public short getSize() {
 
 		return SIZE;
 	}
@@ -89,7 +88,7 @@ public class Process_Control_Block {
 	 *            Start of a particular process control block about to be
 	 *            zeroed.
 	 */
-	public void initializePCB(Operating_System_Memory OSM, short PCBpointer, byte processId, byte priority, char state) {
+	public void initialize(Simple_Memory OSM, short PCBpointer, byte processId, byte priority, char state) {
 		// Initialize all values to zero
 		for (int i = 0; i < SIZE; i++)
 			OSM.load(PCBpointer + i, 0);
@@ -118,27 +117,27 @@ public class Process_Control_Block {
 		return STATE_INDEX;
 	}
 
-	public void setState(Operating_System_Memory OSM, short PcbPointer, char state) {
+	public void setState(Simple_Memory OSM, short pcbPointer, char state) {
 
-		OSM.load(PcbPointer + STATE_INDEX, state);
+		OSM.load(pcbPointer + STATE_INDEX, state);
 	}
 
-	public void setNextPcbPointer(Operating_System_Memory OSM, short PcbPointer, short nextPointer) {
+	public void setNextPcbPointer(Simple_Memory OSM, short pcbPointer, short nextPointer) {
 
-		OSM.load(PcbPointer + NEXT_PCB_INDEX, nextPointer);
+		OSM.load(pcbPointer + NEXT_PCB_INDEX, nextPointer);
 	}
 
-	public short getNextPcbPointer(Operating_System_Memory OSM, short PcbPointer) {
+	public short getNextPcbPointer(Simple_Memory OSM, short pcbPointer) {
 
-		return (short) OSM.fetch((short) (PcbPointer + NEXT_PCB_INDEX));
+		return (short) OSM.fetch((short) (pcbPointer + NEXT_PCB_INDEX));
 	}
 
-	public void setProgramCounter(Operating_System_Memory OSM, short pcbPointer, short programCounter) {
+	public void setProgramCounter(Simple_Memory OSM, short pcbPointer, short programCounter) {
 
 		OSM.load(pcbPointer + PC_INDEX, programCounter);
 	}
 	
-	public void setPriority(Operating_System_Memory OSM, short pcbPointer, short priority) {
+	public void setPriority(Simple_Memory OSM, short pcbPointer, short priority) {
 
 		OSM.load(pcbPointer + PRIORITY_INDEX, priority);
 	}
@@ -158,12 +157,12 @@ public class Process_Control_Block {
 		return PROCESS_ID_INDEX;
 	}
 	
-	public byte getProcessId(Operating_System_Memory OSM, short pcbPointer) {
+	public byte getProcessId(Simple_Memory OSM, short pcbPointer) {
 		
 		return (byte) OSM.fetch((short) (pcbPointer + PROCESS_ID_INDEX));
 	}
 	
-	public int[] getGprValues(Operating_System_Memory OSM, short pcbPointer, byte numberOfGPRs) {
+	public int[] getGprValues(Simple_Memory OSM, short pcbPointer, byte numberOfGPRs) {
 		
 		int[] a = new int[numberOfGPRs];
 		for (int i = 0; i < numberOfGPRs + 1; i++)
@@ -172,7 +171,7 @@ public class Process_Control_Block {
 		return a;
 	}
 	
-	public short getStackPointer(Operating_System_Memory OSM, short pcbPointer) {
+	public short getStackPointer(Simple_Memory OSM, short pcbPointer) {
 		
 		return (short) OSM.fetch((short) (pcbPointer + SP_INDEX));
 
@@ -181,7 +180,7 @@ public class Process_Control_Block {
 		// psr = userMode; // UserMode is 1, OSMode is 0.
 	}
 	
-	public short getProgramCounter(Operating_System_Memory OSM, short pcbPointer) {
+	public short getProgramCounter(Simple_Memory OSM, short pcbPointer) {
 		
 		return (short) OSM.fetch((short) (pcbPointer + PC_INDEX));
 
@@ -190,12 +189,7 @@ public class Process_Control_Block {
 		// psr = userMode; // UserMode is 1, OSMode is 0.
 	}
 	
-	public void setGeneralPurposeRegister(byte register, int instruction) {
-		
-		generalPurposeRegisters[register] = instruction;
-	}
-	
-	public byte getPriority(Operating_System_Memory OSM, short pcbPointer) {
+	public byte getPriority(Simple_Memory OSM, short pcbPointer) {
 		
 		return (byte) OSM.fetch((short) (pcbPointer + PRIORITY_INDEX));
 	}
