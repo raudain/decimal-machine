@@ -6,10 +6,9 @@ import java.util.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import operating.systems.internals.DecimalMachine.Stopped_Execution_Reason_Code;
 import operating.systems.internals.DecimalMachine.Machine;
 
-public class App implements Stopped_Execution_Reason_Code {
+public class App {
 
 	private static final Logger logger = LogManager.getLogger("App");
 	private boolean firstInput;
@@ -19,22 +18,6 @@ public class App implements Stopped_Execution_Reason_Code {
 		
 		firstInput = true;
 		highestPriority = 127;
-	}
-
-	public static Machine init() {
-		// Initialize machine's system
-		Machine machine = new Machine();
-
-		try {
-			// Priority one is the lowest priority, and 255 is the highest
-			machine.createProcess();
-		} catch (FileNotFoundException e) {
-			System.out.println("Error: Null program cannot be found "
-					+ "in working directory");
-			e.printStackTrace();
-		}
-
-		return machine;
 	}
 
 	public String getInput() {
@@ -82,8 +65,8 @@ public class App implements Stopped_Execution_Reason_Code {
 	 */
 	public static void main(String[] args) {
 
-		Machine hdm = init();
 		App app = new App();
+		final Machine MACHINE = new Machine();
 		
 		// Priority one is the lowest priority, and 127 is the highest
 		byte priority = app.highestPriority;
@@ -92,7 +75,7 @@ public class App implements Stopped_Execution_Reason_Code {
 		
 		// If shutdown command is entered before any programs are entered
 		if ("shutdown".equals(firstCommandLineInput)) {
-			hdm.ISRshutdownSystem();
+			MACHINE.ISRshutdownSystem();
 			logger.info("System is shutting down");
 			return;
 		}
@@ -102,7 +85,7 @@ public class App implements Stopped_Execution_Reason_Code {
 
 		else
 			try {
-				hdm.createProcess(firstCommandLineInput, priority);
+				MACHINE.createProcess(firstCommandLineInput, priority);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
@@ -116,7 +99,7 @@ public class App implements Stopped_Execution_Reason_Code {
 				while (running_nullProcess == false) {
 
 					logger.info("Selecting a process out of the ready Queue");
-					short runningPCBpointer = hdm.selectFromRQ();
+					short runningPcbPointer = MACHINE.selectFromRQ();
 
 					/*
 					 * The null process is loaded into the operating systems's
@@ -125,7 +108,7 @@ public class App implements Stopped_Execution_Reason_Code {
 					 * system.
 					 */
 					final short FIRST_OS_MEMORY_ADDRESS = 6000;
-					if (runningPCBpointer == FIRST_OS_MEMORY_ADDRESS) {
+					if (runningPcbPointer == FIRST_OS_MEMORY_ADDRESS) {
 						running_nullProcess = true;
 						logger.info("All programs are finished running");
 
@@ -133,79 +116,61 @@ public class App implements Stopped_Execution_Reason_Code {
 						 * run null process when the machine is waiting for user
 						 * input
 						 */
-						hdm.executeProgram();
+						MACHINE.executeProgram();
 						continue;
 					}
 
-					short executionStatus = hdm.executeProgram();
-
+					short executionStatus = MACHINE.executeProgram();
+					final byte CONTINUE_EXECUTION = 1;
+					final byte TIME_SLICE_EXPIRED = 2;
+					final byte EXECUTION_COMPLETE = 3;
+					
 					switch (executionStatus) {
 
 					/*
 					 * Operating system took control of CPU but gave it back to
 					 * the process
 					 */
-					case PROCEED:
-						executionStatus = hdm.executeProgram();
+					case CONTINUE_EXECUTION:
+						executionStatus = MACHINE.executeProgram();
 
-						/*
-						 * When a processes time expires the process at the top
-						 * of the ready queue is ran
-						 */
-					case TIME_SLICE:
+					/*
+					 * When a processes time expires the process at the top
+					 * of the ready queue is ran
+					 */
+					case TIME_SLICE_EXPIRED:
 						logger.info("The program dumped above has expired its time "
 								+ "slice");
-						hdm.saveContext(runningPCBpointer);
-						hdm.insertIntoReadyQueue(runningPCBpointer);
+						MACHINE.saveContext(runningPcbPointer);
+						MACHINE.insertIntoReadyQueue(runningPcbPointer);
 						continue;
 
-					case HALTED:
+					case EXECUTION_COMPLETE:
 						// All memory allocated to the now halted process is
 						// freed.
-						hdm.terminateProcess(runningPCBpointer);
+						MACHINE.terminateProcess(runningPcbPointer);
 						continue;
-
-						/*
-						 * else if(status == StartOfInputOperation) // io_getc {
-						 * // set reason for waiting to Input Completion Event
-						 * memory[RunningPCBptr +ReasonForWaitingIndex] =
-						 * InputCompletionEvent; // Enter process into WQ
-						 * InsertIntoWQ(RunningPCBptr); } else if(status ==
-						 * StartOfOutputOperation) // io_putc { // set reason
-						 * for waiting to Output Completion Event
-						 * Memory[RunningPCBptr +ReasonForWaitingIndex] =
-						 * OutputCompletionEvent; // Enter process into WQ
-						 * InsertIntoWQ(RunningPCBptr); }
-						 */
-						// msgq_receive
-					case WAITING_FOR_MESSAGE:
-						// set reason for waiting to Message Arrival Event
-						// final byte REASON_FOR_WAITING_INDEX = 3;
-						// memory[runningPCBpointer + REASON_FOR_WAITING_INDEX]
-						// = MessageArrivalEvent;
-						// hdm.insertIntoWaitingQueue(runningPCBpointer);
-						break;
 
 					default:
 						// Unknown programming error
-						System.out.println("Unknown code error");
+						logger.error("Unknown code error");
 
 					} // End of switch statement for executionStatus
 					try {
-						executionStatus = hdm.CheckAndProcessInterrupt();
+						executionStatus = MACHINE.CheckAndProcessInterrupt();
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
 					if (executionStatus < 0)
-						System.out.println("Unknown Error");
+						logger.error("Unknown Error");
 				} // end of the inner loop "while running"
 			} // end of if "run" entered
 			else if ("shutdown".equals(commandLineInput)) {
-				hdm.ISRshutdownSystem();
-				System.out.println("System is shutting down");
+				MACHINE.ISRshutdownSystem();
+				logger.info("System is shutting down");
 				return;
 			} else if ("".equals(commandLineInput))
-				System.out.println("Error: Blank entered");
+				logger.error("Blank entered");
 			else // assumes the command line input is a program name
 			{
 				/*
@@ -221,13 +186,13 @@ public class App implements Stopped_Execution_Reason_Code {
 					priority = app.highestPriority;
 
 				try {
-					hdm.createProcess(commandLineInput, priority);
+					MACHINE.createProcess(commandLineInput, priority);
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				}
 			}// end of if statement
 		}// end of while not shutdown outer loop
-		hdm.ISRshutdownSystem();
-		System.out.println("System is shutting down");
+		MACHINE.ISRshutdownSystem();
+		logger.info("System is shutting down");
 	} // end of main method
 } // end of class

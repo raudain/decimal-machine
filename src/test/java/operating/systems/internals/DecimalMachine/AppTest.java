@@ -6,14 +6,6 @@ import junit.framework.TestCase;
  * Unit test for simple App.
  */
 public class AppTest extends TestCase {
-
-	/**
-	 * Tests initialization
-	 */
-	public void testInit() {
-		Machine machine = App.init();
-		assert (machine.isMemoryEmpty());
-	}
 	
 	/**
 	 * Tests initialization

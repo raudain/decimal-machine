@@ -1,4 +1,4 @@
-package operating.systems.internals.Memory;
+package operating.systems.internals.Storage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,4 +1,4 @@
-package operating.systems.internals.Memory;
+package operating.systems.internals.Storage;
 
 public class Simple_Memory extends Memory {
 	

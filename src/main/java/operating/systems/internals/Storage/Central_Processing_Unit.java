@@ -1,9 +1,7 @@
-package operating.systems.internals.DecimalMachine;
+package operating.systems.internals.Storage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import operating.systems.internals.Memory.Memory;
 
 public class Central_Processing_Unit extends Memory{
 	
@@ -91,5 +89,10 @@ public class Central_Processing_Unit extends Memory{
 	public void incrementProgramCounter() {
 		
 		programCounter++;
+	}
+	
+	public boolean isValidGPRAddress(byte gprAddress) {
+		
+		return gprAddress >=0 && gprAddress < getSize();
 	}
 }

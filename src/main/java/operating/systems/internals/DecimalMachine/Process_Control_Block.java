@@ -1,7 +1,8 @@
 package operating.systems.internals.DecimalMachine;
 
-import operating.systems.internals.Memory.Application_Memory;
-import operating.systems.internals.Memory.Simple_Memory;
+import operating.systems.internals.Storage.Application_Memory;
+import operating.systems.internals.Storage.Central_Processing_Unit;
+import operating.systems.internals.Storage.Simple_Memory;
 
 public class Process_Control_Block extends Central_Processing_Unit{
 
@@ -10,8 +11,6 @@ public class Process_Control_Block extends Central_Processing_Unit{
 	private final byte NEXT_PCB_INDEX;
 	private final byte END_OF_LIST_MARKER;
 	private final byte PROCESS_ID_INDEX;
-	//private byte processID;
-	//private final short DEFAULT_PRIORITY;
 	private final byte STATE_INDEX;
 	//private final char READY_STATE;
 	final char WAITING_STATE;
@@ -28,8 +27,6 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		NEXT_PCB_INDEX = 0;
 		END_OF_LIST_MARKER = Application_Memory.END_OF_LIST_INDICATOR;
 		PROCESS_ID_INDEX = 1;
-		// processID = 1;
-		//DEFAULT_PRIORITY = 128;
 		STATE_INDEX = 2;
 		//READY_STATE = 'R';
 		WAITING_STATE = 'W';
