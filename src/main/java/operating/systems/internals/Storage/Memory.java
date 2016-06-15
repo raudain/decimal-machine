@@ -170,19 +170,4 @@ public abstract class Memory {
 		System.out.println("Error: No free stack memory error");
 		return notOK; // ErrorNoFreeMemory is constant set to < 0
 	} // end of allocate user memory module
-	
-	/**
-	 * Returns true if address is between the first and last address 
-	 * 
-	 * @param address Memory Address
-	 */
-	public boolean isValidAddress(short address) {
-		
-		if (address < getFirstMemoryAddress())
-			return false;
-		else if (address > getSize())
-			return false;
-		
-		return true;
-	}
 }

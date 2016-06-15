@@ -8,6 +8,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import operating.systems.internals.AssemblyCode.Instruction;
+import operating.systems.internals.AssemblyCode.Operand;
+import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Central_Processing_Unit;
 import operating.systems.internals.Storage.Simple_Memory;
@@ -134,12 +136,11 @@ public class Machine {
 			// read address, content from file
 			short address = machineCode.nextShort();
 
-			// if valid address
-			if (AM.isValidAddress(address))
-				// store program
-				AM.load(address, machineCode.nextInt());
 
-			else if (address == AM.getEndIndicator()) {
+			// store program
+			AM.load(address, machineCode.nextInt());
+
+			if (address == AM.getEndIndicator()) {
 				logger.info("The loader has reach the end of " + fileName + "'s code");
 				short origin = machineCode.nextShort();
 				machineCode.close();
@@ -209,12 +210,6 @@ public class Machine {
 		// Use priority in the PCB to find the correct place to insert.
 		short previousPointer = END_OF_LIST_MARKER;
 		short tempPointer = RqPointer;
-
-		// Check for invalid PCB memory address
-		if (AM.isValidAddress(pcbPointer)) {
-			logger.error("The process control block pointer is invalid");
-			return;
-		}
 
 		// set state to ready state
 		PCB.setState(OSM, pcbPointer, READY_STATE_INDICATOR);
@@ -299,9 +294,6 @@ public class Machine {
 		Short programOrigin;
 		programOrigin = (Short) absoluteLoader(filename);
 
-		if (AM.isValidAddress(programOrigin))
-			logger.error("The Program's origin address is out of range." + " Program counter cannot be set correctly");
-
 		// store PC value in the PCB of the process
 		PCB.setProgramCounter(OSM, PcbPointer, programOrigin);
 
@@ -325,11 +317,8 @@ public class Machine {
 	 */
 	public void createProcess(String filename, byte priority) throws FileNotFoundException {
 		// Allocate space for Process Control Block
-		short pcbPointer = OSM.allocate(PCB.getSize()); // return value contains
-														// address
-		// or error
-		if (!AM.isValidAddress(pcbPointer))
-			logger.error("Memory alocation from OS free space has failed");
+		// return value contains address
+		short pcbPointer = OSM.allocate(PCB.getSize());
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
@@ -354,10 +343,6 @@ public class Machine {
 	public void createProcessSystemCall(short processId) {
 		// Allocate space for Process Control Block
 		short pcbPointer = OSM.allocate(PCB.getSize());
-		if (!AM.isValidAddress(pcbPointer)) {
-			logger.error("Memory alocation from OS free space has failed");
-			CPU.load(0, -2);
-		}
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
@@ -410,41 +395,36 @@ public class Machine {
 	final byte FIRST_USER_MEMORY_ADDRESS = 0;
 	byte invalidIndicator = -1;
 
-	/**
-	 * 
-	 * @return Error codes:
-	 * 	invalidIndi
-	 */
 	public byte executeInstruction() {
 		
 		Instruction instruction; // Instruction Register
 		
 		// Fetch (read) the first word of the instruction pointed by PC
 		short pc = CPU.getProgramCounter();	
-		if (AM.isValidAddress(pc)) {
-			/* Advances program counter by 1 to the address of next
-			 * instruction. */
-			CPU.incrementProgramCounter();
-			instruction = new Instruction(AM.fetch(pc));
-		} else {
-			logger.error("The program is leaving the designated program memory");
-			return invalidIndicator;
-		}
+
+		/* Advances program counter by 1 to the address of next
+		 * instruction. */
+		CPU.incrementProgramCounter();
+		instruction = new Instruction(AM.fetch(pc));
+
 		
 		// check if instruction is valid. If not valid then error is logged
-		instruction.isValid();
+		instruction.isValid((byte) CPU.getSize());
 		
 		// Execute Cycle
 		// In the execute cycle, fetch operand value(s) based on the opcode
 		// since different opcode has different number of operands
 		
-		if (!AM.isValidAddress(pc)) {
-			logger.error("Invalid address");
-			return invalidIndicator;
-		}
-		
 		short clock = 0; // system clock
 		short ticks = 0;
+		Operands operands = instruction.getOperands();
+		final byte valueOfOperand1 = operands.getValueOfOperand1(CPU, AM);
+		final byte valueOfOperand2 = operands.getValueOfOperand2(CPU, AM);
+		final byte modeofOperand1 = operands.getModeOfOperand1();
+		final byte registerMode = Operand.getCodeForRegisterMode();
+		final byte immediateMode = Operand.getCodeForImmediateMode();
+		final byte operand1GPRAddress = operands.getOperand1GprAddress();
+		int result;
 		switch (instruction.getOperationCode()) {
 		case 0: // halt
 			logger.info("\n The CPU has reached a halt " + "instruction.");
@@ -460,152 +440,82 @@ public class Machine {
 		case 1: // add operation code
 
 			/*
-			 * Add the operand values and store the result into Operand
-			 * one's address
+			 * Add the operand's values and store the result into the 
+			 * first operand's address
 			 */
-			int result = instruction.getOperand1Gpr() + operand2.value;
-
-			if (operand1Mode == REGISTER)
-				CPU.load(operand1GPR, result);
-
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-			}
-
-			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the add operation.
-			 */
-			else
-				HM.load(operand1.address, result);
+			result = valueOfOperand1 + valueOfOperand2;
+			CPU.load(operand1GPRAddress, result);
 
 			// Increment overall clock and this timeslice
-			clock += 3;
-			ticks += 3;
+			byte addOperationDuration = 3;
+			clock += addOperationDuration;
+			ticks += addOperationDuration;
 
 			break;
 
 		case 2: // Subtract
-			if (operand1.status < 0 || operand2.status < 0) {
-				System.out.println("Error: Unsuccessful operand fetch for " + "subtract instruction");
-			}
-
-			// Subtract the operand values and store the result into Op1
-			// location
-			result = operand1.value - operand2.value;
-
-			if (operand1Mode == REGISTER)
-				CPU.load(operand1GPR, result);
-
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-			}
 
 			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the subtract operation.
+			 * Subtract the operand's values and store the result into the 
+			 * first operand's address
 			 */
-			else
-				HM.load(operand1.address, result);
+			result = valueOfOperand1 - valueOfOperand2;
+			CPU.load(operand1GPRAddress, result);
 
-			// Increment overall clock and this time slice
-			clock += 3;
-			ticks += 3;
+			// Increment overall clock and this timeslice
+			byte subtractOperationDuration = 3;
+			clock += subtractOperationDuration;
+			ticks += subtractOperationDuration;
+
 
 			break;
 
 		case 3: // Multiply
-			if (operand1.status < 0 || operand2.status < 0) {
-				logger.error("Unsuccesful operand fetch for multiply instruction");
-			}
-
-			// Add the operand values and store the result into Op1 location
-			result = operand1.value * operand2.value;
-
-			if (operand1Mode == REGISTER)
-				CPU.load(operand1GPR, result);
-
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-			}
+			
 			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the multiply operation.
+			 * Multiply the operand's values and store the result into the 
+			 * first operand's address
 			 */
-			else
-				HM.load(operand1.address, result);
+			result = valueOfOperand1 * valueOfOperand2;
+			CPU.load(operand1GPRAddress, result);
 
-			// Increment overall clock and this time slice
-			clock += 6;
-			ticks += 6;
+			// Increment overall clock and this timeslice
+			byte multiplyOperationDuration = 6;
+			clock += multiplyOperationDuration;
+			ticks += multiplyOperationDuration;
 
 			break;
 
 		case 4: // Divide
-			if (operand1.status < 0 || operand2.status < 0) {
-				logger.error("Unsuccessful operand fetch for" + "divide instruction");
-			}
-
-			if (operand1.value == 0) {
-				logger.error("Cannot divide by zero");
-				byte divideByZeroErrorCode = -8;
-			}
-
-			// Divide the operand values and store the result into Op1
-			// location
-			result = operand1.value / operand2.value;
-
-			if (operand1Mode == REGISTER)
-				CPU.load(operand1GPR, result);
-
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-			}
 
 			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the divide operation.
+			 * Divide the operand's values and store the result into the 
+			 * first operand's address
 			 */
-			else
-				HM.load(operand1.address, result);
+			result = valueOfOperand1 / valueOfOperand2;
+			CPU.load(operand1GPRAddress, result);
 
 			// Increment overall clock and this timeslice
-			clock += 6;
-			ticks += 6;
+			byte divideOperationDuration = 6;
+			clock += divideOperationDuration;
+			ticks += divideOperationDuration;
 
 			break;
 
 		case 5: // Move
-			if (operand1.status < 0 || operand2.status < 0) {
-				logger.error("Unsuccessful operand fetch for a" + "move instruction");
-			}
 
-			if (operand1Mode == REGISTER)
-				CPU.load(operand1GPR, operand2.value);
-
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-			}
-
-			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the divide operation.
-			 */
-			else
-				HM.load(operand1.address, operand2.value);
+			CPU.load(operand1GPRAddress, valueOfOperand2);
 
 			// Increment overall clock and this timeslice
-			clock += 2;
-			ticks += 2;
+			byte moveOperationDuration = 2;
+			clock += moveOperationDuration;
+			ticks += moveOperationDuration;
 
 			break;
 
 		case 6: // Branch or jump instruction
-			if (!AM.isValidAddress(pc)) {
-				logger.error("Invalid address");
-			}
 
-			CPU.setProgramCounter((short) HM.fetch(pc));
+			CPU.setProgramCounter((short) AM.fetch(pc));
 
 			// Increment overall clock and this timeslice
 			clock += 2;
@@ -614,13 +524,10 @@ public class Machine {
 			break;
 
 		case 7: // Branch on minus
-			if (!AM.isValidAddress(pc)) {
-				logger.error("Invalid address");
-			}
 
-			if (operand1.value < 0)
+			if (valueOfOperand1 < 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) HM.fetch(pc)); 
+				CPU.setProgramCounter((short) AM.fetch(pc)); 
 
 			else
 				pc++; // No branch, skip branch address to go to next
@@ -635,9 +542,9 @@ public class Machine {
 		case 8: // Branch on plus
 
 			// Store branch address in the PC is true
-			if (operand1.value > 0)
+			if (valueOfOperand1 > 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) HM.fetch(pc)); 
+				CPU.setProgramCounter((short) AM.fetch(pc)); 
 
 			// No branch, skip branch address to go to next instruction
 			else
@@ -738,7 +645,7 @@ public class Machine {
 		} // end of while loop
 
 		logger.info("Time slice complete");
-		System.out.println("Dumping CPU registers and used temporary memory.");
+		logger.info("Dumping CPU registers and used temporary memory.");
 		dumpMemory();
 	} // end of execute program module
 

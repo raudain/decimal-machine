@@ -29,14 +29,13 @@ public class Instruction implements AssemblyLanguage{
 		return operationCode > 0 && operationCode < 12;
 	}
 
-	public boolean isValid() {
+	public boolean isValid(byte numberOfRegisters) {
 
-		return isValidOperationCode() && operands.isValid();
+		return isValidOperationCode() && operands.isValid(numberOfRegisters);
 	}
 	
-	public byte getOperand1Gpr(){
+	public Operands getOperands() {
 		
-		return operands.getOperand1Gpr();
+		return operands;
 	}
-
 }

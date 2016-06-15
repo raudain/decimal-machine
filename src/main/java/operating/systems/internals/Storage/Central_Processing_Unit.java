@@ -91,6 +91,18 @@ public class Central_Processing_Unit extends Memory{
 		programCounter++;
 	}
 	
+	// increase register's value by one
+	public void increment(byte address) {
+		
+		load(address, fetch(address) + 1);
+	}
+	
+	// decreases register's value by one
+	public void decrement(byte address) {
+		
+		load(address, fetch(address) - 1);
+	}
+	
 	public boolean isValidGPRAddress(byte gprAddress) {
 		
 		return gprAddress >=0 && gprAddress < getSize();
