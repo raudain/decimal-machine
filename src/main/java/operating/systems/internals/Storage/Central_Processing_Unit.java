@@ -16,18 +16,8 @@ public class Central_Processing_Unit extends Memory{
 	 * stored value by 1.
 	 */
 	private short programCounter;
-
-
-	/*
-	 * A stack pointer is a small register 
-	 * that stores the address of the last 
-	 * program request in a stack. A stack 
-	 * is a specialized buffer which stores 
-	 * data from the top down. As new 
-	 * requests come in, they "push down" 
-	 * the older ones.
-	 */
-	private short stackPointer;
+	
+	private final byte INTERRUPT_ID_INDEX;
 	
 	private static final Logger logger = LogManager.getLogger("Machine_Implementation");
 
@@ -36,6 +26,8 @@ public class Central_Processing_Unit extends Memory{
 	public Central_Processing_Unit(byte size) {
 		
 		super(size);
+		
+		INTERRUPT_ID_INDEX = 0;
 	}
 	
 	public void setGeneralPurposeRegisters(int[] gprValues) {
@@ -53,27 +45,10 @@ public class Central_Processing_Unit extends Memory{
 		for (short i = 0; i <= getSize(); i++)
 			logger.info("\t%d", fetch(i));
 	}
-	
-	public void dumpStackPointer() {
-
-		// print stack pointer and program counter value
-		logger.info("\t%d\n", stackPointer);
-	}
 
 	public void dumpProgramCounter() {
 		
 		logger.info("\t%d\n", programCounter);
-	}
-	
-	
-	public void setStackPointer(short sp) {
-		
-		stackPointer = sp;
-	}
-	
-	public short getStackPointer() {
-		
-		return stackPointer;
 	}
 	
 	public void setProgramCounter(short pc) {
@@ -106,5 +81,10 @@ public class Central_Processing_Unit extends Memory{
 	public boolean isValidGPRAddress(byte gprAddress) {
 		
 		return gprAddress >=0 && gprAddress < getSize();
+	}
+	
+	public byte getInterruptId() {
+		
+		return (byte) fetch(INTERRUPT_ID_INDEX);
 	}
 }

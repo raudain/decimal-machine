@@ -93,7 +93,7 @@ public class Application_Memory extends Memory {
 		byte noMoreData = 10;
 
 		while (numberOfZeros < noMoreData) {
-			System.out.print(lineNumber);
+			logger.info(lineNumber);
 			int i = 0;
 			while (i < 9) // print 10 values from memory
 			{

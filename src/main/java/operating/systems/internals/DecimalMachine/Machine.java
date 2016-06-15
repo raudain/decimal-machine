@@ -3,6 +3,7 @@ package operating.systems.internals.DecimalMachine;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,7 @@ import operating.systems.internals.AssemblyCode.Operand;
 import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Central_Processing_Unit;
-import operating.systems.internals.Storage.Simple_Memory;
+import operating.systems.internals.Storage.Operating_System_Memory;
 
 /**
  * Facade design pattern for Memory and CPU
@@ -61,36 +62,36 @@ public class Machine {
 
 	private final Central_Processing_Unit CPU;
 
-	private final Simple_Memory OSM;
+	private final Operating_System_Memory OSM;
 
 	private final byte SIZE_OF_AM;
 
 	private final byte SIZE_OF_OSM;
 
-	private final Simple_Memory HM;
+	private final Stack<Byte> STACK;
 
 	private final byte NUMBER_OF_REGISTERS;
 
-	private final byte SIZE_OF_HM;
-
-	private short timeSlice;
+	private short executionTime;
+	
+	private final short timeSlice;
 
 	public Machine() {
 
 		SIZE_OF_AM = 75;
 		SIZE_OF_OSM = 75;
 		NUMBER_OF_REGISTERS = 11;
-		SIZE_OF_HM = 50;
 
 		CPU = new Central_Processing_Unit(NUMBER_OF_REGISTERS);
 		AM = new Application_Memory(SIZE_OF_AM);
-		OSM = new Simple_Memory(SIZE_OF_OSM);
-		HM = new Simple_Memory(SIZE_OF_HM);
+		OSM = new Operating_System_Memory(SIZE_OF_OSM);
+		STACK = new Stack<Byte>();
 		PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
 
 		READY_STATE_INDICATOR = 'R';
 		priority = 1;
 		processId = 1;
+		executionTime = 0;
 		timeSlice = 200;
 
 	} // end of constructor
@@ -274,7 +275,7 @@ public class Machine {
 	 * 
 	 * 
 	 */
-	public void createProcess() throws FileNotFoundException {
+	private void createProcess() throws FileNotFoundException {
 
 		String filename = "C:\\Users\\roody.audain\\workspace\\Concepts\\DecimalMachine"
 				+ "\\src\\main\\resources\\Null_Process";
@@ -315,7 +316,7 @@ public class Machine {
 	 *            The higher the priority the more chances the process will get
 	 *            resources
 	 */
-	public void createProcess(String filename, byte priority) throws FileNotFoundException {
+	private void createProcess(String filename, byte priority) throws FileNotFoundException {
 		// Allocate space for Process Control Block
 		// return value contains address
 		short pcbPointer = OSM.allocate(PCB.getSize());
@@ -415,25 +416,21 @@ public class Machine {
 		// In the execute cycle, fetch operand value(s) based on the opcode
 		// since different opcode has different number of operands
 		
-		short clock = 0; // system clock
-		short ticks = 0;
 		Operands operands = instruction.getOperands();
 		final byte valueOfOperand1 = operands.getValueOfOperand1(CPU, AM);
 		final byte valueOfOperand2 = operands.getValueOfOperand2(CPU, AM);
-		final byte modeofOperand1 = operands.getModeOfOperand1();
-		final byte registerMode = Operand.getCodeForRegisterMode();
-		final byte immediateMode = Operand.getCodeForImmediateMode();
 		final byte operand1GPRAddress = operands.getOperand1GprAddress();
 		int result;
 		switch (instruction.getOperationCode()) {
+		
 		case 0: // halt
-			logger.info("\n The CPU has reached a halt " + "instruction.");
-			logger.info("Dumping CPU registers and used " + "temporary memory.");
+			logger.info("\n The Machine has reached a halt instruction.");
+			logger.info("Dumping CPU registers and used temporary memory.");
 			CPU.dumpRegisters();
 
-			// Increment overall clock and this timeslice
-			clock += 12;
-			ticks += 12;
+			final byte haltOperationDuration = 12;
+			executionTime += haltOperationDuration;
+			
 			byte haltedCode = 10;
 			return haltedCode;
 			
@@ -445,11 +442,9 @@ public class Machine {
 			 */
 			result = valueOfOperand1 + valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
-
-			// Increment overall clock and this timeslice
-			byte addOperationDuration = 3;
-			clock += addOperationDuration;
-			ticks += addOperationDuration;
+			
+			final byte addOperationDuration = 3;
+			executionTime += addOperationDuration;
 
 			break;
 
@@ -462,12 +457,9 @@ public class Machine {
 			result = valueOfOperand1 - valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
-			// Increment overall clock and this timeslice
-			byte subtractOperationDuration = 3;
-			clock += subtractOperationDuration;
-			ticks += subtractOperationDuration;
-
-
+			final byte subtractOperationDuration = 3;
+			executionTime += subtractOperationDuration;
+			
 			break;
 
 		case 3: // Multiply
@@ -479,11 +471,9 @@ public class Machine {
 			result = valueOfOperand1 * valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
-			// Increment overall clock and this timeslice
-			byte multiplyOperationDuration = 6;
-			clock += multiplyOperationDuration;
-			ticks += multiplyOperationDuration;
-
+			final byte muliplyOperationDuration = 6;
+			executionTime += muliplyOperationDuration;
+			
 			break;
 
 		case 4: // Divide
@@ -495,51 +485,45 @@ public class Machine {
 			result = valueOfOperand1 / valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
-			// Increment overall clock and this timeslice
-			byte divideOperationDuration = 6;
-			clock += divideOperationDuration;
-			ticks += divideOperationDuration;
-
+			final byte divideOperationDuration = 6;
+			executionTime += divideOperationDuration;
+			
 			break;
 
 		case 5: // Move
 
 			CPU.load(operand1GPRAddress, valueOfOperand2);
 
-			// Increment overall clock and this timeslice
-			byte moveOperationDuration = 2;
-			clock += moveOperationDuration;
-			ticks += moveOperationDuration;
-
+			final byte moveOperationDuration = 2;
+			executionTime += moveOperationDuration;
+			
 			break;
 
 		case 6: // Branch or jump instruction
 
 			CPU.setProgramCounter((short) AM.fetch(pc));
 
-			// Increment overall clock and this timeslice
-			clock += 2;
-			ticks += 2;
-
+			final byte jumpOperationDuration = 2;
+			executionTime += jumpOperationDuration;
+			
 			break;
 
-		case 7: // Branch on minus
+		case 7: // Branch on negative
 
 			if (valueOfOperand1 < 0)
 				// Store branch address in the PC
 				CPU.setProgramCounter((short) AM.fetch(pc)); 
 
 			else
-				pc++; // No branch, skip branch address to go to next
+				CPU.incrementProgramCounter(); // No branch, skip branch address to go to next
 						// instruction
 
-			// Increment overall clock and this timeslice
-			clock += 4;
-			ticks += 4;
-
+			final byte branchOnNegativeOperationDuration = 4;
+			executionTime += branchOnNegativeOperationDuration;
+			
 			break;
 
-		case 8: // Branch on plus
+		case 8: // Branch on positive
 
 			// Store branch address in the PC is true
 			if (valueOfOperand1 > 0)
@@ -548,77 +532,58 @@ public class Machine {
 
 			// No branch, skip branch address to go to next instruction
 			else
-				pc++;
+				CPU.incrementProgramCounter();
 
-			// Increment overall clock and this timeslice
-			clock += 4;
-			ticks += 4;
-
+			final byte branchOnPositiveOperationDuration = 4;
+			executionTime += branchOnPositiveOperationDuration;
+			
 			break;
 
 		case 9: // branch on zero
 
 			// Store branch address in the PC is true
-			if (operand1.value == 0)
-				pc = (short) memory[pc];
+			if (valueOfOperand1 == 0)
+				CPU.setProgramCounter((short) AM.fetch((short) pc));
 			// No branch, skip branch address to go to next instruction
 			else
-				pc++;
+				CPU.incrementProgramCounter();
 
-			// Increment overall clock and this timeslice
-			clock += 4;
-			ticks += 4;
-
+			final byte branchOnZeroOperationDuration = 4;
+			executionTime += branchOnZeroOperationDuration;
+			
 			break;
 
 		case 10: // Push
-			if (sp < FIRST_TEMPORARY_MEMORY_ADDRESS || sp >= Application_Memory.getFirst_Os_Memory_Address()) {
-				logger.error("Invalid stack address");
-				return INVALID_ADDRESS;
-			}
 
-			memory[sp] = operand1.value;
-			sp++;
+			STACK.push(valueOfOperand1);
 
-			// Increment overall clock and this timeslice
-			clock += 2;
-			ticks += 2;
-
+			final byte pushOperationDuration = 2;
+			executionTime += pushOperationDuration;
+			
 			break;
 
 		case 11: // Pop
-			if (operand1Mode == REGISTER)
-				gpr[operand1GPR] = memory[sp];
+			
+			CPU.load(operand1GPRAddress, STACK.pop());
 
-			else if (operand1Mode == IMMEDIATE) {
-				logger.error("Operand one's mode cannot be immediate");
-				return INVALID_MODE;
-			}
-
-			/*
-			 * Store result in memory location for all other valid
-			 * addressing mode for the divide operation.
-			 */
-			else
-				memory[operand1.address] = memory[sp];
-
-			sp--;
-
-			// Increment overall clock and this timeslice
-			clock += 2;
-			ticks += 2;
-
+			final byte popOperationDuration = 2;
+			executionTime += popOperationDuration;
+			
 			break;
 
 		case 12: // System call
-			byte systemCallCode = systemCall((byte) operand1.value);
+			
+			byte systemCallCode = systemCall(valueOfOperand1);
 
-			// Increment overall clock and this timeslice
-			clock += 12;
-			ticks += 12;
-
+			final byte systemCallDuration = 12;
+			executionTime += systemCallDuration;
+			
 			return systemCallCode;
 		} // end of opcode switch statement
+		
+		byte instructionExecuted = 0;
+		
+		return instructionExecuted;
 	}
 
 	/**
@@ -636,31 +601,32 @@ public class Machine {
 	 *         invalid address: -1 invalid mode: -6 divide by zero: -8
 	 *         unsuccessful operand fetch: -9 invalid operation code: -10
 	 */
-	public byte executeProgram() {
+	byte executeProgram() {
 
-		byte status;
-		while (ticks < timeSlice) {
+		byte status = 0;
+		while (executionTime < timeSlice) {
 
-			executeInstruction();
+			status = executeInstruction();
 		} // end of while loop
 
 		logger.info("Time slice complete");
 		logger.info("Dumping CPU registers and used temporary memory.");
-		dumpMemory();
+		CPU.dumpRegisters();
+		
+		return status;
 	} // end of execute program module
 
-	void ISRrunProgramInterrupt() throws FileNotFoundException {
-		final int PROGRAM_NOT_FOUND = -5;
+	void interrupt(byte priority) throws FileNotFoundException {
+
 		// Prompt and read filename;
 		try {
 			Scanner k = new Scanner(System.in);
-			System.out.println("Enter an executable's file name");
+			logger.info("Enter an executable's file name");
 			String filename = k.nextLine();
 			k.close();
-			createProcess(filename, DEFAULT_PRIORITY);
+			createProcess(filename, priority);
 		} catch (FileNotFoundException e) {
 			logger.error("Can't interrupt: Program cannot be found in " + "working directory");
-			gpr[0] = PROGRAM_NOT_FOUND;
 		}
 	} // end of ISRrunProgram() function
 
@@ -677,32 +643,25 @@ public class Machine {
 	 * 
 	 * @return Error code
 	 */
-	public byte CheckAndProcessInterrupt() throws FileNotFoundException {
+	byte CheckAndProcessInterrupt() throws FileNotFoundException {
 		// Prompt and read interrupt ID
 
-		System.out.print("\nProcessing interrupt id: " + gpr[0]);
+		byte interruptId =  CPU.getInterruptId();
+		logger.info("\nProcessing interrupt id: " + interruptId);
 
 		// Process interrupt
 		byte status = 0;// 0 == Success
-		switch ((byte) gpr[0]) {
+		switch (interruptId) {
 		case 0: // No interrupt
 			System.out.println(" No interrupt");
 			break;
 
-		case 1: // Run program
-			ISRrunProgramInterrupt();
+		case 1: // Run a different program
+			interrupt(); maybe add get userinput method
 			break;
 
 		case 2: // Shutdown system
 			ISRshutdownSystem(); // Terminate processes in RQ and WQ
-			break;
-
-		case 3: // Input operation completion – io_getc
-			// ISRinputCompletionInterrutp();
-			break;
-
-		case 4: // Output operation completion – io_putc
-			// ISRoutputCompletionInterrupt();
 			break;
 
 		default: // Invalid Interrupt ID
@@ -1075,6 +1034,3 @@ public class Machine {
 		return timeSlice;
 	}
 } // End of Machine class
-
-
-}// End of Machine class

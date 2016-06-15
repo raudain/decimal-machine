@@ -2,7 +2,7 @@ package operating.systems.internals.DecimalMachine;
 
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Central_Processing_Unit;
-import operating.systems.internals.Storage.Simple_Memory;
+import operating.systems.internals.Storage.Operating_System_Memory;
 
 public class Process_Control_Block extends Central_Processing_Unit{
 
@@ -35,7 +35,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		SP_INDEX = 18;
 	}
 
-	private void setProcessId(Simple_Memory OSM, short pcbPointer, short processId) {
+	private void setProcessId(Operating_System_Memory OSM, short pcbPointer, short processId) {
 		
 		OSM.load(pcbPointer + PROCESS_ID_INDEX, processId);
 	}
@@ -51,7 +51,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public void setPcb(Simple_Memory OSM, short pcbPointer, short processId, byte priority, char state) {
+	public void setPcb(Operating_System_Memory OSM, short pcbPointer, short processId, byte priority, char state) {
 		// Initialize all values to zero
 		for (int i = 0; i < SIZE; i++)
 			OSM.load(pcbPointer + i, 0);
@@ -85,7 +85,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 	 *            Start of a particular process control block about to be
 	 *            zeroed.
 	 */
-	public void initialize(Simple_Memory OSM, short PCBpointer, byte processId, byte priority, char state) {
+	public void initialize(Operating_System_Memory OSM, short PCBpointer, byte processId, byte priority, char state) {
 		// Initialize all values to zero
 		for (int i = 0; i < SIZE; i++)
 			OSM.load(PCBpointer + i, 0);
@@ -114,27 +114,27 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		return STATE_INDEX;
 	}
 
-	public void setState(Simple_Memory OSM, short pcbPointer, char state) {
+	public void setState(Operating_System_Memory OSM, short pcbPointer, char state) {
 
 		OSM.load(pcbPointer + STATE_INDEX, state);
 	}
 
-	public void setNextPcbPointer(Simple_Memory OSM, short pcbPointer, short nextPointer) {
+	public void setNextPcbPointer(Operating_System_Memory OSM, short pcbPointer, short nextPointer) {
 
 		OSM.load(pcbPointer + NEXT_PCB_INDEX, nextPointer);
 	}
 
-	public short getNextPcbPointer(Simple_Memory OSM, short pcbPointer) {
+	public short getNextPcbPointer(Operating_System_Memory OSM, short pcbPointer) {
 
 		return (short) OSM.fetch((short) (pcbPointer + NEXT_PCB_INDEX));
 	}
 
-	public void setProgramCounter(Simple_Memory OSM, short pcbPointer, short programCounter) {
+	public void setProgramCounter(Operating_System_Memory OSM, short pcbPointer, short programCounter) {
 
 		OSM.load(pcbPointer + PC_INDEX, programCounter);
 	}
 	
-	public void setPriority(Simple_Memory OSM, short pcbPointer, short priority) {
+	public void setPriority(Operating_System_Memory OSM, short pcbPointer, short priority) {
 
 		OSM.load(pcbPointer + PRIORITY_INDEX, priority);
 	}
@@ -154,12 +154,12 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		return PROCESS_ID_INDEX;
 	}
 	
-	public byte getProcessId(Simple_Memory OSM, short pcbPointer) {
+	public byte getProcessId(Operating_System_Memory OSM, short pcbPointer) {
 		
 		return (byte) OSM.fetch((short) (pcbPointer + PROCESS_ID_INDEX));
 	}
 	
-	public int[] getGprValues(Simple_Memory OSM, short pcbPointer, byte numberOfGPRs) {
+	public int[] getGprValues(Operating_System_Memory OSM, short pcbPointer, byte numberOfGPRs) {
 		
 		int[] a = new int[numberOfGPRs];
 		for (int i = 0; i < numberOfGPRs + 1; i++)
@@ -168,7 +168,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		return a;
 	}
 	
-	public short getStackPointer(Simple_Memory OSM, short pcbPointer) {
+	public short getStackPointer(Operating_System_Memory OSM, short pcbPointer) {
 		
 		return (short) OSM.fetch((short) (pcbPointer + SP_INDEX));
 
@@ -177,7 +177,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		// psr = userMode; // UserMode is 1, OSMode is 0.
 	}
 	
-	public short getProgramCounter(Simple_Memory OSM, short pcbPointer) {
+	public short getProgramCounter(Operating_System_Memory OSM, short pcbPointer) {
 		
 		return (short) OSM.fetch((short) (pcbPointer + PC_INDEX));
 
@@ -186,7 +186,7 @@ public class Process_Control_Block extends Central_Processing_Unit{
 		// psr = userMode; // UserMode is 1, OSMode is 0.
 	}
 	
-	public byte getPriority(Simple_Memory OSM, short pcbPointer) {
+	public byte getPriority(Operating_System_Memory OSM, short pcbPointer) {
 		
 		return (byte) OSM.fetch((short) (pcbPointer + PRIORITY_INDEX));
 	}
