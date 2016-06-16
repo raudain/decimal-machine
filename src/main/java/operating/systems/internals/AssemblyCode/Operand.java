@@ -103,7 +103,6 @@ public class Operand implements AssemblyLanguage {
 			address = (short) am.fetch(cpu.getProgramCounter());
 
 			cpu.incrementProgramCounter();
-			;
 		}
 	}
 

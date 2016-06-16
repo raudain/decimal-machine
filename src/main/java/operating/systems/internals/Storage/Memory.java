@@ -5,8 +5,8 @@ import org.apache.logging.log4j.Logger;
 
 public abstract class Memory {
 
-	int[] memory;
-	short freeSpacePointer;
+	private int[] memory;
+	private short freeSpacePointer;
 	private final byte FIRST_MEMORY_ADDRESS;
 	private final byte sizeIndex;
 	private final byte END_INDICATOR;

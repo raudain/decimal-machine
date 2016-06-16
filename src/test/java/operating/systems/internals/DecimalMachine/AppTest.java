@@ -11,7 +11,7 @@ public class AppTest extends TestCase {
 	 * Tests initialization
 	 */
 	public void testGetInput() {
-		App app = new App();
+		UI app = new UI();
 		String input = app.getInput();
 		String emptyString = "";
 		assert(!input.equals(emptyString));

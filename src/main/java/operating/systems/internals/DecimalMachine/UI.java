@@ -8,34 +8,40 @@ import org.apache.logging.log4j.Logger;
 
 import operating.systems.internals.DecimalMachine.Machine;
 
-public class App {
+public class UI {
 
 	private static final Logger logger = LogManager.getLogger("App");
-	private boolean firstInput;
-	private final byte highestPriority;
 
-	public App() {
-		
-		firstInput = true;
-		highestPriority = 127;
+	private static String getGreeting() {
+
+		return "Welcome to the decimal machine. The first programs entered gets a higher"
+				+ " execution prority then each successive program entered/n";
 	}
 
-	public String getInput() {
+	public static String getFirstInput() {
 
-		String greeting = "Welcome to the decimal machine. The first programs entered get a higher"
-				+ " execution prority then each successive program entered/n";
-		String anotherOne = "Enter another executable's file name to load"
-				+ " another program. Enter \"run\" to start"
-				+ " program(s) or " + "enter shutdown to halt the machine";
 		String s = "";
 
-		if (firstInput) {
-			s = greeting;
-			firstInput = false;
-		} else
-			s = anotherOne;
+		s = getGreeting();
 
-		System.out.println(s);
+		logger.info(s);
+		String commandLineInput = "";
+		Scanner keyboard = new Scanner(System.in);
+		System.out.println("Enter an executable's file name");
+		commandLineInput = keyboard.nextLine();
+		keyboard.close();
+
+		commandLineInput.toLowerCase();
+
+		return "";
+	}
+	
+	public static String getInput() {
+
+		String prompt = "Enter another executable's file name to load" + " another program. Enter \"run\" to start"
+				+ " program(s) or " + "enter shutdown to halt the machine";
+
+		logger.info(prompt);
 		String commandLineInput = "";
 		Scanner keyboard = new Scanner(System.in);
 		System.out.println("Enter an executable's file name");
@@ -65,33 +71,18 @@ public class App {
 	 */
 	public static void main(String[] args) {
 
-		App app = new App();
-		final Machine MACHINE = new Machine();
-		
+		final Machine machine = new Machine();
+
 		// Priority one is the lowest priority, and 127 is the highest
-		byte priority = app.highestPriority;
+		final byte highestPriority = 127;
+		byte priority = highestPriority;
+
+		String firstCommandLineInput = getFirstInput();
+
+		machine.processInput(firstCommandLineInput, priority);
 		
-		String firstCommandLineInput = app.getInput();
-		
-		// If shutdown command is entered before any programs are entered
-		if ("shutdown".equals(firstCommandLineInput)) {
-			MACHINE.ISRshutdownSystem();
-			logger.info("System is shutting down");
-			return;
-		}
-
-		else if ("".equals(firstCommandLineInput))
-			logger.error("Error: Blank entered");
-
-		else
-			try {
-				MACHINE.createProcess(firstCommandLineInput, priority);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-
 		while (!("shutdown".equals(firstCommandLineInput))) {
-			String commandLineInput = app.getInput();
+			String commandLineInput = getInput();
 
 			if ("run".equals(commandLineInput)) {
 				boolean running_nullProcess = false;
@@ -99,7 +90,7 @@ public class App {
 				while (running_nullProcess == false) {
 
 					logger.info("Selecting a process out of the ready Queue");
-					short runningPcbPointer = MACHINE.selectFromRQ();
+					short runningPcbPointer = machine.selectFromRQ();
 
 					/*
 					 * The null process is loaded into the operating systems's
@@ -116,15 +107,15 @@ public class App {
 						 * run null process when the machine is waiting for user
 						 * input
 						 */
-						MACHINE.executeProgram();
+						machine.executeProgram();
 						continue;
 					}
 
-					short executionStatus = MACHINE.executeProgram();
+					short executionStatus = machine.executeProgram();
 					final byte CONTINUE_EXECUTION = 1;
 					final byte TIME_SLICE_EXPIRED = 2;
 					final byte EXECUTION_COMPLETE = 3;
-					
+
 					switch (executionStatus) {
 
 					/*
@@ -132,23 +123,22 @@ public class App {
 					 * the process
 					 */
 					case CONTINUE_EXECUTION:
-						executionStatus = MACHINE.executeProgram();
+						executionStatus = machine.executeProgram();
 
-					/*
-					 * When a processes time expires the process at the top
-					 * of the ready queue is ran
-					 */
+						/*
+						 * When a processes time expires the process at the top
+						 * of the ready queue is ran
+						 */
 					case TIME_SLICE_EXPIRED:
-						logger.info("The program dumped above has expired its time "
-								+ "slice");
-						MACHINE.saveContext(runningPcbPointer);
-						MACHINE.insertIntoReadyQueue(runningPcbPointer);
+						logger.info("The program dumped above has expired its time " + "slice");
+						machine.saveContext(runningPcbPointer);
+						machine.insertIntoReadyQueue(runningPcbPointer);
 						continue;
 
 					case EXECUTION_COMPLETE:
 						// All memory allocated to the now halted process is
 						// freed.
-						MACHINE.terminateProcess(runningPcbPointer);
+						machine.terminateProcess(runningPcbPointer);
 						continue;
 
 					default:
@@ -157,7 +147,7 @@ public class App {
 
 					} // End of switch statement for executionStatus
 					try {
-						executionStatus = MACHINE.CheckAndProcessInterrupt();
+						executionStatus = machine.CheckAndProcessInterrupt();
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					}
@@ -166,7 +156,7 @@ public class App {
 				} // end of the inner loop "while running"
 			} // end of if "run" entered
 			else if ("shutdown".equals(commandLineInput)) {
-				MACHINE.ISRshutdownSystem();
+				machine.shutdownSystem();
 				logger.info("System is shutting down");
 				return;
 			} else if ("".equals(commandLineInput))
@@ -183,16 +173,16 @@ public class App {
 				 * priority which is zero.
 				 */
 				if (priority == 0)
-					priority = app.highestPriority;
+					priority = highestPriority;
 
 				try {
-					MACHINE.createProcess(commandLineInput, priority);
+					machine.createProcess(commandLineInput, priority);
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				}
-			}// end of if statement
-		}// end of while not shutdown outer loop
-		MACHINE.ISRshutdownSystem();
+			} // end of if statement
+		} // end of while not shutdown outer loop
+		machine.shutdownSystem();
 		logger.info("System is shutting down");
 	} // end of main method
 } // end of class

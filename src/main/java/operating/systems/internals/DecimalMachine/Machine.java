@@ -73,7 +73,7 @@ public class Machine {
 	private final byte NUMBER_OF_REGISTERS;
 
 	private short executionTime;
-	
+
 	private final short timeSlice;
 
 	public Machine() {
@@ -102,6 +102,30 @@ public class Machine {
 		String relativePath = directory + fileName;
 
 		return relativePath;
+	}
+
+	public void processInput(String userInput, byte priority) {
+
+		switch (userInput) {
+
+		case "shutdown":
+
+			shutdownSystem();
+			logger.info("System is shutting down");
+			break;
+
+		case "":
+
+			logger.error("Error: Blank entered");
+
+		default:
+
+			try {
+				createProcess(userInput, priority);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -136,7 +160,6 @@ public class Machine {
 		while (machineCode.hasNextLine()) {
 			// read address, content from file
 			short address = machineCode.nextShort();
-
 
 			// store program
 			AM.load(address, machineCode.nextInt());
@@ -316,7 +339,7 @@ public class Machine {
 	 *            The higher the priority the more chances the process will get
 	 *            resources
 	 */
-	private void createProcess(String filename, byte priority) throws FileNotFoundException {
+	public void createProcess(String filename, byte priority) throws FileNotFoundException {
 		// Allocate space for Process Control Block
 		// return value contains address
 		short pcbPointer = OSM.allocate(PCB.getSize());
@@ -374,7 +397,6 @@ public class Machine {
 		// restore CPU
 		int[] gprValues = PCB.getGprValues(OSM, pcbPointer, (byte) CPU.getSize());
 		CPU.setGeneralPurposeRegisters(gprValues);
-		CPU.setStackPointer(PCB.getStackPointer(OSM, pcbPointer));
 		CPU.setProgramCounter(PCB.getProgramCounter(OSM, pcbPointer));
 
 		return pcbPointer;
@@ -385,7 +407,6 @@ public class Machine {
 		for (byte i = 0; i <= CPU.getSize() + 1; i++)
 			PCB.load(i, CPU.fetch(i));
 
-		PCB.setStackPointer(CPU.getStackPointer());
 		PCB.setProgramCounter(CPU.getProgramCounter());
 	} // end of SaveContext() function
 
@@ -397,32 +418,32 @@ public class Machine {
 	byte invalidIndicator = -1;
 
 	public byte executeInstruction() {
-		
-		Instruction instruction; // Instruction Register
-		
-		// Fetch (read) the first word of the instruction pointed by PC
-		short pc = CPU.getProgramCounter();	
 
-		/* Advances program counter by 1 to the address of next
-		 * instruction. */
+		Instruction instruction; // Instruction Register
+
+		// Fetch (read) the first word of the instruction pointed by PC
+		short pc = CPU.getProgramCounter();
+
+		/*
+		 * Advances program counter by 1 to the address of next instruction.
+		 */
 		CPU.incrementProgramCounter();
 		instruction = new Instruction(AM.fetch(pc));
 
-		
 		// check if instruction is valid. If not valid then error is logged
 		instruction.isValid((byte) CPU.getSize());
-		
+
 		// Execute Cycle
 		// In the execute cycle, fetch operand value(s) based on the opcode
 		// since different opcode has different number of operands
-		
+
 		Operands operands = instruction.getOperands();
 		final byte valueOfOperand1 = operands.getValueOfOperand1(CPU, AM);
 		final byte valueOfOperand2 = operands.getValueOfOperand2(CPU, AM);
 		final byte operand1GPRAddress = operands.getOperand1GprAddress();
 		int result;
 		switch (instruction.getOperationCode()) {
-		
+
 		case 0: // halt
 			logger.info("\n The Machine has reached a halt instruction.");
 			logger.info("Dumping CPU registers and used temporary memory.");
@@ -430,19 +451,19 @@ public class Machine {
 
 			final byte haltOperationDuration = 12;
 			executionTime += haltOperationDuration;
-			
+
 			byte haltedCode = 10;
 			return haltedCode;
-			
+
 		case 1: // add operation code
 
 			/*
-			 * Add the operand's values and store the result into the 
-			 * first operand's address
+			 * Add the operand's values and store the result into the first
+			 * operand's address
 			 */
 			result = valueOfOperand1 + valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
-			
+
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
 
@@ -451,43 +472,43 @@ public class Machine {
 		case 2: // Subtract
 
 			/*
-			 * Subtract the operand's values and store the result into the 
-			 * first operand's address
+			 * Subtract the operand's values and store the result into the first
+			 * operand's address
 			 */
 			result = valueOfOperand1 - valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
-			
+
 			break;
 
 		case 3: // Multiply
-			
+
 			/*
-			 * Multiply the operand's values and store the result into the 
-			 * first operand's address
+			 * Multiply the operand's values and store the result into the first
+			 * operand's address
 			 */
 			result = valueOfOperand1 * valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
 			final byte muliplyOperationDuration = 6;
 			executionTime += muliplyOperationDuration;
-			
+
 			break;
 
 		case 4: // Divide
 
 			/*
-			 * Divide the operand's values and store the result into the 
-			 * first operand's address
+			 * Divide the operand's values and store the result into the first
+			 * operand's address
 			 */
 			result = valueOfOperand1 / valueOfOperand2;
 			CPU.load(operand1GPRAddress, result);
 
 			final byte divideOperationDuration = 6;
 			executionTime += divideOperationDuration;
-			
+
 			break;
 
 		case 5: // Move
@@ -496,7 +517,7 @@ public class Machine {
 
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
-			
+
 			break;
 
 		case 6: // Branch or jump instruction
@@ -505,22 +526,23 @@ public class Machine {
 
 			final byte jumpOperationDuration = 2;
 			executionTime += jumpOperationDuration;
-			
+
 			break;
 
 		case 7: // Branch on negative
 
 			if (valueOfOperand1 < 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) AM.fetch(pc)); 
+				CPU.setProgramCounter((short) AM.fetch(pc));
 
 			else
-				CPU.incrementProgramCounter(); // No branch, skip branch address to go to next
-						// instruction
+				CPU.incrementProgramCounter(); // No branch, skip branch address
+												// to go to next
+			// instruction
 
 			final byte branchOnNegativeOperationDuration = 4;
 			executionTime += branchOnNegativeOperationDuration;
-			
+
 			break;
 
 		case 8: // Branch on positive
@@ -528,7 +550,7 @@ public class Machine {
 			// Store branch address in the PC is true
 			if (valueOfOperand1 > 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) AM.fetch(pc)); 
+				CPU.setProgramCounter((short) AM.fetch(pc));
 
 			// No branch, skip branch address to go to next instruction
 			else
@@ -536,7 +558,7 @@ public class Machine {
 
 			final byte branchOnPositiveOperationDuration = 4;
 			executionTime += branchOnPositiveOperationDuration;
-			
+
 			break;
 
 		case 9: // branch on zero
@@ -550,7 +572,7 @@ public class Machine {
 
 			final byte branchOnZeroOperationDuration = 4;
 			executionTime += branchOnZeroOperationDuration;
-			
+
 			break;
 
 		case 10: // Push
@@ -559,30 +581,30 @@ public class Machine {
 
 			final byte pushOperationDuration = 2;
 			executionTime += pushOperationDuration;
-			
+
 			break;
 
 		case 11: // Pop
-			
+
 			CPU.load(operand1GPRAddress, STACK.pop());
 
 			final byte popOperationDuration = 2;
 			executionTime += popOperationDuration;
-			
+
 			break;
 
 		case 12: // System call
-			
+
 			byte systemCallCode = systemCall(valueOfOperand1);
 
 			final byte systemCallDuration = 12;
 			executionTime += systemCallDuration;
-			
+
 			return systemCallCode;
 		} // end of opcode switch statement
-		
+
 		byte instructionExecuted = 0;
-		
+
 		return instructionExecuted;
 	}
 
@@ -612,23 +634,9 @@ public class Machine {
 		logger.info("Time slice complete");
 		logger.info("Dumping CPU registers and used temporary memory.");
 		CPU.dumpRegisters();
-		
+
 		return status;
 	} // end of execute program module
-
-	void interrupt(byte priority) throws FileNotFoundException {
-
-		// Prompt and read filename;
-		try {
-			Scanner k = new Scanner(System.in);
-			logger.info("Enter an executable's file name");
-			String filename = k.nextLine();
-			k.close();
-			createProcess(filename, priority);
-		} catch (FileNotFoundException e) {
-			logger.error("Can't interrupt: Program cannot be found in " + "working directory");
-		}
-	} // end of ISRrunProgram() function
 
 	/**
 	 * possible interrupts: 0 – no interrupt
@@ -646,7 +654,7 @@ public class Machine {
 	byte CheckAndProcessInterrupt() throws FileNotFoundException {
 		// Prompt and read interrupt ID
 
-		byte interruptId =  CPU.getInterruptId();
+		byte interruptId = CPU.getInterruptId();
 		logger.info("\nProcessing interrupt id: " + interruptId);
 
 		// Process interrupt
@@ -657,116 +665,17 @@ public class Machine {
 			break;
 
 		case 1: // Run a different program
-			interrupt(); maybe add get userinput method
-			break;
+
+			String userInput = UI.getInput();
+			processInput(userInput, priority);
 
 		case 2: // Shutdown system
-			ISRshutdownSystem(); // Terminate processes in RQ and WQ
-			break;
-
-		default: // Invalid Interrupt ID
-			System.out.println("Error: Invalid interrupt ID message");
-			status = -13; // -13 == Invalid interrrupt ID
+			shutdownSystem(); // Terminate processes in RQ and WQ
 			break;
 		} // end of switch InterruptID
 
 		return status;
 	} // end of CheckAndProcessInterrupt function
-
-	/**
-	 * Sets the firstFreeTemporaryMemoryPointer to deallocate temporary memory.
-	 * 
-	 * @param pointer
-	 *            First address of the process's temporary memory block
-	 * @param size
-	 *            Amount of allocated temporary memory.
-	 * @return Error Code for invalid address or "OK" code if no errors.
-	 */
-	byte freeTemporaryMemory(short pointer, short size) {
-		if (size == 1)
-			size = 2; // minimum allocated size
-
-		if (pointer < FIRST_TEMPORARY_MEMORY_ADDRESS
-				|| pointer + size >= Application_Memory.getFirst_Os_Memory_Address()) {
-			System.out.print(
-					"Error: The free temporary memory method has failed due to " + "receiving an invalid address ");
-			return INVALID_ADDRESS; // INVALID_ADDRESS is a constant set to -1
-		}
-		/*
-		 * Check for invalid size and minimum size. Check for minimum allocated
-		 * size, which is 2 even if user asks for 1 location
-		 */
-		short totalSizeOfTemporaryMemory = 2000;
-		if (size < 1 || size > totalSizeOfTemporaryMemory) {
-			System.out.print("Error: Memory not returned.");
-			return INVALID_ADDRESS; // INVALID_ADDRESS = -1
-		}
-
-		// Make allocated memory free. Insert at the beginning of the link list
-		final byte nextLink = 0;
-		memory[pointer + nextLink] = firstFreeTemporaryMemoryPointer; // freeHeapMemory
-																		// is
-																		// global
-																		// variable
-																		// set
-																		// to
-																		// EOL
-		// Set to proper value in InitializeSystem function
-		// NextLink is constant set to 0, first value
-		memory[pointer + 1] = size; // set size of free block in the second word
-									// of the free block
-		firstFreeTemporaryMemoryPointer = pointer; // Set freeHeapMemory point
-													// to the returned block
-
-		return OK;
-
-	} // end of free temporary memory module
-
-	/**
-	 * Dis-allocates process control block when a program has halted.
-	 * 
-	 * @param ptr
-	 *            Memory address of the process control block to be
-	 *            relinquished.
-	 * @return Error code of successful return of memory code (OK = 0).
-	 */
-	byte freeOSmemory(short ptr) // return value contains OK or error code
-	{
-		if (ptr < Application_Memory.getFirst_Os_Memory_Address()
-				|| ptr > Application_Memory.getLast_Os_Memory_Address()) // MaxMemoryAddress
-		// is
-		// a
-		// constant
-		// set
-		// to
-		// 9999
-		{
-			System.out.println("Error: freeOSMemory has failed due to " + "pointing to an invalid address ");
-			return INVALID_ADDRESS; // ErrorInvalidMemoryAddress is constantset
-									// to < 0
-		}
-		if (ptr + PCB_SIZE > Application_Memory.getLast_Os_Memory_Address()) { // Invalid
-			// size
-			System.out.print("Error: An invalid address was referenced. " + "OS memory was not returned.");
-			return INVALID_ADDRESS; // All error codes are less than 0.
-		}
-
-		// Return memory to OS free space. Insert at the beginning of the link
-		// list
-		memory[ptr + NEXT_PCB_INDEX] = PCBmemoryFreeList; // PCBmemoryFreeList
-															// is global
-															// variable set to
-															// EOL
-		// Set to proper value in InitializeSystem function
-		// NextLink is constant set to 0, first value
-
-		memory[ptr + 1] = PCB_SIZE; // set size of free block in the second word
-									// of the free block
-		PCBmemoryFreeList = ptr; // Set PCBmemoryFreeList point to the returned
-									// block
-
-		return OK;
-	} // end of free operating system memory module
 
 	public void allocateTemporaryMemorySystemCall() {
 		// Allocate memory from user free list
@@ -1005,11 +914,9 @@ public class Machine {
 		freeTemporaryMemory((short) memory[PCBpointer + temporaryMemoryAddressIndex],
 				(short) memory[PCBpointer + temporaryMemorySizeIndex]);
 
-		// Makes a process control block available
-		freeOSmemory(PCBpointer);
 	} // end of TerminateProcess module
 
-	public void ISRshutdownSystem() {
+	public void shutdownSystem() {
 		// Terminate processes in RQ
 		short pointer = RqPointer;
 		while (pointer != END_OF_LIST_MARKER) {
