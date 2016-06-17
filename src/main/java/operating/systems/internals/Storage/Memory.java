@@ -170,4 +170,6 @@ public abstract class Memory {
 		System.out.println("Error: No free stack memory error");
 		return notOK; // ErrorNoFreeMemory is constant set to < 0
 	} // end of allocate user memory module
+	
+	public abstract void dump();
 }

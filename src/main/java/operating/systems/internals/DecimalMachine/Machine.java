@@ -52,7 +52,7 @@ public class Machine {
 
 	private static final Logger logger = LogManager.getLogger("Machine");
 
-	private final Process_Control_Block PCB;
+	//private Process_Control_Block PCB;
 
 	private final char READY_STATE_INDICATOR;
 
@@ -86,7 +86,7 @@ public class Machine {
 		AM = new Application_Memory(SIZE_OF_AM);
 		OSM = new Operating_System_Memory(SIZE_OF_OSM);
 		STACK = new Stack<Byte>();
-		PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
+		//PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
 
 		READY_STATE_INDICATOR = 'R';
 		priority = 1;
@@ -180,118 +180,12 @@ public class Machine {
 									// code
 	} // end of absoluteLoader module
 
-	public String printHeader() {
-		return "Address\tIndex\tValue";
-	}
-
-	public void printRq() {
-		// Walk thru the queue from the given pointer until end of list
-		// Print each PCB as you move from one PCB to the next
-		short currentPointer = RqPointer;
-		logger.info("Printing all process control blocks in ready queue:");
-		String header = printHeader();
-		logger.info(header);
-		while (currentPointer != END_OF_LIST_MARKER) {
-			short nextPointer = (short) AM.fetch((short) (currentPointer + PCB.getNextPcbIndex()));
-
-			if (nextPointer == currentPointer) {
-				logger.error("The link list for the ready queue " + "has a self reference!");
-				return;
-			}
-
-			byte PCBindex;
-			for (PCBindex = 0; PCBindex < PCB.getSize(); PCBindex++)
-				logger.info(currentPointer + "\t" + PCBindex + "\t" + AM.fetch(currentPointer++));
-
-			currentPointer = nextPointer;
-
-			System.out.println("Printing next process control block:");
-		} // end of while loop
-
-		System.out.println("The end of the ready queue has been reached.");
-	} // end of PrintPCB module
-
 	final byte OK = 0;
 
 	public boolean isReadyQueueEmpty() {
 
 		return RqPointer == END_OF_LIST_MARKER;
 	}
-
-	/**
-	 * Inserts a process into the ready queue
-	 * 
-	 * @param PCBpointer
-	 *            PCB: a data structure in the operating system kernel
-	 *            containing the information needed to manage a particular
-	 *            process. The PCB is "the manifestation of a process in an
-	 *            operating system".
-	 * 
-	 * @return
-	 */
-	public void insertIntoReadyQueue(short pcbPointer) {
-		// Insert PCB according to the Priority Round Robin algorithm
-		// Use priority in the PCB to find the correct place to insert.
-		short previousPointer = END_OF_LIST_MARKER;
-		short tempPointer = RqPointer;
-
-		// set state to ready state
-		PCB.setState(OSM, pcbPointer, READY_STATE_INDICATOR);
-
-		// set next pointer to end of list
-		PCB.setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
-
-		if (isReadyQueueEmpty()) {
-			RqPointer = pcbPointer;
-			return;
-		}
-
-		// Walk thru RQ and find the place to insert
-		// PCB will be inserted at the end of its priority
-		byte priorityIndex = PCB.getPriorityIndex();
-		while (tempPointer != END_OF_LIST_MARKER) {
-
-			// priortity of the program being inserted
-			Byte priority1 = PCB.getPriority(OSM, pcbPointer);
-
-			// priortity of the program that was already inserted
-			Byte priority2 = PCB.getPriority(OSM, tempPointer);
-
-			// if a memory location to insert is found
-			if (priority1 > priority2) {
-				if (tempPointer == END_OF_LIST_MARKER) {
-					// Enter PCB in the front of the list as first entry
-					PCB.setNextPcbPointer(OSM, pcbPointer, RqPointer);
-					RqPointer = pcbPointer;
-					logger.info(
-							"[PID: #" + PCB.getProcessId(OSM, pcbPointer) + "] has entered the top of the ready queue");
-					printRq();
-					return;
-				}
-				// enter PCB in the middle of the list
-				PCB.setNextPcbPointer(OSM, pcbPointer, PCB.getNextPcbPointer(OSM, previousPointer));
-				PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
-
-				logger.info("PCB enters in the middle of the ready queue ");
-				printRq();
-
-				return;
-			} else // PCB to be inserted has lower or equal priority to the
-					// current PCB in RQ
-			{ // go to the next PCB in RQ
-				previousPointer = tempPointer;
-				tempPointer = PCB.getNextPcbPointer(OSM, tempPointer);
-			}
-		} // end of while loop
-
-		// Insert PCB at the end of the RQ
-		PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
-
-		System.out.println("PCB enters at the bottom of the ready queue ");
-		printRq();
-
-		return;
-	} // end of insert process into ready queue module
 
 	/**
 	 * createProcess gets the null program ready to be run.
@@ -370,10 +264,10 @@ public class Machine {
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
-		PCB.setPcb(OSM, pcbPointer, processId, priority, 'W');
+		Process_Control_Block pcb = new Process_Control_Block(OSM, pcbPointer, (byte) CPU.getSize(), processId, priority, 'W');
 
 		// Insert PCB into Ready Queue according to the scheduling algorithm
-		insertIntoWaitingQueue(pcbPointer);
+		insertIntoWaitingQueue(pcb);
 
 	} // end of create child process system call module
 
@@ -593,14 +487,17 @@ public class Machine {
 
 			break;
 
-		case 12: // System call
+		/*
+		 * include this fuctionality in later version
+		 * 
+		 * case 12: // System call
 
 			byte systemCallCode = systemCall(valueOfOperand1);
 
 			final byte systemCallDuration = 12;
 			executionTime += systemCallDuration;
 
-			return systemCallCode;
+			return systemCallCode; */
 		} // end of opcode switch statement
 
 		byte instructionExecuted = 0;
@@ -677,45 +574,9 @@ public class Machine {
 		return status;
 	} // end of CheckAndProcessInterrupt function
 
-	public void allocateTemporaryMemorySystemCall() {
-		// Allocate memory from user free list
-		// Return status from the function is either the address of allocated
-		// memory or an error code
-		short requestedSize = (short) gpr[2];
-
-		gpr[1] = allocateTemporaryMemory(requestedSize); // Requested memory
-															// size is in GPR2
-		if (gpr[1] < 0)
-			gpr[0] = gpr[1]; // Set GPR0 to have the error status
-
-		else
-			gpr[0] = OK;
-
-		System.out.println("Mem_alloc system call, Status Code: " + gpr[0] + ", GPR [1]: " + gpr[1]
-				+ ", Requested memory slots: " + gpr[2]);
-
-	} // end of memory allocation system call module
-
-	void MemFreeSystemCall() {
-		// Return dynamically allocated memory to the user free list
-		// GPR[1] has memory address and GPR[2] has memory size to be released
-		// Return status in GPR[0]
-
-		short size = (short) gpr[2];
-
-		// check for size out of range
-
-		// Check size of 1 and change it to 2
-		if (size == 1)
-			size = 2;
-
-		gpr[0] = freeTemporaryMemory((short) gpr[1], size);
-
-		System.out.println(
-				"Display Mem_free system call, GPR[0]: " + gpr[0] + ", GPR[1]: " + gpr[1] + ", GPR[2]: " + gpr[2]);
-	} // end of free memory system call module
-
 	/**
+	 * Include in later version
+	 * 
 	 * Input parameter values for each system call is passed through GPRs.
 	 * Output parameter values are returned by the operating system through
 	 * GPRs. Set the system mode to OS mode on entry into the system call
@@ -729,7 +590,7 @@ public class Machine {
 	 * @param actionCode
 	 *            The type of system call
 	 * @return ?????????????????????????????????????????????????????????????
-	 */
+	 
 	byte systemCall(byte actionCode) {
 		// byte operatingSystemMode = 0;
 		// byte applicationMode = 1;
@@ -739,45 +600,16 @@ public class Machine {
 		byte status = OK;
 
 		switch (actionCode) {
-		case 1: // Create process – user process is creating a child process.
+		
+		 * case 1: // Create process – user process is creating a child process.
+		 
 			// This is not same as run program interrupt
 			createProcessSystemCall((short) gpr[1]);
 
 			break;
 
-		case 2:
-			// ProcessDeleteSystemCall();
-
-			break;
-
-		case 4: // Dynamic memory allocation: Allocate user free memory system
-				// call
-			allocateTemporaryMemorySystemCall();
-
-			// psr = applicationMode;
-			return PROCEED;
-
-		case 5: // Free dynamically allocated user memory system call
-			MemFreeSystemCall();
-
-			break;
-
-		case 6:
-			receiveMessage((short) 5);
-
-		case 7:
-			msg_qsendSystemCall(gpr[1], gpr[2]);
-
-			break;
-
-		default: // Invalid system call ID
-
-			System.out.println("Error: Invalid system call ID");
-			status = notOK;
-			break;
-		} // end of systemCallCode switch statement
 		return status;
-	} // end of system call module
+	} // end of system call module */
 
 	private final byte reasonForWaitingIndex = 3;
 	private final byte waitingForMessageCode = 7;
@@ -793,21 +625,13 @@ public class Machine {
 	 * 
 	 * @return
 	 */
-	public void insertIntoWaitingQueue(short pcbPointer) {
+	public void insertIntoWaitingQueue(Process_Control_Block pcb) {
 		short previousPointer = END_OF_LIST_MARKER;
 		short currentPointer = WQ;
 
-		// Check for invalid PCB memory address
-		if (AM.isValidAddress(pcbPointer)) {
-			logger.error("The process control block pointer is invalid");
-		}
-
-		PCB.setState(OSM, pcbPointer, WAITING_STATE);
-		PCB.setNextPcbPointer(OSM, PcbPointer, nextPointer);
-		memory[PCBptr + NEXT_PCB_INDEX] = END_OF_LIST_MARKER; // set next
-		// pointer
-		// to
-		// end of list. RQ is empty
+		pcb.setState(OSM, pcbPointer, WAITING_STATE);
+		// set next pointer to end of list. RQ is empty
+		pcb.setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
 		if (WQ == END_OF_LIST_MARKER) {
 			WQ = PCBptr;
 			return OK;
@@ -836,7 +660,7 @@ public class Machine {
 			{
 				found = true;
 				if (memory[ptr + reasonForWaitingIndex] == waitingForMessageCode) {
-					// remove pcb from wq
+					// remove PCB from wq
 					memory[ptr + NEXT_PCB_INDEX] = END_OF_LIST_MARKER;
 					memory[previousPCBptr + NEXT_PCB_INDEX] = END_OF_LIST_MARKER;
 				}
