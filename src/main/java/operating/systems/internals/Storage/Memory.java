@@ -51,7 +51,7 @@ public abstract class Memory {
 		return memory[address];
 	}
 	
-	public short getSize() {
+	public short size() {
 		
 		return (short) memory.length;
 	}

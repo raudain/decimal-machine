@@ -1,5 +1,6 @@
 package operating.systems.internals.Storage;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.logging.log4j.LogManager;
@@ -27,17 +28,24 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 		logger.info("The end of the ready queue has been reached.");
 	} // end of print method
 
-	private void setToTop(Process_Control_Block pcb) {
+	private void makeSpace(byte index) {
 		
-		Process_Control_Block tempPcb = getFirst();
-		addFirst(pcb);
-		for (int i = 1; i <= size(); i++) {
-			add(i, tempPcb);
-			if (i + 1 <= size())
-					tempPcb = get(i + 1);
+		Process_Control_Block tempPcb;
+		Process_Control_Block nextPcb;
+		for (int i = index; i < size(); i++) {
+			tempPcb = get(i);
+			nextPcb = get(i + 1);
+			set(i + 1, tempPcb);
+			tempPcb = nextPcb;
 		}
 	}
 	
+	private void putAhead(byte index, Process_Control_Block pcb) {
+
+		makeSpace(index);
+		add(index, pcb);
+	}
+
 	/**
 	 * Inserts a process into the ready queue
 	 * 
@@ -64,45 +72,22 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 		 */
 		pcb.setState(pcb.getReadyStateIndicator());
 
-		/*
-		 * Iterate RQ and find the place to insert PCB will be inserted at the
-		 * end of its priority
-		 */
-		Process_Control_Block tempPcb = getFirst();
-
-		while (!tempPcb.equals(getLast())) {
-			byte priorityComparisonResult = pcb.comparePriority(tempPcb.getPriority());
-			// if the new process control block has the greatest priority
-			if (priorityComparisonResult > 0 ) {
-				if (tempPointer == END_OF_LIST_MARKER) {
-					setToTop(pcb);
-					logger.info(
-							"[PID: #" + PCB.getProcessId(OSM, pcbPointer) + "] has entered the top of the ready queue");
-					print();
-					return true;
-				}
-				// enter PCB in the middle of the list
-				PCB.setNextPcbPointer(OSM, pcbPointer, PCB.getNextPcbPointer(OSM, previousPointer));
-				PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
-
-				logger.info("PCB enters in the middle of the ready queue ");
-				printRq();
-
-				return;
-			} else // PCB to be inserted has lower or equal priority to the
-					// current PCB in RQ
-			{ // go to the next PCB in RQ
-				previousPointer = tempPointer;
-				tempPointer = PCB.getNextPcbPointer(OSM, tempPointer);
+		Iterator<Process_Control_Block> itr = iterator();
+		byte index = 0;
+		while (itr.hasNext()) {
+			Process_Control_Block temp = itr.next();
+			if (pcb.hasGreaterPriority(temp.getPriority())) {
+				putAhead(index, pcb);
+				print();
+				
+				return true;
 			}
-		} // end of while loop
+		}
 
-		// Insert PCB at the end of the RQ
-		PCB.setNextPcbPointer(OSM, previousPointer, pcbPointer);
+		addLast(pcb);
+		logger.info("PCB enters at the bottom of the ready queue ");
+		print();
 
-		System.out.println("PCB enters at the bottom of the ready queue ");
-		printRq();
-
-		return;
+		return true;
 	} // end of insert process into ready queue module
 }

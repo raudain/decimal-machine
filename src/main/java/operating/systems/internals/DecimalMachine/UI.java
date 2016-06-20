@@ -131,8 +131,8 @@ public class UI {
 						 */
 					case TIME_SLICE_EXPIRED:
 						logger.info("The program dumped above has expired its time " + "slice");
-						machine.saveContext(runningPcbPointer);
-						machine.insertIntoReadyQueue(runningPcbPointer);
+						Process_Control_Block pcb = Process_Control_Block.getPcb(machine.getOsm(), runningPcbPointer);
+						machine.benchProgram(pcb);
 						continue;
 
 					case EXECUTION_COMPLETE:

@@ -14,6 +14,7 @@ import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Central_Processing_Unit;
 import operating.systems.internals.Storage.Operating_System_Memory;
+import operating.systems.internals.Storage.Ready_Program_List;
 
 /**
  * Facade design pattern for Memory and CPU
@@ -60,10 +61,6 @@ public class Machine {
 
 	private byte processId;
 
-	private final Central_Processing_Unit CPU;
-
-	private final Operating_System_Memory OSM;
-
 	private final byte SIZE_OF_AM;
 
 	private final byte SIZE_OF_OSM;
@@ -75,6 +72,12 @@ public class Machine {
 	private short executionTime;
 
 	private final short timeSlice;
+	
+	private final Central_Processing_Unit CPU;
+
+	private final Operating_System_Memory OSM;
+	
+	private final Ready_Program_List RPL;
 
 	public Machine() {
 
@@ -86,6 +89,7 @@ public class Machine {
 		AM = new Application_Memory(SIZE_OF_AM);
 		OSM = new Operating_System_Memory(SIZE_OF_OSM);
 		STACK = new Stack<Byte>();
+		RPL = new Ready_Program_List();
 		//PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
 
 		READY_STATE_INDICATOR = 'R';
@@ -181,11 +185,6 @@ public class Machine {
 	} // end of absoluteLoader module
 
 	final byte OK = 0;
-
-	public boolean isReadyQueueEmpty() {
-
-		return RqPointer == END_OF_LIST_MARKER;
-	}
 
 	/**
 	 * createProcess gets the null program ready to be run.
@@ -295,14 +294,6 @@ public class Machine {
 
 		return pcbPointer;
 	} // end of select process from the ready queue module
-
-	public void saveContext(short PCBpointer) {
-
-		for (byte i = 0; i <= CPU.getSize() + 1; i++)
-			PCB.load(i, CPU.fetch(i));
-
-		PCB.setProgramCounter(CPU.getProgramCounter());
-	} // end of SaveContext() function
 
 	final byte INVALID_MODE = -6; // invalid mode
 	final byte UNSUCCESSFUL_OPERAND_FETCH = -9; // Operand fetch was
@@ -763,5 +754,15 @@ public class Machine {
 	public short getTimeSliceAmount() {
 
 		return timeSlice;
+	}
+	
+	public Operating_System_Memory getOsm() {
+		
+		return OSM;
+	}
+	
+	public void benchProgram(Process_Control_Block pcb) {
+		
+		RPL.add(pcb);
 	}
 } // End of Machine class
