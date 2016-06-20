@@ -73,13 +73,12 @@ public class UI {
 
 		final Machine machine = new Machine();
 
+		machine.runNullProgram();
 		// Priority one is the lowest priority, and 127 is the highest
 		final byte highestPriority = 127;
 		byte priority = highestPriority;
 
 		String firstCommandLineInput = getFirstInput();
-
-		machine.processInput(firstCommandLineInput, priority);
 		
 		while (!("shutdown".equals(firstCommandLineInput))) {
 			String commandLineInput = getInput();

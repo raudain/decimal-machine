@@ -16,7 +16,7 @@ public class Process_Control_Block extends Central_Processing_Unit {
 	private final byte GPU_INDEX;
 	private final byte SP_INDEX;
 	private final Operating_System_Memory OSM;
-	private final Short POINTER;
+	private final Short OSM_POINTER;
 
 	/**
 	 * setPCB fills out some values the child process's process control block
@@ -29,18 +29,13 @@ public class Process_Control_Block extends Central_Processing_Unit {
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public Process_Control_Block(Operating_System_Memory osm, short pointer, byte numberOfRegisters, short processId,
+	public Process_Control_Block(byte numberOfRegisters, Operating_System_Memory osm, short osmPointer, short processId,
 			byte priority, char state) {
 
 		super(numberOfRegisters);
 
-		READY_STATE = 'R';
-		WAITING_STATE = 'W';
-		PC_INDEX = 19;
-		GPU_INDEX = 10;
-		SP_INDEX = 18;
 		OSM = osm;
-		POINTER = pointer;
+		OSM_POINTER = osmPointer;
 
 		setProcessId(processId);
 
@@ -49,19 +44,26 @@ public class Process_Control_Block extends Central_Processing_Unit {
 
 		// Ready State is a constant set to 'W'
 		setState(state);
-	} // End of constructor
-	
-	public static Process_Control_Block getPcb(Operating_System_Memory osm, short pointer) {
 		
+		READY_STATE = 'R';
+		WAITING_STATE = 'W';
+		PC_INDEX = 19;
+		GPU_INDEX = 10;
+		SP_INDEX = 18;
+	} // End of constructor
+
+	public static Process_Control_Block getPcb(Operating_System_Memory osm, short pointer) {
+
 		byte numberOfRegisters = SIZE;
 		byte processId = (byte) osm.fetch((short) (pointer + PROCESS_ID_INDEX));
 		byte priority = (byte) osm.fetch((short) (pointer + PRIORITY_INDEX));
 		char state = (char) osm.fetch((short) (pointer + STATE_INDEX));
-		Process_Control_Block pcb = new Process_Control_Block(osm, pointer, numberOfRegisters, processId, priority, state);
-		
+		Process_Control_Block pcb = new Process_Control_Block(osm, pointer, numberOfRegisters, processId, priority,
+				state);
+
 		return pcb;
 	} // End of constructor
-	
+
 	private void setProcessId(short processId) {
 
 		OSM.load(POINTER + PROCESS_ID_INDEX, processId);

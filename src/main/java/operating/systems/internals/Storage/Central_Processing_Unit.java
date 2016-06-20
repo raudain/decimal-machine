@@ -32,7 +32,7 @@ public class Central_Processing_Unit extends Memory{
 	
 	public void setGeneralPurposeRegisters(int[] gprValues) {
 		
-		for (byte i = 0; i <= getSize() + 1; i++) 
+		for (byte i = 0; i <= size() + 1; i++) 
 			load(i, gprValues[i]);
 	}
 	
@@ -87,4 +87,34 @@ public class Central_Processing_Unit extends Memory{
 		
 		return (byte) fetch(INTERRUPT_ID_INDEX);
 	}
+	
+	/**
+	 * The execute program function executes the program or programs that have
+	 * already loaded in the main memory. This function executes one instruction
+	 * at a time pointed using a program counter by performing (a) fetch
+	 * instruction cycle, (b) decode instruction cycle, and (c) execute
+	 * instruction cycle. It performs all possible error checking such as
+	 * invalid memory address reference, invalid mode, and division by zero
+	 * error. After executing each instruction, it increases the clock by an
+	 * instruction execution time. It returns the status of execution as an byte
+	 * value.
+	 * 
+	 * @return An error code, 10 for halt or system call code. Error codes:
+	 *         invalid address: -1 invalid mode: -6 divide by zero: -8
+	 *         unsuccessful operand fetch: -9 invalid operation code: -10
+	 */
+	byte execute() {
+
+		byte status = 0;
+		while (executionTime < timeSlice) {
+
+			status = executeInstruction();
+		} // end of while loop
+
+		logger.info("Time slice complete");
+		logger.info("Dumping CPU registers and used temporary memory.");
+		CPU.dumpRegisters();
+
+		return status;
+	} // end of execute program module
 }

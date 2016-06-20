@@ -108,30 +108,6 @@ public class Machine {
 		return relativePath;
 	}
 
-	public void processInput(String userInput, byte priority) {
-
-		switch (userInput) {
-
-		case "shutdown":
-
-			shutdownSystem();
-			logger.info("System is shutting down");
-			break;
-
-		case "":
-
-			logger.error("Error: Blank entered");
-
-		default:
-
-			try {
-				createProcess(userInput, priority);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	/**
 	 * Open the file containing HYPO machine program and load the content into
 	 * the application partition of memory. On successful load, return the PC
@@ -144,7 +120,7 @@ public class Machine {
 	 * 
 	 * @return First address of the program
 	 */
-	public short absoluteLoader(String fileName) throws FileNotFoundException {
+	public short absolutePathLoader(String fileName) {
 
 		Scanner machineCode = null;
 		String s = addPath(fileName);
@@ -154,7 +130,6 @@ public class Machine {
 		} catch (FileNotFoundException e) {
 			logger.error("Error in absoluteLoader: Program cannot be found in " + "working directory");
 			e.printStackTrace();
-			throw e;
 		}
 
 		// Read from file until end of program or end of file and
@@ -186,80 +161,10 @@ public class Machine {
 
 	final byte OK = 0;
 
-	/**
-	 * createProcess gets the null program ready to be run.
-	 * 
-	 * 
-	 */
-	private void createProcess() throws FileNotFoundException {
-
-		String filename = "C:\\Users\\roody.audain\\workspace\\Concepts\\DecimalMachine"
-				+ "\\src\\main\\resources\\Null_Process";
-
-		// Allocate space for Process Control Block
-		short PcbPointer = OSM.allocate(PCB.getSize()); // return value contains
-														// address
-		// or error
-		if (PcbPointer < AM.getFirstMemoryAddress() || PcbPointer > AM.getSize())
-			logger.error("Memory alocation from OS free space has failed");
-
-		// Initialize PCB. Set nextPCBlink to end of list, default priority,
-		// Ready state, PID, rest 0
-		PCB.initialize(OSM, PcbPointer, processId++, priority++, 'R');
-
-		// get the program's address of it's first instruction
-		Short programOrigin;
-		programOrigin = (Short) absoluteLoader(filename);
-
-		// store PC value in the PCB of the process
-		PCB.setProgramCounter(OSM, PcbPointer, programOrigin);
-
-		// Store stack information in the PCB – SP, pointer, and size
-		// not implemented
-
-		PCB.setPriority(OSM, PcbPointer, priority); // Set priority
-
-		// Insert PCB into Ready Queue according to the scheduling algorithm
-		insertIntoReadyQueue(PcbPointer);
-	} // end of CreateProcess method
-
-	/**
-	 * createProcess gets the program ready to be run.
-	 * 
-	 * @param filename
-	 *            name of file in the local directory to be loaded
-	 * @param priority
-	 *            The higher the priority the more chances the process will get
-	 *            resources
-	 */
-	public void createProcess(String filename, byte priority) throws FileNotFoundException {
-		// Allocate space for Process Control Block
-		// return value contains address
-		short pcbPointer = OSM.allocate(PCB.getSize());
-
-		// Initialize PCB. Set nextPCBlink to end of list, default priority,
-		// Ready state, PID, rest 0
-		PCB.initialize(OSM, pcbPointer, processId++, priority++, 'R');
-
-		// Load the program
-		Short load;
-		load = (Short) absoluteLoader(filename);
-
-		// store PC value in the PCB of the process
-		PCB.setProgramCounter(OSM, pcbPointer, load);
-
-		// Store stack information in the PCB – SP, pointer, and size
-		// not implemented
-
-		PCB.setPriority(OSM, pcbPointer, priority);
-
-		// Insert PCB into Ready Queue according to the scheduling algorithm
-		insertIntoReadyQueue(pcbPointer);
-	} // end of CreateProcess module
-
+	/* include in later release
 	public void createProcessSystemCall(short processId) {
 		// Allocate space for Process Control Block
-		short pcbPointer = OSM.allocate(PCB.getSize());
+		short pcbPointer = OSM.allocate(PCB.size());
 
 		// Initialize PCB. Set nextPCBlink to end of list, default priority,
 		// Ready state, PID, rest 0
@@ -268,7 +173,7 @@ public class Machine {
 		// Insert PCB into Ready Queue according to the scheduling algorithm
 		insertIntoWaitingQueue(pcb);
 
-	} // end of create child process system call module
+	} // end of create child process system call module */
 
 	/**
 	 * Sets RQ to the the next process control block and sets the NEXT_PCB_INEX
@@ -277,15 +182,8 @@ public class Machine {
 	 * 
 	 * @return process control block pointer of the process to be run
 	 */
-	public short selectFromRQ() {
+	public short runProgram() {
 		short pcbPointer = RqPointer; // PCBpointer points to first entry in RQ
-
-		if (PCB.getNextPcbPointer(OSM, pcbPointer) != END_OF_LIST_MARKER)
-			// Set RQ to point to the next process control block
-			RqPointer = PCB.getNextPcbPointer(OSM, pcbPointer);
-
-		// Set next point to EOL in the PCB
-		PCB.setNextPcbPointer(OSM, pcbPointer, END_OF_LIST_MARKER);
 
 		// restore CPU
 		int[] gprValues = PCB.getGprValues(OSM, pcbPointer, (byte) CPU.getSize());
@@ -316,7 +214,7 @@ public class Machine {
 		instruction = new Instruction(AM.fetch(pc));
 
 		// check if instruction is valid. If not valid then error is logged
-		instruction.isValid((byte) CPU.getSize());
+		instruction.isValid((byte) CPU.size());
 
 		// Execute Cycle
 		// In the execute cycle, fetch operand value(s) based on the opcode
@@ -496,36 +394,16 @@ public class Machine {
 		return instructionExecuted;
 	}
 
-	/**
-	 * The execute program function executes the program or programs that have
-	 * already loaded in the main memory. This function executes one instruction
-	 * at a time pointed using a program counter by performing (a) fetch
-	 * instruction cycle, (b) decode instruction cycle, and (c) execute
-	 * instruction cycle. It performs all possible error checking such as
-	 * invalid memory address reference, invalid mode, and division by zero
-	 * error. After executing each instruction, it increases the clock by an
-	 * instruction execution time. It returns the status of execution as an byte
-	 * value.
-	 * 
-	 * @return An error code, 10 for halt or system call code. Error codes:
-	 *         invalid address: -1 invalid mode: -6 divide by zero: -8
-	 *         unsuccessful operand fetch: -9 invalid operation code: -10
-	 */
-	byte executeProgram() {
-
-		byte status = 0;
-		while (executionTime < timeSlice) {
-
-			status = executeInstruction();
-		} // end of while loop
-
-		logger.info("Time slice complete");
-		logger.info("Dumping CPU registers and used temporary memory.");
-		CPU.dumpRegisters();
-
-		return status;
-	} // end of execute program module
-
+	public void runNullProgram() {
+		
+		short osmPointer = absolutePathLoader("Null_Process");
+		short processId = 0;
+		byte priority = 0;
+		Process_Control_Block pcb = new Process_Control_Block((byte) CPU.size(), OSM, osmPointer, processId, priority, READY_STATE_INDICATOR);
+		RPL.add(pcb);
+		executeProgram(RPL.pickOut());
+	}
+	
 	/**
 	 * possible interrupts: 0 – no interrupt
 	 * 
