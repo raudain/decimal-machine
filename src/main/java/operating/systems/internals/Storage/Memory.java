@@ -14,7 +14,7 @@ public abstract class Memory {
 	
 	private static final Logger logger = LogManager.getLogger("Memory");
 	
-	public Memory(short size) {
+	protected Memory(short size) {
 		
 		memory = new int[size];
 		

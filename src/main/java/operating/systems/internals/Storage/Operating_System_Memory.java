@@ -6,4 +6,10 @@ public class Operating_System_Memory extends Memory {
 		
 		super(size);
 	}
+
+	@Override
+	public void dump() {
+		// TODO Auto-generated method stub
+		
+	}
 }

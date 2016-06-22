@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import operating.systems.internals.Storage.Application_Memory;
-import operating.systems.internals.Storage.Central_Processing_Unit;
+import operating.systems.internals.Storage.Cache;
 
 public class Operands implements AssemblyLanguage {
 
@@ -50,7 +50,7 @@ public class Operands implements AssemblyLanguage {
 		return operand1.isValid(numberOfRegisters) && operand2.isValid(numberOfRegisters);
 	}
 
-	public byte getValueOfOperand1(Central_Processing_Unit cpu, Application_Memory am) {
+	public byte getValueOfOperand1(Cache cpu, Application_Memory am) {
 		
 		operand1.setAddress(cpu, am);
 		operand1.setValue(cpu, am);
@@ -58,7 +58,7 @@ public class Operands implements AssemblyLanguage {
 		return operand1.getValue();
 	}
 	
-	public byte getValueOfOperand2(Central_Processing_Unit cpu, Application_Memory am) {
+	public byte getValueOfOperand2(Cache cpu, Application_Memory am) {
 		
 		operand2.setAddress(cpu, am);
 		operand2.setValue(cpu, am);

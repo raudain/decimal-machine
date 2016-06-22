@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import operating.systems.internals.Storage.Application_Memory;
-import operating.systems.internals.Storage.Central_Processing_Unit;
+import operating.systems.internals.Storage.Cache;
 
 public class Operand implements AssemblyLanguage {
 
@@ -81,7 +81,7 @@ public class Operand implements AssemblyLanguage {
 		return mode > 0 && mode < 6;
 	}
 
-	public void setAddress(Central_Processing_Unit cpu, Application_Memory am) {
+	public void setAddress(Cache cpu, Application_Memory am) {
 
 		/*
 		 * Next word contains the operand value. Operand value is in the main
@@ -110,7 +110,7 @@ public class Operand implements AssemblyLanguage {
 	 * The set value method is dependent on address parameter being set by the
 	 * set address method
 	 */
-	public void setValue(Central_Processing_Unit cpu, Application_Memory am) {
+	public void setValue(Cache cpu, Application_Memory am) {
 
 		/*
 		 * Next word contains the operand value. Operand value is in the main

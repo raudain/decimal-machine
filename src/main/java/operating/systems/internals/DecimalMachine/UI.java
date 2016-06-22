@@ -1,6 +1,5 @@
 package operating.systems.internals.DecimalMachine;
 
-import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -18,7 +17,7 @@ public class UI {
 				+ " execution prority then each successive program entered/n";
 	}
 
-	public static String getFirstInput() {
+	private static String getFirstInput() {
 
 		String s = "";
 
@@ -35,8 +34,8 @@ public class UI {
 
 		return "";
 	}
-	
-	public static String getInput() {
+
+	private static String getInput() {
 
 		String prompt = "Enter another executable's file name to load" + " another program. Enter \"run\" to start"
 				+ " program(s) or " + "enter shutdown to halt the machine";
@@ -72,98 +71,45 @@ public class UI {
 	public static void main(String[] args) {
 
 		final Machine machine = new Machine();
-
-		machine.runNullProgram();
+		byte lowestPriority = 0;
+		machine.run("Null_Process", lowestPriority);
 		// Priority one is the lowest priority, and 127 is the highest
 		final byte highestPriority = 127;
 		byte priority = highestPriority;
 
-		String firstCommandLineInput = getFirstInput();
-		
-		while (!("shutdown".equals(firstCommandLineInput))) {
-			String commandLineInput = getInput();
+		String userInput = getFirstInput();
+		while (!(userInput.equals("shutdown"))) {
+			boolean running_nullProcess = false;
+			// Programs are run until in this loop until they halt
+			while (running_nullProcess == false) {
+				Byte executionStatus = machine.run("userInput", priority--);
+				logger.info("Selecting a process out of the ready Queue");
 
-			if ("run".equals(commandLineInput)) {
-				boolean running_nullProcess = false;
-				// Programs are run until in this loop until they halt
-				while (running_nullProcess == false) {
-
-					logger.info("Selecting a process out of the ready Queue");
-					short runningPcbPointer = machine.selectFromRQ();
-
-					/*
-					 * The null process is loaded into the operating systems's
-					 * memory first so it's process control block pointer is in
-					 * the first possible memory address of the operating
-					 * system.
-					 */
-					final short FIRST_OS_MEMORY_ADDRESS = 6000;
-					if (runningPcbPointer == FIRST_OS_MEMORY_ADDRESS) {
-						running_nullProcess = true;
-						logger.info("All programs are finished running");
-
-						/*
-						 * run null process when the machine is waiting for user
-						 * input
-						 */
-						machine.executeProgram();
-						continue;
-					}
-
-					short executionStatus = machine.executeProgram();
-					final byte CONTINUE_EXECUTION = 1;
-					final byte TIME_SLICE_EXPIRED = 2;
-					final byte EXECUTION_COMPLETE = 3;
-
-					switch (executionStatus) {
-
-					/*
-					 * Operating system took control of CPU but gave it back to
-					 * the process
-					 */
-					case CONTINUE_EXECUTION:
-						executionStatus = machine.executeProgram();
-
-						/*
-						 * When a processes time expires the process at the top
-						 * of the ready queue is ran
-						 */
-					case TIME_SLICE_EXPIRED:
-						logger.info("The program dumped above has expired its time " + "slice");
-						Process_Control_Block pcb = Process_Control_Block.getPcb(machine.getOsm(), runningPcbPointer);
-						machine.benchProgram(pcb);
-						continue;
-
-					case EXECUTION_COMPLETE:
-						// All memory allocated to the now halted process is
-						// freed.
-						machine.terminateProcess(runningPcbPointer);
-						continue;
-
-					default:
-						// Unknown programming error
-						logger.error("Unknown code error");
-
-					} // End of switch statement for executionStatus
-					try {
-						executionStatus = machine.CheckAndProcessInterrupt();
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					}
-					if (executionStatus < 0)
-						logger.error("Unknown Error");
-				} // end of the inner loop "while running"
-			} // end of if "run" entered
-			else if ("shutdown".equals(commandLineInput)) {
-				machine.shutdownSystem();
+				byte halt = machine.getHaltCode();
+				
+				if (executionStatus.equals(halt)) {					
+					//machine.terminateProcess();
+					machine.run("Null_Process", lowestPriority);
+				} else
+					executionStatus = machine.execute();
+			
+				/*try {
+					executionStatus = machine.CheckAndProcessInterrupt();
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				}*/
+			} // end of while loop
+			
+			if ("shutdown".equals(userInput)) {
 				logger.info("System is shutting down");
+				
 				return;
-			} else if ("".equals(commandLineInput))
+			} else if ("".equals(userInput))
 				logger.error("Blank entered");
 			else // assumes the command line input is a program name
 			{
 				/*
-				 * Each new process's priorty is lower this the preciously
+				 * Each new process's priority is lower this the previously
 				 * created process
 				 */
 				priority -= 1;
@@ -174,14 +120,12 @@ public class UI {
 				if (priority == 0)
 					priority = highestPriority;
 
-				try {
-					machine.createProcess(commandLineInput, priority);
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
+				
+				machine.load(userInput);
+		
 			} // end of if statement
 		} // end of while not shutdown outer loop
-		machine.shutdownSystem();
-		logger.info("System is shutting down");
-	} // end of main method
+	} // end of
+																		// main
+																		// method
 } // end of class

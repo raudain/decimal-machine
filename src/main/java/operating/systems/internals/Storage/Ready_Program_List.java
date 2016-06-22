@@ -9,12 +9,9 @@ import operating.systems.internals.DecimalMachine.Process_Control_Block;;
 
 public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = LogManager.getLogger("Ready_Program_List");
-
+	
 	private void print() {
 
 		// Walk thru the queue from the given pointer until end of list

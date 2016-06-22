@@ -12,7 +12,7 @@ import operating.systems.internals.AssemblyCode.Instruction;
 import operating.systems.internals.AssemblyCode.Operand;
 import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
-import operating.systems.internals.Storage.Central_Processing_Unit;
+import operating.systems.internals.Storage.Cache;
 import operating.systems.internals.Storage.Operating_System_Memory;
 import operating.systems.internals.Storage.Ready_Program_List;
 
@@ -40,26 +40,13 @@ import operating.systems.internals.Storage.Ready_Program_List;
  */
 public class Machine {
 
-	private final byte LAST_GPR = 7; // size of cpu register minus one
-
-	private final byte END_OF_LIST_MARKER = Application_Memory.END_OF_LIST_INDICATOR;
-	private short RqPointer = END_OF_LIST_MARKER; // Ready Queue set to empty
-													// list
-	private short WQ = END_OF_LIST_MARKER;
-
 	private final Application_Memory AM;
 
 	// Process Control Block memory free list set to be empty;
 
-	private static final Logger logger = LogManager.getLogger("Machine");
-
-	//private Process_Control_Block PCB;
+	// private Process_Control_Block PCB;
 
 	private final char READY_STATE_INDICATOR;
-
-	private byte priority;
-
-	private byte processId;
 
 	private final byte SIZE_OF_AM;
 
@@ -68,39 +55,35 @@ public class Machine {
 	private final Stack<Byte> STACK;
 
 	private final byte NUMBER_OF_REGISTERS;
-
-	private short executionTime;
-
-	private final short timeSlice;
 	
-	private final Central_Processing_Unit CPU;
+	private final byte HALT;
+	
+	private final Cache CPU;
 
 	private final Operating_System_Memory OSM;
-	
+
 	private final Ready_Program_List RPL;
 
+	private static final Logger logger = LogManager.getLogger("Machine");
+	
 	public Machine() {
 
 		SIZE_OF_AM = 75;
 		SIZE_OF_OSM = 75;
 		NUMBER_OF_REGISTERS = 11;
 
-		CPU = new Central_Processing_Unit(NUMBER_OF_REGISTERS);
+		CPU = new Cache(NUMBER_OF_REGISTERS);
 		AM = new Application_Memory(SIZE_OF_AM);
 		OSM = new Operating_System_Memory(SIZE_OF_OSM);
 		STACK = new Stack<Byte>();
 		RPL = new Ready_Program_List();
-		//PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
+		// PCB = new Process_Control_Block(NUMBER_OF_REGISTERS);
 
 		READY_STATE_INDICATOR = 'R';
-		priority = 1;
-		processId = 1;
-		executionTime = 0;
-		timeSlice = 200;
-
+		HALT = 2;
 	} // end of constructor
 
-	public String addPath(String fileName) {
+	private String addPath(String fileName) {
 
 		String directory = "target/classes/";
 		String relativePath = directory + fileName;
@@ -110,8 +93,10 @@ public class Machine {
 
 	/**
 	 * Open the file containing HYPO machine program and load the content into
-	 * the application partition of memory. On successful load, return the PC
-	 * value in the last line. On failure, return appropriate error code.
+	 * the application memory. The address of the application memory the program
+	 * is loaded into is included in the program code. On successful load,
+	 * return the PC value in the last line. On failure, return appropriate
+	 * error code.
 	 * 
 	 * @param filename
 	 *            Name of the executable file to be loaded into main memory
@@ -120,7 +105,7 @@ public class Machine {
 	 * 
 	 * @return First address of the program
 	 */
-	public short absolutePathLoader(String fileName) {
+	public short load(String fileName) {
 
 		Scanner machineCode = null;
 		String s = addPath(fileName);
@@ -161,37 +146,21 @@ public class Machine {
 
 	final byte OK = 0;
 
-	/* include in later release
-	public void createProcessSystemCall(short processId) {
-		// Allocate space for Process Control Block
-		short pcbPointer = OSM.allocate(PCB.size());
-
-		// Initialize PCB. Set nextPCBlink to end of list, default priority,
-		// Ready state, PID, rest 0
-		Process_Control_Block pcb = new Process_Control_Block(OSM, pcbPointer, (byte) CPU.getSize(), processId, priority, 'W');
-
-		// Insert PCB into Ready Queue according to the scheduling algorithm
-		insertIntoWaitingQueue(pcb);
-
-	} // end of create child process system call module */
-
-	/**
-	 * Sets RQ to the the next process control block and sets the NEXT_PCB_INEX
-	 * of the process control block at the top of the control block (varible
-	 * name: RQ) to be END_OF_LIST_MARKER
+	/*
+	 * include in later release public void createProcessSystemCall(short
+	 * processId) { // Allocate space for Process Control Block short pcbPointer
+	 * = OSM.allocate(PCB.size());
 	 * 
-	 * @return process control block pointer of the process to be run
+	 * // Initialize PCB. Set nextPCBlink to end of list, default priority, //
+	 * Ready state, PID, rest 0 Process_Control_Block pcb = new
+	 * Process_Control_Block(OSM, pcbPointer, (byte) CPU.getSize(), processId,
+	 * priority, 'W');
+	 * 
+	 * // Insert PCB into Ready Queue according to the scheduling algorithm
+	 * insertIntoWaitingQueue(pcb);
+	 * 
+	 * } // end of create child process system call module
 	 */
-	public short runProgram() {
-		short pcbPointer = RqPointer; // PCBpointer points to first entry in RQ
-
-		// restore CPU
-		int[] gprValues = PCB.getGprValues(OSM, pcbPointer, (byte) CPU.getSize());
-		CPU.setGeneralPurposeRegisters(gprValues);
-		CPU.setProgramCounter(PCB.getProgramCounter(OSM, pcbPointer));
-
-		return pcbPointer;
-	} // end of select process from the ready queue module
 
 	final byte INVALID_MODE = -6; // invalid mode
 	final byte UNSUCCESSFUL_OPERAND_FETCH = -9; // Operand fetch was
@@ -200,18 +169,14 @@ public class Machine {
 	final byte FIRST_USER_MEMORY_ADDRESS = 0;
 	byte invalidIndicator = -1;
 
-	public byte executeInstruction() {
-
-		Instruction instruction; // Instruction Register
-
-		// Fetch (read) the first word of the instruction pointed by PC
-		short pc = CPU.getProgramCounter();
-
-		/*
-		 * Advances program counter by 1 to the address of next instruction.
-		 */
-		CPU.incrementProgramCounter();
-		instruction = new Instruction(AM.fetch(pc));
+	/*
+	 * Since the program counter manipulation is needed in a couple
+	 * instructions, this method is not included in the central processing unit
+	 * class
+	 * 
+	 * @return Time it took to execute the instruction;
+	 */
+	public short executeInstruction(Instruction instruction) {
 
 		// check if instruction is valid. If not valid then error is logged
 		instruction.isValid((byte) CPU.size());
@@ -225,18 +190,19 @@ public class Machine {
 		final byte valueOfOperand2 = operands.getValueOfOperand2(CPU, AM);
 		final byte operand1GPRAddress = operands.getOperand1GprAddress();
 		int result;
+		short executionTime = 0;
+		short pc = CPU.getProgramCounter();
 		switch (instruction.getOperationCode()) {
 
 		case 0: // halt
 			logger.info("\n The Machine has reached a halt instruction.");
 			logger.info("Dumping CPU registers and used temporary memory.");
-			CPU.dumpRegisters();
+			CPU.dump();
 
-			final byte haltOperationDuration = 12;
+			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
 
-			byte haltedCode = 10;
-			return haltedCode;
+			return executionTime;
 
 		case 1: // add operation code
 
@@ -250,7 +216,7 @@ public class Machine {
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 2: // Subtract
 
@@ -264,7 +230,7 @@ public class Machine {
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 3: // Multiply
 
@@ -278,8 +244,8 @@ public class Machine {
 			final byte muliplyOperationDuration = 6;
 			executionTime += muliplyOperationDuration;
 
-			break;
-
+			return executionTime;
+			
 		case 4: // Divide
 
 			/*
@@ -292,7 +258,7 @@ public class Machine {
 			final byte divideOperationDuration = 6;
 			executionTime += divideOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 5: // Move
 
@@ -301,7 +267,7 @@ public class Machine {
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 6: // Branch or jump instruction
 
@@ -310,7 +276,7 @@ public class Machine {
 			final byte jumpOperationDuration = 2;
 			executionTime += jumpOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 7: // Branch on negative
 
@@ -326,7 +292,7 @@ public class Machine {
 			final byte branchOnNegativeOperationDuration = 4;
 			executionTime += branchOnNegativeOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 8: // Branch on positive
 
@@ -342,7 +308,7 @@ public class Machine {
 			final byte branchOnPositiveOperationDuration = 4;
 			executionTime += branchOnPositiveOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 9: // branch on zero
 
@@ -356,7 +322,7 @@ public class Machine {
 			final byte branchOnZeroOperationDuration = 4;
 			executionTime += branchOnZeroOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 10: // Push
 
@@ -365,7 +331,7 @@ public class Machine {
 			final byte pushOperationDuration = 2;
 			executionTime += pushOperationDuration;
 
-			break;
+			return executionTime;
 
 		case 11: // Pop
 
@@ -374,35 +340,79 @@ public class Machine {
 			final byte popOperationDuration = 2;
 			executionTime += popOperationDuration;
 
-			break;
+			return executionTime;
 
 		/*
 		 * include this fuctionality in later version
 		 * 
 		 * case 12: // System call
-
-			byte systemCallCode = systemCall(valueOfOperand1);
-
-			final byte systemCallDuration = 12;
-			executionTime += systemCallDuration;
-
-			return systemCallCode; */
+		 * 
+		 * byte systemCallCode = systemCall(valueOfOperand1);
+		 * 
+		 * final byte systemCallDuration = 12; executionTime +=
+		 * systemCallDuration;
+		 * 
+		 * return systemCallCode;
+		 */
+			
+		default:
+			return 0;
 		} // end of opcode switch statement
+	} // End of execute instruction class
 
-		byte instructionExecuted = 0;
+	/**
+	 * The execute program function executes the program or programs that have
+	 * already loaded in the main memory. This function executes one instruction
+	 * at a time pointed using a program counter by performing (a) fetch
+	 * instruction cycle, (b) decode instruction cycle, and (c) execute
+	 * instruction cycle. It performs all possible error checking such as
+	 * invalid memory address reference, invalid mode, and division by zero
+	 * error. After executing each instruction, it increases the clock by an
+	 * instruction execution time. It returns the status of execution as an byte
+	 * value.
+	 * 
+	 * @return The code for halt instruction detection and the code for time slice complete
+	 */
+	public byte execute() {
 
-		return instructionExecuted;
-	}
+		Short executionTime = 0;
+		final short maximumExecutionTime = 200;
+		while (executionTime < maximumExecutionTime) {
+			// Fetch (read) the first word of the instruction pointed by PC
+			Instruction instruction = new Instruction(AM.fetch(CPU.getProgramCounter()));
+			executionTime = (short) (executionTime + executeInstruction(instruction));
+			CPU.incrementProgramCounter();
+		} // end of while loop
 
-	public void runNullProgram() {
-		
-		short osmPointer = absolutePathLoader("Null_Process");
-		short processId = 0;
-		byte priority = 0;
-		Process_Control_Block pcb = new Process_Control_Block((byte) CPU.size(), OSM, osmPointer, processId, priority, READY_STATE_INDICATOR);
+		short halt = 2000;
+		if (executionTime >= halt) {
+			logger.info("Dumping CPU registers and used temporary memory.");
+			CPU.dump();
+			
+			return HALT; 
+		}
+		else {
+			logger.info("Time slice complete");
+			logger.info("Dumping CPU registers and used temporary memory.");		
+			CPU.dump();
+			
+			return 0;
+		}	
+	} // end of execute program module
+	
+	// process id starts at 0 and is incremented for every new process
+	byte processId = 0;
+	public byte run(String fileName, byte priority) {
+
+		short osmPointer = load(fileName);
+		Process_Control_Block pcb = new Process_Control_Block((byte) CPU.size(), OSM, osmPointer, processId++, priority,
+				READY_STATE_INDICATOR);
 		RPL.add(pcb);
-		executeProgram(RPL.pickOut());
+		byte status = execute();
+		
+		return status;
 	}
+
 	
 	/**
 	 * possible interrupts: 0 – no interrupt
@@ -416,7 +426,6 @@ public class Machine {
 	 * 4 – Output operation completion (io_putc
 	 * 
 	 * @return Error code
-	 */
 	byte CheckAndProcessInterrupt() throws FileNotFoundException {
 		// Prompt and read interrupt ID
 
@@ -442,6 +451,7 @@ public class Machine {
 
 		return status;
 	} // end of CheckAndProcessInterrupt function
+	*/
 
 	/**
 	 * Include in later version
@@ -459,26 +469,26 @@ public class Machine {
 	 * @param actionCode
 	 *            The type of system call
 	 * @return ?????????????????????????????????????????????????????????????
-	 
-	byte systemCall(byte actionCode) {
-		// byte operatingSystemMode = 0;
-		// byte applicationMode = 1;
-
-		// psr = operatingSystemMode; // Set system mode to OS mode
-
-		byte status = OK;
-
-		switch (actionCode) {
-		
-		 * case 1: // Create process – user process is creating a child process.
-		 
-			// This is not same as run program interrupt
-			createProcessSystemCall((short) gpr[1]);
-
-			break;
-
-		return status;
-	} // end of system call module */
+	 * 
+	 *         byte systemCall(byte actionCode) { // byte operatingSystemMode =
+	 *         0; // byte applicationMode = 1;
+	 * 
+	 *         // psr = operatingSystemMode; // Set system mode to OS mode
+	 * 
+	 *         byte status = OK;
+	 * 
+	 *         switch (actionCode) {
+	 * 
+	 *         case 1: // Create process – user process is creating a child
+	 *         process.
+	 * 
+	 *         // This is not same as run program interrupt
+	 *         createProcessSystemCall((short) gpr[1]);
+	 * 
+	 *         break;
+	 * 
+	 *         return status; } // end of system call module
+	 *
 
 	private final byte reasonForWaitingIndex = 3;
 	private final byte waitingForMessageCode = 7;
@@ -493,7 +503,7 @@ public class Machine {
 	 *            memory address of the process's process control block.
 	 * 
 	 * @return
-	 */
+	 *
 	public void insertIntoWaitingQueue(Process_Control_Block pcb) {
 		short previousPointer = END_OF_LIST_MARKER;
 		short currentPointer = WQ;
@@ -512,13 +522,13 @@ public class Machine {
 		} // end of while loop
 		memory[previousPointer + NEXT_PCB_INDEX] = PCBptr;
 	} // end of insert process into waiting queue module
-
+ 	
 	final byte INVALID_PID = -30;
 
 	/**
 	 * @param PID
 	 *            The process identification number of the process to be found.
-	 */
+	 *
 	short searchAndRemovePCBfromWaitingQueue(long pid) {
 		boolean found = false;
 		short ptr = WQ;
@@ -544,7 +554,7 @@ public class Machine {
 			System.out.println("Error: Invalid process identification number");
 			return INVALID_PID;
 		}
-	}
+	} // end of the searchAndRemovePCBfromWaitingQueue method
 
 	final byte msgQstrtIndex = 7, msgCountIndex = 9;
 
@@ -576,7 +586,7 @@ public class Machine {
 		/*
 		 * check running process msg count to see whether there is a message in
 		 * the msg queue
-		 */
+		 
 		if (memory[(int) (runningpcbptr + msgCountIndex)] > 0) { // set gpr 2
 			gpr[2] = memory[(short) (memory[runningpcbptr + msgQstrtIndex + msgCountIndex])];
 			gpr[0] = OK;
@@ -591,56 +601,30 @@ public class Machine {
 			// set reason to waiting for message
 		}
 		return OK;
-	}
+	} // end of receiveMessage method
 
 	/**
 	 * Frees memory like back before program started.
 	 * 
-	 * @param PCBpointer
-	 *            Process control block pointer of halted program.
-	 */
-	public void terminateProcess(short PCBpointer) {
-		final byte temporaryMemoryAddressIndex = 11;
-		final byte temporaryMemorySizeIndex = 12;
+	 *
+	public void terminateProcess() {
 
-		// Recover stack memory
-		freeTemporaryMemory((short) memory[PCBpointer + temporaryMemoryAddressIndex],
-				(short) memory[PCBpointer + temporaryMemorySizeIndex]);
+		AM.deleteProgram();
 
-	} // end of TerminateProcess module
+	} // end of TerminateProcess module*/
 
-	public void shutdownSystem() {
-		// Terminate processes in RQ
-		short pointer = RqPointer;
-		while (pointer != END_OF_LIST_MARKER) {
-			RqPointer = (short) memory[pointer];
-			// TerminateProcess(pointer);
-			pointer = RqPointer;
-		}
-
-		// Terminate processed in WQ
-		pointer = WQ;
-		while (pointer != END_OF_LIST_MARKER) {
-			WQ = (short) memory[pointer];
-			terminateProcess(pointer);
-			pointer = WQ;
-		}
-
-		return;
-	} // end of ISR shutdown system module
-
-	public short getTimeSliceAmount() {
-
-		return timeSlice;
-	}
-	
 	public Operating_System_Memory getOsm() {
-		
+
 		return OSM;
 	}
-	
+
 	public void benchProgram(Process_Control_Block pcb) {
-		
+
 		RPL.add(pcb);
+	}
+
+	public byte getHaltCode() {
+		
+		return HALT;
 	}
 } // End of Machine class
