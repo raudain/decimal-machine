@@ -3,9 +3,6 @@ package operating.systems.internals.Storage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import operating.systems.internals.AssemblyCode.Instruction;
-import operating.systems.internals.AssemblyCode.Operands;
-
 public class Cache extends Memory{
 	
 	/*

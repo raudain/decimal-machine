@@ -1,42 +1,98 @@
 package operating.systems.internals.Storage;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import operating.systems.internals.DecimalMachine.Process_Control_Block;
-
-
 public class Application_Memory extends Memory {
-	
-	private int[] memory; // main memory
 
 	// end marker for PCB PCBmemoryFreeList freeHeapMemory and other lists.
 	public static final byte END_OF_LIST_INDICATOR = -1;
-		
+
 	private static final Logger logger = LogManager.getLogger("Main Memory");
-	
+
 	public Application_Memory(short size) {
 
-		super(size);	
+		super(size);
 	}
 
-	public boolean isMemoryEmpty() {
+	private String addPath(String fileName) {
 
-		boolean status = true;
-		
-		if (memory == null)
-			return true;
+		String directory = "target/classes/";
+		String relativePath = directory + fileName;
 
-		
-		for (short i = 0; i < size() && status == true; i++) {
-			Integer memoryStore = fetch(i);
-			if (!memoryStore.equals(0)) {
-				status = false;
-			}
+		return relativePath;
+	}
+
+	private Scanner getScanner(String fileName) {
+
+		Scanner code = null;
+		String s = addPath(fileName);
+		try {
+			File file = new File(s);
+			code = new Scanner(file);
+		} catch (FileNotFoundException e) {
+			logger.error("Program cannot be found in working directory");
+			e.printStackTrace();
 		}
-		
-		return status;
+
+		return code;
 	}
+
+	private byte stop(int address) {
+
+		logger.error("The address numbered " + address + " in the machine code is not within Java's \"short\" range");
+		return -1;
+	}
+
+	/**
+	 * Open the file containing HYPO machine program and load the content into
+	 * the application memory. The address of the application memory the program
+	 * is loaded into is included in the program code. On successful load,
+	 * return the PC value in the last line. On failure, return appropriate
+	 * error code.
+	 * 
+	 * @param filename
+	 *            Name of the executable file to be loaded into main memory
+	 * 
+	 * @throws FileNotFoundException
+	 * 
+	 * @return First address (origin) of the program or error code
+	 */
+	public short load(String fileName) {
+
+		Scanner code = getScanner(fileName);
+
+		// get the program's first address
+		int a = code.nextShort();
+		if (!inJavasShortRange(a))
+			return stop(a);
+
+		short origin = (short) a;
+		short address = origin;
+		logger.info("Loading " + fileName + " into application memory");
+
+		while (code.hasNextLine()) {
+			// store program
+			int instruction = code.nextInt();
+			load(address, instruction);
+			if (inJavasShortRange(address)){
+				// read address, content from file
+				if (code.hasNextShort())
+					address = code.nextShort();
+			} else
+				return stop(address);
+		}
+		// End of file encountered without end of program
+		// display end of file encountered without EOP error message;
+		code.close();
+		logger.info("The loader has reach the end of " + fileName + "'s code");
+
+		return origin;
+	} // end of absoluteLoader module
 
 	/**
 	 * DumpMemory
@@ -54,9 +110,9 @@ public class Application_Memory extends Memory {
 	@Override
 	public void dump() {
 
-		short address = getFirstMemoryAddress();
+		short address = 0;
 
-		if (isMemoryEmpty()) {
+		if (isEmpty()) {
 			logger.info("Memory is Empty");
 			return;
 		}
@@ -86,10 +142,4 @@ public class Application_Memory extends Memory {
 			lineNumber += 10;// Increment line title
 		} // end of outer while numberOfZeros < noMoreData
 	} // end of dump memory module
-	
-	// implement on future version
-	public void deleteProgram(short originAddress) {
-		
-		
-	}
 }

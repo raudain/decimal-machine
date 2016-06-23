@@ -54,3 +54,55 @@
 2016-05-14 16:29:05,787 ERROR Machine_Implementation [main] Error in absoluteLoader: Program cannot be found in working directory
 2016-05-14 16:41:12,462 INFO Machine_Implementation [main] Printing all process control blocks in ready queue:
 2016-05-14 16:41:12,463 INFO Machine_Implementation [main] Address	Index	Value
+2016-06-23 12:43:54,064 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 12:45:20,710 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:13:55,995 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:31:39,540 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:32:53,259 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:33:58,083 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:34:08,169 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:34:17,427 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:34:19,905 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:34:30,590 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:35:12,464 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:37:36,110 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:41:00,730 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:41:04,272 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:41:22,418 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:41:38,743 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:44:33,879 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:46:40,445 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:46:40,448 ERROR Main Memory [main] An address in the machine code is not within Java's "short" range
+2016-06-23 13:47:39,405 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:47:39,407 ERROR Main Memory [main] An address in the machine code is not within Java's "short" range
+2016-06-23 13:47:49,284 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:47:49,286 ERROR Main Memory [main] An address in the machine code is not within Java's "short" range
+2016-06-23 13:47:52,356 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:47:52,358 ERROR Main Memory [main] An address in the machine code is not within Java's "short" range
+2016-06-23 13:48:11,091 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:48:11,094 ERROR Main Memory [main] An address in the machine code is not within Java's "short" range
+2016-06-23 13:53:00,791 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:53:00,793 ERROR Main Memory [main] The address 18in the machine code is not within Java's "short" range
+2016-06-23 13:54:01,348 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 13:54:01,350 ERROR Main Memory [main] The address numbered 18 in the machine code is not within Java's "short" range
+2016-06-23 14:02:55,734 INFO Main Memory [main] Loading p150 into application memory
+2016-06-23 14:02:55,737 INFO Main Memory [main] The loader has reach the end of p150's code
+2016-06-23 14:17:26,392 INFO Main Memory [main] Loading Null_Process into application memory
+2016-06-23 14:19:09,999 INFO Main Memory [main] Loading Null_Process into application memory
+2016-06-23 14:19:10,000 WARN Memory [main] The address numbered -1 was not loaded into memory
+2016-06-23 14:19:10,000 ERROR Main Memory [main] The address numbered -1 in the machine code is not within Java's "short" range
+2016-06-23 14:19:10,002 INFO Machine [main] 
+ The Machine has reached a halt instruction.
+2016-06-23 14:19:10,002 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-06-23 14:19:10,002 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-06-23 14:19:10,010 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d

@@ -71,7 +71,6 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 		 * Use priority in the PCB to find the correct place to insert. set
 		 * state to ready state
 		 */
-		pcb.setState(pcb.getReadyStateIndicator());
 
 		Iterator<Process_Control_Block> itr = iterator();
 		byte index = 0;

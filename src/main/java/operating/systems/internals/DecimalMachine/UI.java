@@ -35,23 +35,6 @@ public class UI {
 		return "";
 	}
 
-	private static String getInput() {
-
-		String prompt = "Enter another executable's file name to load" + " another program. Enter \"run\" to start"
-				+ " program(s) or " + "enter shutdown to halt the machine";
-
-		logger.info(prompt);
-		String commandLineInput = "";
-		Scanner keyboard = new Scanner(System.in);
-		System.out.println("Enter an executable's file name");
-		commandLineInput = keyboard.nextLine();
-		keyboard.close();
-
-		commandLineInput.toLowerCase();
-
-		return "";
-	}
-
 	/**
 	 * main function that (a) calls InitializeSystem function
 	 * 
@@ -92,38 +75,13 @@ public class UI {
 					machine.run("Null_Process", lowestPriority);
 				} else
 					executionStatus = machine.execute();
-			
-				/*try {
-					executionStatus = machine.CheckAndProcessInterrupt();
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}*/
 			} // end of while loop
 			
 			if ("shutdown".equals(userInput)) {
 				logger.info("System is shutting down");
-				
 				return;
 			} else if ("".equals(userInput))
 				logger.error("Blank entered");
-			else // assumes the command line input is a program name
-			{
-				/*
-				 * Each new process's priority is lower this the previously
-				 * created process
-				 */
-				priority -= 1;
-				/*
-				 * A process's priority cannot be lower than the Null_Process's
-				 * priority which is zero.
-				 */
-				if (priority == 0)
-					priority = highestPriority;
-
-				
-				machine.load(userInput);
-		
-			} // end of if statement
 		} // end of while not shutdown outer loop
 	} // end of
 																		// main

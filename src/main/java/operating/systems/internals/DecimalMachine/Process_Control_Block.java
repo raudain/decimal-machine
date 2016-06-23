@@ -30,9 +30,7 @@ import operating.systems.internals.Storage.Operating_System_Memory;
 public class Process_Control_Block extends Cache {
 
 	private static final byte SIZE = 20;
-	private static final byte PROCESS_ID_INDEX = 1;
 	private static final byte PRIORITY_INDEX = 2;
-	private static final byte STATE_INDEX = 3;
 	private final char READY_STATE;
 	// private final char READY_STATE;
 	final char WAITING_STATE;
@@ -53,22 +51,16 @@ public class Process_Control_Block extends Cache {
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public Process_Control_Block(byte numberOfRegisters, Operating_System_Memory osm, short osmPointer, byte processId,
-			byte priority, char state) {
+	public Process_Control_Block(byte numberOfRegisters, Operating_System_Memory osm, short osmPointer, byte priority) {
 
 		super(numberOfRegisters);
 
 		OSM = osm;
 		OSM_POINTER = osmPointer;
 
-		setProcessId(processId);
-
 		// DefaultPriority is a constant set to 128
 		setPriority(priority);
 
-		// Ready State is a constant set to 'W'
-		setState(state);
-		
 		READY_STATE = 'R';
 		WAITING_STATE = 'W';
 		PC_INDEX = 19;
@@ -79,28 +71,15 @@ public class Process_Control_Block extends Cache {
 	public static Process_Control_Block getPcb(Operating_System_Memory osm, short osmPointer) {
 
 		byte numberOfRegisters = SIZE;
-		byte processId = (byte) osm.fetch((short) (osmPointer + PROCESS_ID_INDEX));
 		byte priority = (byte) osm.fetch((short) (osmPointer + PRIORITY_INDEX));
-		char state = (char) osm.fetch((short) (osmPointer + STATE_INDEX));
-		Process_Control_Block pcb = new Process_Control_Block(numberOfRegisters, osm, osmPointer, processId, priority,
-				state);
+		Process_Control_Block pcb = new Process_Control_Block(numberOfRegisters, osm, osmPointer, priority);
 
 		return pcb;
 	} // End of constructor
 
-	private void setProcessId(short processId) {
-
-		OSM.load(OSM_POINTER + PROCESS_ID_INDEX, processId);
-	}
-
 	public short getSize() {
 
 		return SIZE;
-	}
-
-	public void setState(char state) {
-
-		OSM.load(OSM_POINTER + STATE_INDEX, state);
 	}
 
 	public char getReadyStateIndicator() {
@@ -110,17 +89,12 @@ public class Process_Control_Block extends Cache {
 
 	public void setProgramCounter(short programCounter) {
 
-		OSM.load(OSM_POINTER + PC_INDEX, programCounter);
+		OSM.load((short) (OSM_POINTER + PC_INDEX), programCounter);
 	}
 
 	public void setPriority(short priority) {
 
-		OSM.load(OSM_POINTER + PRIORITY_INDEX, priority);
-	}
-
-	public byte getProcessId() {
-
-		return (byte) OSM.fetch((short) (OSM_POINTER + PROCESS_ID_INDEX));
+		OSM.load((short) (OSM_POINTER + PRIORITY_INDEX), priority);
 	}
 
 	public int[] getGprValues(byte numberOfGPRs) {

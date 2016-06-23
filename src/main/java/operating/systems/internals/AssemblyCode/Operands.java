@@ -1,8 +1,5 @@
 package operating.systems.internals.AssemblyCode;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Cache;
 
@@ -14,8 +11,6 @@ public class Operands implements AssemblyLanguage {
 	private byte operand2GprAddress;
 	private Operand operand1;
 	private Operand operand2;
-
-	private static final Logger logger = LogManager.getLogger("Machine");
 
 	public Operands(int operands) {
 
@@ -42,7 +37,7 @@ public class Operands implements AssemblyLanguage {
 		// assigns the right hand operand
 		operand2GprAddress = (byte) (remainder % 10);
 
-		operand2 = new Operand(modeOfOperand2, operand1GprAddress);
+		operand2 = new Operand(modeOfOperand2, operand2GprAddress);
 	}
 
 	public boolean isValid(byte numberOfRegisters) {
