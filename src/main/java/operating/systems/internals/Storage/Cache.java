@@ -17,21 +17,11 @@ public class Cache extends Memory{
 	 */
 	private short programCounter;
 	
-	private final byte INTERRUPT_ID_INDEX;
-	
 	private static final Logger logger = LogManager.getLogger("Machine_Implementation");
 	
 	public Cache(byte size) {
 		
 		super(size);
-		
-		INTERRUPT_ID_INDEX = 0;
-	}
-	
-	public void setGeneralPurposeRegisters(int[] gprValues) {
-		
-		for (byte i = 0; i <= size() + 1; i++) 
-			load(i, gprValues[i]);
 	}
 	
 	@Override
@@ -80,10 +70,5 @@ public class Cache extends Memory{
 	public boolean isValidGPRAddress(byte gprAddress) {
 		
 		return gprAddress >=0 && gprAddress < size();
-	}
-	
-	public byte getInterruptId() {
-		
-		return (byte) fetch(INTERRUPT_ID_INDEX);
 	}
 }

@@ -106,3 +106,26 @@
 2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
 2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
 2016-06-23 14:19:10,011 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:37:54,320 INFO Main Memory [main] Loading Null_Process into application memory
+2016-06-23 16:37:54,322 WARN Memory [main] The address numbered -1 was not loaded into memory
+2016-06-23 16:37:54,322 ERROR Main Memory [main] The address numbered -1 in the machine code is not within Java's "short" range
+2016-06-23 16:44:51,241 INFO Main Memory [main] Loading Null_Process into application memory
+2016-06-23 16:44:51,243 WARN Memory [main] The address numbered -1 was not loaded into memory
+2016-06-23 16:44:51,243 ERROR Main Memory [main] The address numbered -1 in the machine code is not within Java's "short" range
+2016-06-23 16:51:43,723 INFO Main Memory [main] Loading Null_Process into application memory
+2016-06-23 16:51:43,724 INFO Main Memory [main] The loader has reach the end of Null_Process's code
+2016-06-23 16:51:43,726 INFO Machine [main] 
+ The Machine has reached a halt instruction.
+2016-06-23 16:51:43,726 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-06-23 16:51:43,726 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
+2016-06-23 16:51:43,740 INFO Machine_Implementation [main] 	%d
