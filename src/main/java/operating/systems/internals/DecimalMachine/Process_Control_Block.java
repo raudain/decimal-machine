@@ -27,18 +27,18 @@ import operating.systems.internals.Storage.Operating_System_Memory;
 18                  SP
 19                  PC
 */
-public class Process_Control_Block extends Cache {
+public class Process_Control_Block {
 
 	private static final byte SIZE = 20;
+	private final Operating_System_Memory OSM;
+	private final Short OSM_POINTER;
+	private byte priority;
+	
 	private static final byte PRIORITY_INDEX = 2;
-	private final char READY_STATE;
-	// private final char READY_STATE;
-	final char WAITING_STATE;
 	private final byte PC_INDEX;
 	private final byte GPU_INDEX;
 	private final byte SP_INDEX;
-	private final Operating_System_Memory OSM;
-	private final Short OSM_POINTER;
+
 
 	/**
 	 * setPCB fills out some values the child process's process control block
@@ -51,18 +51,13 @@ public class Process_Control_Block extends Cache {
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public Process_Control_Block(byte numberOfRegisters, Operating_System_Memory osm, short osmPointer, byte priority) {
+	public Process_Control_Block(Operating_System_Memory osm, short osmPointer, byte priority) {
 
-		super(numberOfRegisters);
+
 
 		OSM = osm;
 		OSM_POINTER = osmPointer;
-
-		// DefaultPriority is a constant set to 128
-		setPriority(priority);
-
-		READY_STATE = 'R';
-		WAITING_STATE = 'W';
+		this.priority = priority;
 		PC_INDEX = 19;
 		GPU_INDEX = 10;
 		SP_INDEX = 18;
@@ -70,9 +65,8 @@ public class Process_Control_Block extends Cache {
 
 	public static Process_Control_Block getPcb(Operating_System_Memory osm, short osmPointer) {
 
-		byte numberOfRegisters = SIZE;
 		byte priority = (byte) osm.fetch((short) (osmPointer + PRIORITY_INDEX));
-		Process_Control_Block pcb = new Process_Control_Block(numberOfRegisters, osm, osmPointer, priority);
+		Process_Control_Block pcb = new Process_Control_Block(osm, osmPointer, priority);
 
 		return pcb;
 	} // End of constructor
@@ -82,19 +76,14 @@ public class Process_Control_Block extends Cache {
 		return SIZE;
 	}
 
-	public char getReadyStateIndicator() {
-
-		return READY_STATE;
+	public short getOsmPointer() {
+		
+		return OSM_POINTER;
 	}
-
+	
 	public void setProgramCounter(short programCounter) {
 
 		OSM.load((short) (OSM_POINTER + PC_INDEX), programCounter);
-	}
-
-	public void setPriority(short priority) {
-
-		OSM.load((short) (OSM_POINTER + PRIORITY_INDEX), priority);
 	}
 
 	public int[] getGprValues(byte numberOfGPRs) {
@@ -126,7 +115,7 @@ public class Process_Control_Block extends Cache {
 
 	public byte getPriority() {
 
-		return (byte) OSM.fetch((short) (OSM_POINTER + PRIORITY_INDEX));
+		return priority;
 	}
 
 	public String toString() {
@@ -134,14 +123,11 @@ public class Process_Control_Block extends Cache {
 		return OSM_POINTER.toString();
 	}
 
-	public boolean equals(short pointer) {
 
-		return this.OSM_POINTER.equals(pointer);
-	}
 
 	public boolean hasGreaterPriority(byte priority) {
 
-		Byte thisPriority = this.getPriority();
+		Byte thisPriority = this.priority;
 
 		if (thisPriority.compareTo(priority) > 0)
 			return true;

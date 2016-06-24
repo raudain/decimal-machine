@@ -1,15 +1,17 @@
-package operating.systems.internals.Storage;
+package operating.systems.internals.DecimalMachine;
 
 import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import operating.systems.internals.DecimalMachine.Process_Control_Block;
+import operating.systems.internals.Storage.Application_Memory;
+import operating.systems.internals.Storage.Cache;
+import operating.systems.internals.Storage.Operating_System_Memory;
 
-public class Ready_Program_ListTest {
+public class Process_Control_BlockTest {
 
 	@Test
-	public void addNullProgramToEmptyListTest() {
+	public void getOsmPointerTest() {
 		
 		byte numberOfRegisters = 11;
 		Cache cache = new Cache(numberOfRegisters);
@@ -20,13 +22,12 @@ public class Ready_Program_ListTest {
 		short osmPointer = am.load("Null_Process");
 		byte priority = 0;
 		Process_Control_Block pcb = new Process_Control_Block((byte) cache.size(), osm, osmPointer, priority);
-		Ready_Program_List rpl = new Ready_Program_List();
 		
-		assertTrue(rpl.add(pcb));
+		assertEquals(pcb.getOsmPointer(), osmPointer);
 	}
 	
 	@Test
-	public void aTest() {
+	public void incrementProgramCounterTest() {
 		
 		byte numberOfRegisters = 11;
 		Cache cache = new Cache(numberOfRegisters);
@@ -37,8 +38,11 @@ public class Ready_Program_ListTest {
 		short osmPointer = am.load("Null_Process");
 		byte priority = 0;
 		Process_Control_Block pcb = new Process_Control_Block((byte) cache.size(), osm, osmPointer, priority);
-		Ready_Program_List rpl = new Ready_Program_List();
+		short unincrementedPc = osmPointer;
+		pcb.incrementProgramCounter();
+		short incrementedPc = pcb.getProgramCounter();
 		
-		assertTrue(rpl.add(pcb));
+		assertEquals(incrementedPc, unincrementedPc + 1);
 	}
+
 }

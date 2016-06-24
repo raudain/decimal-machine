@@ -1,8 +1,5 @@
 package operating.systems.internals.DecimalMachine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
@@ -103,13 +100,14 @@ public class Machine {
 		switch (instruction.getOperationCode()) {
 
 		case 0: // halt
-			logger.info("\n The Machine has reached a halt instruction.");
+			logger.info("The Machine has reached a halt instruction.");
 			logger.info("Dumping CPU registers and used temporary memory.");
 			CPU.dump();
 
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 1: // add operation code
@@ -123,7 +121,8 @@ public class Machine {
 
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 2: // Subtract
@@ -137,7 +136,8 @@ public class Machine {
 
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 3: // Multiply
@@ -151,7 +151,8 @@ public class Machine {
 
 			final byte muliplyOperationDuration = 6;
 			executionTime += muliplyOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 			
 		case 4: // Divide
@@ -165,7 +166,8 @@ public class Machine {
 
 			final byte divideOperationDuration = 6;
 			executionTime += divideOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 5: // Move
@@ -174,7 +176,8 @@ public class Machine {
 
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 6: // Branch or jump instruction
@@ -183,7 +186,8 @@ public class Machine {
 
 			final byte jumpOperationDuration = 2;
 			executionTime += jumpOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 7: // Branch on negative
@@ -199,7 +203,8 @@ public class Machine {
 
 			final byte branchOnNegativeOperationDuration = 4;
 			executionTime += branchOnNegativeOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 8: // Branch on positive
@@ -215,7 +220,8 @@ public class Machine {
 
 			final byte branchOnPositiveOperationDuration = 4;
 			executionTime += branchOnPositiveOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 9: // branch on zero
@@ -229,7 +235,8 @@ public class Machine {
 
 			final byte branchOnZeroOperationDuration = 4;
 			executionTime += branchOnZeroOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 10: // Push
@@ -238,7 +245,8 @@ public class Machine {
 
 			final byte pushOperationDuration = 2;
 			executionTime += pushOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
 
 		case 11: // Pop
@@ -247,24 +255,12 @@ public class Machine {
 
 			final byte popOperationDuration = 2;
 			executionTime += popOperationDuration;
-
+			logger.info("Execution time equals " + executionTime);
+			
 			return executionTime;
-
-		/*
-		 * include this fuctionality in later version
-		 * 
-		 * case 12: // System call
-		 * 
-		 * byte systemCallCode = systemCall(valueOfOperand1);
-		 * 
-		 * final byte systemCallDuration = 12; executionTime +=
-		 * systemCallDuration;
-		 * 
-		 * return systemCallCode;
-		 */
 			
 		default:
-			return 0;
+			return executionTime;
 		} // end of opcode switch statement
 	} // End of execute instruction class
 
@@ -279,23 +275,30 @@ public class Machine {
 	 * instruction execution time. It returns the status of execution as an byte
 	 * value.
 	 * 
-	 * @return The code for halt instruction detection and the code for time slice complete
+	 * @return The code for halt instruction detection or 0 if maximum execution time was met
 	 */
 	public byte execute() {
 
+		logger.info("Execution has started");
 		Short executionTime = 0;
 		final short maximumExecutionTime = 200;
 		while (executionTime < maximumExecutionTime) {
+			// the first program has the highest priority
+			Process_Control_Block pcb = RPL.removeFirst();
+			
 			// Fetch (read) the first word of the instruction pointed by PC
-			Instruction instruction = new Instruction(AM.fetch(CPU.getProgramCounter()));
+			short programCounter = pcb.getOsmPointer();
+			
+			Instruction instruction = new Instruction(AM.fetch(programCounter));
+			
 			executionTime = (short) (executionTime + executeInstruction(instruction));
-			CPU.incrementProgramCounter();
+			//pcb.incrementProgramCounter();
+			RPL.add(pcb);
 		} // end of while loop
 
 		short halt = 2000;
 		if (executionTime >= halt) {
-			logger.info("Dumping CPU registers and used temporary memory.");
-			CPU.dump();
+			logger.info("Program has halted");
 			
 			return HALT; 
 		}
@@ -308,12 +311,13 @@ public class Machine {
 		}	
 	} // end of execute program module
 	
-	// process id starts at 0 and is incremented for every new process
-
+	/**
+	 * @return halt code or zero if not halted
+	 */
 	public byte run(String fileName, byte priority) {
 
 		short osmPointer = AM.load(fileName);
-		Process_Control_Block pcb = new Process_Control_Block((byte) CPU.size(), OSM, osmPointer, priority);
+		Process_Control_Block pcb = new Process_Control_Block(OSM, osmPointer, priority);
 		RPL.add(pcb);
 		byte status = execute();
 		

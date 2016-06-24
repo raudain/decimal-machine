@@ -31,7 +31,7 @@ public class Cache extends Memory{
 		logger.info("GPRs:\tG0\tG1\tG2\tG3\tG4\tG5\tG6\tG7\tSP\tPC");
 
 		// print register values
-		for (short i = 0; i <= size(); i++)
+		for (short i = 0; i <= size() - 1; i++)
 			logger.info("\t%d", fetch(i));
 	}
 

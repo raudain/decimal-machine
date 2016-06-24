@@ -18,4 +18,16 @@ public class CacheTest {
 		
 		assertEquals(origin, cache.getProgramCounter());
 	}
+	
+	@Test
+	public void incrementProgramCounterTest() {
+		
+		byte numberOfRegisters = 11;
+		Cache cache = new Cache(numberOfRegisters);
+		short unincrementedPc = cache.getProgramCounter();
+		cache.incrementProgramCounter();
+		short incrementedPc = cache.getProgramCounter();
+		
+		assertEquals(incrementedPc, unincrementedPc + 1);
+	}
 }

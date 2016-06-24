@@ -47,12 +47,17 @@ public abstract class Memory {
 		if (addressInMemoryRange(address))
 			memory[address] = code;
 		else
-			logger.warn("The address numbered " + address + " was not loaded into memory");
+			logger.warn("The address numbered " + address + " was not in range so was not loaded into memory");
 	}
 
 	public int fetch(short address) {
 
-		return memory[address];
+		if (addressInMemoryRange(address))
+			return memory[address];
+		else {
+			logger.warn("The data in address numbered " + address + " was not in range so could not be fetched");
+			return 0;
+		}
 	}
 
 	public short size() {
