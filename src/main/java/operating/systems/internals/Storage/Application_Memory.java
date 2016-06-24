@@ -60,7 +60,7 @@ public class Application_Memory extends Memory {
 	 * 
 	 * @throws FileNotFoundException
 	 * 
-	 * @return First address (origin) of the program or error code
+	 * @return First address (origin) of the program first instruction or error code
 	 */
 	public short load(String fileName) {
 

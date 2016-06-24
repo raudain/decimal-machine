@@ -50,7 +50,7 @@ public class Operand implements AssemblyLanguage {
 	private short address;
 	private byte value;
 
-	private static final Logger logger = LogManager.getLogger("Machine");
+	private static final Logger logger = LogManager.getLogger("Operand");
 
 	public Operand(byte mode, byte gprAddress) {
 
@@ -60,23 +60,23 @@ public class Operand implements AssemblyLanguage {
 
 	private boolean isModeValid() {
 
-		return mode > 0 && mode <= 6;
+		return mode >= 0 && mode <= 6;
 	}
 
 	private boolean isGprAddressValid(byte numberOfRegisters) {
 
-		return gprAddress > 0 && gprAddress < numberOfRegisters;
+		return gprAddress >= 0 && gprAddress < numberOfRegisters;
 	}
 
 	public boolean isValid(byte numberOfRegisters) {
 
 		boolean isModeValid = isModeValid();
 		if (!isModeValid)
-			logger.error("Operand has invalid mode");
+			logger.error("Mode number " + mode + " is invalid");
 
 		boolean isGprAddressValid = isGprAddressValid(numberOfRegisters);
 		if (!isGprAddressValid)
-			logger.error("Invalid general purpose register address");
+			logger.error("The register number " + this.gprAddress + " is out of range");
 
 		return mode > 0 && mode < 6;
 	}
@@ -126,34 +126,41 @@ public class Operand implements AssemblyLanguage {
 		case REGISTER_MODE:
 
 			value = (byte) cpu.fetch(gprAddress);
+			
+			break;
 
-			// Operand address is in the register
+		// Operand address is in the register
 		case REGISTERDEFERRED_ADDRESS_MODE:
 
 			value = (byte) cpu.fetch(address);
-
-			// Increments register by one after fetching address
+			
+			break;
+			
+		// Increments register by one after fetching address
 		case AUTOINCREMENT_MODE:
 
 			value = (byte) cpu.fetch(gprAddress);
 			cpu.increment(gprAddress);
-
-			// Autodecrement mode
+			
+			break;
+			
 		case AUTODECREMENT_MODE:
 
 			value = (byte) cpu.fetch(gprAddress);
 			cpu.decrement(gprAddress);
 
-			// Operand value is in memory
+			break;
+			
+		// Operand value is in memory
 		case DIRECT_ADDRESS_MODE:
 
 			value = (byte) am.fetch(address);
 
-			// Operand value is in memory
+			break;
+		// Operand value is in memory
 		case IMMEDIATE_MODE:
 			
-			value = (byte) am.fetch(cpu.getProgramCounter());
-			// increment program counter by one
+			value = (byte) am.fetch(cpu.getProgramCounter());			
 			cpu.incrementProgramCounter();
 		} // end of switch OpMode
 	} // End of set value method

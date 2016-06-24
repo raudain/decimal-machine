@@ -9,7 +9,6 @@ import operating.systems.internals.AssemblyCode.Instruction;
 import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Cache;
-import operating.systems.internals.Storage.Operating_System_Memory;
 import operating.systems.internals.Storage.Ready_Program_List;
 
 /**
@@ -44,32 +43,23 @@ public class Machine {
 
 	private final byte SIZE_OF_AM;
 
-	private final byte SIZE_OF_OSM;
-
 	private final Stack<Byte> STACK;
-
-	private final byte NUMBER_OF_REGISTERS;
 	
 	private final byte HALT;
-	
-	private final Cache CPU;
-
-	private final Operating_System_Memory OSM;
 
 	private final Ready_Program_List RPL;
+	
+	private short executionTime;
 
 	private static final Logger logger = LogManager.getLogger("Machine");
 	
 	public Machine() {
 
 		SIZE_OF_AM = 75;
-		SIZE_OF_OSM = 75;
-		NUMBER_OF_REGISTERS = 11;
 		HALT = 2;
-
-		CPU = new Cache(NUMBER_OF_REGISTERS);
+		executionTime = 0;
+		
 		AM = new Application_Memory(SIZE_OF_AM);
-		OSM = new Operating_System_Memory(SIZE_OF_OSM);
 		STACK = new Stack<Byte>();
 		RPL = new Ready_Program_List();
 	} // end of constructor
@@ -81,28 +71,30 @@ public class Machine {
 	 * 
 	 * @return Time it took to execute the instruction;
 	 */
-	private short executeInstruction(Instruction instruction) {
+	private byte executionCount = 1;
+	private short executeInstruction(Instruction instruction, Cache cache) {
 
+		logger.info("Executing instruction number " + executionCount++);
 		// check if instruction is valid. If not valid then error is logged
-		instruction.isValid((byte) CPU.size());
+		instruction.isValid((byte) cache.size());
 
 		// Execute Cycle
 		// In the execute cycle, fetch operand value(s) based on the opcode
 		// since different opcode has different number of operands
 
 		Operands operands = instruction.getOperands();
-		final byte valueOfOperand1 = operands.getValueOfOperand1(CPU, AM);
-		final byte valueOfOperand2 = operands.getValueOfOperand2(CPU, AM);
+		final byte valueOfOperand1 = operands.getValueOfOperand1(cache, AM);
+		final byte valueOfOperand2 = operands.getValueOfOperand2(cache, AM);
 		final byte operand1GPRAddress = operands.getOperand1GprAddress();
 		int result;
-		short executionTime = 0;
-		short pc = CPU.getProgramCounter();
+		short pc = cache.getProgramCounter();
 		switch (instruction.getOperationCode()) {
 
-		case 0: // halt
-			logger.info("The Machine has reached a halt instruction.");
+		case 0: 
+			
+			logger.info("Processing halt operation...");
 			logger.info("Dumping CPU registers and used temporary memory.");
-			CPU.dump();
+			cache.dump();
 
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
@@ -110,14 +102,16 @@ public class Machine {
 			
 			return executionTime;
 
-		case 1: // add operation code
+		case 1: 
 
+			logger.info("Processing add operation...");
+			
 			/*
 			 * Add the operand's values and store the result into the first
 			 * operand's address
 			 */
 			result = valueOfOperand1 + valueOfOperand2;
-			CPU.load(operand1GPRAddress, result);
+			cache.load(operand1GPRAddress, result);
 
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
@@ -125,14 +119,15 @@ public class Machine {
 			
 			return executionTime;
 
-		case 2: // Subtract
+		case 2: 
 
+			logger.info("Processing subtract operation...");
 			/*
 			 * Subtract the operand's values and store the result into the first
 			 * operand's address
 			 */
 			result = valueOfOperand1 - valueOfOperand2;
-			CPU.load(operand1GPRAddress, result);
+			cache.load(operand1GPRAddress, result);
 
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
@@ -140,14 +135,15 @@ public class Machine {
 			
 			return executionTime;
 
-		case 3: // Multiply
+		case 3: 
 
+			logger.info("Processing multiply operation...");
 			/*
 			 * Multiply the operand's values and store the result into the first
 			 * operand's address
 			 */
 			result = valueOfOperand1 * valueOfOperand2;
-			CPU.load(operand1GPRAddress, result);
+			cache.load(operand1GPRAddress, result);
 
 			final byte muliplyOperationDuration = 6;
 			executionTime += muliplyOperationDuration;
@@ -155,14 +151,15 @@ public class Machine {
 			
 			return executionTime;
 			
-		case 4: // Divide
+		case 4: 
 
+			logger.info("Processing divide operation...");
 			/*
 			 * Divide the operand's values and store the result into the first
 			 * operand's address
 			 */
 			result = valueOfOperand1 / valueOfOperand2;
-			CPU.load(operand1GPRAddress, result);
+			cache.load(operand1GPRAddress, result);
 
 			final byte divideOperationDuration = 6;
 			executionTime += divideOperationDuration;
@@ -170,9 +167,10 @@ public class Machine {
 			
 			return executionTime;
 
-		case 5: // Move
+		case 5: 
 
-			CPU.load(operand1GPRAddress, valueOfOperand2);
+			logger.info("Processing move operation...");
+			cache.load(operand1GPRAddress, valueOfOperand2);
 
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
@@ -180,9 +178,10 @@ public class Machine {
 			
 			return executionTime;
 
-		case 6: // Branch or jump instruction
+		case 6: 
 
-			CPU.setProgramCounter((short) AM.fetch(pc));
+			logger.info("Processing jump operation...");
+			cache.setProgramCounter((short) AM.fetch(pc));
 
 			final byte jumpOperationDuration = 2;
 			executionTime += jumpOperationDuration;
@@ -190,14 +189,15 @@ public class Machine {
 			
 			return executionTime;
 
-		case 7: // Branch on negative
+		case 7: 
 
+			logger.info("Processing branch on negitive value operation...");
 			if (valueOfOperand1 < 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) AM.fetch(pc));
+				cache.setProgramCounter((short) AM.fetch(pc));
 
 			else
-				CPU.incrementProgramCounter(); // No branch, skip branch address
+				cache.incrementProgramCounter(); // No branch, skip branch address
 												// to go to next
 			// instruction
 
@@ -207,16 +207,17 @@ public class Machine {
 			
 			return executionTime;
 
-		case 8: // Branch on positive
+		case 8: 
 
+			logger.info("Processing branch on positive value operation...");
 			// Store branch address in the PC is true
 			if (valueOfOperand1 > 0)
 				// Store branch address in the PC
-				CPU.setProgramCounter((short) AM.fetch(pc));
+				cache.setProgramCounter((short) AM.fetch(pc));
 
 			// No branch, skip branch address to go to next instruction
 			else
-				CPU.incrementProgramCounter();
+				cache.incrementProgramCounter();
 
 			final byte branchOnPositiveOperationDuration = 4;
 			executionTime += branchOnPositiveOperationDuration;
@@ -224,14 +225,15 @@ public class Machine {
 			
 			return executionTime;
 
-		case 9: // branch on zero
+		case 9:
 
+			logger.info("Processing branch on zero operation...");
 			// Store branch address in the PC is true
 			if (valueOfOperand1 == 0)
-				CPU.setProgramCounter((short) AM.fetch((short) pc));
+				cache.setProgramCounter((short) AM.fetch((short) pc));
 			// No branch, skip branch address to go to next instruction
 			else
-				CPU.incrementProgramCounter();
+				cache.incrementProgramCounter();
 
 			final byte branchOnZeroOperationDuration = 4;
 			executionTime += branchOnZeroOperationDuration;
@@ -239,8 +241,9 @@ public class Machine {
 			
 			return executionTime;
 
-		case 10: // Push
+		case 10:
 
+			logger.info("Processing push operation...");
 			STACK.push(valueOfOperand1);
 
 			final byte pushOperationDuration = 2;
@@ -249,9 +252,10 @@ public class Machine {
 			
 			return executionTime;
 
-		case 11: // Pop
+		case 11:
 
-			CPU.load(operand1GPRAddress, STACK.pop());
+			logger.info("Processing pop operation...");
+			cache.load(operand1GPRAddress, STACK.pop());
 
 			final byte popOperationDuration = 2;
 			executionTime += popOperationDuration;
@@ -280,19 +284,18 @@ public class Machine {
 	public byte execute() {
 
 		logger.info("Execution has started");
-		Short executionTime = 0;
 		final short maximumExecutionTime = 200;
 		while (executionTime < maximumExecutionTime) {
 			// the first program has the highest priority
 			Process_Control_Block pcb = RPL.removeFirst();
 			
 			// Fetch (read) the first word of the instruction pointed by PC
-			short programCounter = pcb.getOsmPointer();
+			short programCounter = pcb.getProgramCounter();
 			
 			Instruction instruction = new Instruction(AM.fetch(programCounter));
 			
-			executionTime = (short) (executionTime + executeInstruction(instruction));
-			//pcb.incrementProgramCounter();
+			executionTime = (short) (executionTime + executeInstruction(instruction, pcb.getCache()));
+			pcb.incrementProgramCounter();
 			RPL.add(pcb);
 		} // end of while loop
 
@@ -304,8 +307,6 @@ public class Machine {
 		}
 		else {
 			logger.info("Time slice complete");
-			logger.info("Dumping CPU registers and used temporary memory.");		
-			CPU.dump();
 			
 			return 0;
 		}	
@@ -316,8 +317,8 @@ public class Machine {
 	 */
 	public byte run(String fileName, byte priority) {
 
-		short osmPointer = AM.load(fileName);
-		Process_Control_Block pcb = new Process_Control_Block(OSM, osmPointer, priority);
+		short amPointer = AM.load(fileName);
+		Process_Control_Block pcb = new Process_Control_Block(amPointer, priority);
 		RPL.add(pcb);
 		byte status = execute();
 		

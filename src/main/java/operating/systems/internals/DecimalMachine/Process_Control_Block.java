@@ -1,7 +1,6 @@
 package operating.systems.internals.DecimalMachine;
 
 import operating.systems.internals.Storage.Cache;
-import operating.systems.internals.Storage.Operating_System_Memory;
 
 /* Array Index	Order of Items in the PCB 
 ↓                   ↓
@@ -30,15 +29,9 @@ import operating.systems.internals.Storage.Operating_System_Memory;
 public class Process_Control_Block {
 
 	private static final byte SIZE = 20;
-	private final Operating_System_Memory OSM;
-	private final Short OSM_POINTER;
 	private byte priority;
 	
-	private static final byte PRIORITY_INDEX = 2;
-	private final byte PC_INDEX;
-	private final byte GPU_INDEX;
-	private final byte SP_INDEX;
-
+	private final Cache CACHE;
 
 	/**
 	 * setPCB fills out some values the child process's process control block
@@ -51,24 +44,13 @@ public class Process_Control_Block {
 	 * @param pr
 	 *            Memory location where the process ID is stored
 	 */
-	public Process_Control_Block(Operating_System_Memory osm, short osmPointer, byte priority) {
+	public Process_Control_Block(short amPointer, byte priority) {
 
-
-
-		OSM = osm;
-		OSM_POINTER = osmPointer;
 		this.priority = priority;
-		PC_INDEX = 19;
-		GPU_INDEX = 10;
-		SP_INDEX = 18;
-	} // End of constructor
-
-	public static Process_Control_Block getPcb(Operating_System_Memory osm, short osmPointer) {
-
-		byte priority = (byte) osm.fetch((short) (osmPointer + PRIORITY_INDEX));
-		Process_Control_Block pcb = new Process_Control_Block(osm, osmPointer, priority);
-
-		return pcb;
+		
+		final byte numberOfRegisters = 11;
+		CACHE = new Cache(numberOfRegisters);
+		CACHE.setProgramCounter(amPointer);
 	} // End of constructor
 
 	public short getSize() {
@@ -76,54 +58,20 @@ public class Process_Control_Block {
 		return SIZE;
 	}
 
-	public short getOsmPointer() {
-		
-		return OSM_POINTER;
+	public short getProgramCounter() {
+
+		return CACHE.getProgramCounter();
 	}
 	
-	public void setProgramCounter(short programCounter) {
-
-		OSM.load((short) (OSM_POINTER + PC_INDEX), programCounter);
-	}
-
-	public int[] getGprValues(byte numberOfGPRs) {
-
-		int[] a = new int[numberOfGPRs];
-		for (int i = 0; i < numberOfGPRs + 1; i++)
-			a[i] = OSM.fetch((short) (OSM_POINTER + GPU_INDEX + i));
-
-		return a;
-	}
-
-	public short getStackPointer(Operating_System_Memory OSM, short pcbPointer) {
-
-		return (short) OSM.fetch((short) (pcbPointer + SP_INDEX));
-
-		// Set system mode to User mode
-		// byte userMode = 2;
-		// psr = userMode; // UserMode is 1, OSMode is 0.
-	}
-
-	public short getProgramCounter(Operating_System_Memory OSM, short pcbPointer) {
-
-		return (short) OSM.fetch((short) (OSM_POINTER + PC_INDEX));
-
-		// Set system mode to User mode
-		// byte userMode = 2;
-		// psr = userMode; // UserMode is 1, OSMode is 0.
+	public void incrementProgramCounter() {
+		
+		CACHE.incrementProgramCounter();
 	}
 
 	public byte getPriority() {
 
 		return priority;
 	}
-
-	public String toString() {
-
-		return OSM_POINTER.toString();
-	}
-
-
 
 	public boolean hasGreaterPriority(byte priority) {
 
@@ -133,5 +81,10 @@ public class Process_Control_Block {
 			return true;
 		else
 			return false;
+	}
+	
+	public Cache getCache() {
+		
+		return CACHE;
 	}
 }
