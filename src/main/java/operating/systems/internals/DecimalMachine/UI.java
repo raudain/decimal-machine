@@ -1,6 +1,9 @@
 package operating.systems.internals.DecimalMachine;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -10,18 +13,15 @@ import operating.systems.internals.DecimalMachine.Machine;
 
 public class UI {
 	
-	private static final Logger logger = LogManager.getLogger("App");
+	private static final Logger logger = LogManager.getLogger("UI");
 
-	private static String getInput() {
+	private static String getInput() throws IOException {
 
-		Scanner keyboard = new Scanner(System.in);
 		System.out.println("Enter an executable file's name");
-		String commandLineInput = keyboard.nextLine();
-		keyboard.close();
+		BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));	
+		String commandLineInput = keyboard.readLine();
 
-		commandLineInput.toLowerCase();
-
-		return "";
+		return commandLineInput;
 	}
 
 	/**
@@ -40,9 +40,8 @@ public class UI {
 	 * @param args
 	 *            command line arguments are not used.
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
-		UI ui = new UI();
 		final Machine machine = new Machine();
 		byte lowestPriority = 0;
 		// Priority one is the lowest priority, and 127 is the highest
@@ -59,7 +58,8 @@ public class UI {
 				executionStatus = machine.run("userInput", priority--);
 				} catch (FileNotFoundException e) {
 					logger.error(userInput + " was not found in " + machine.getWorkingDirectory());
-					getInput();
+					userInput = getInput();
+					break;
 				}
 				logger.info("Selecting a process out of the ready Queue");
 
