@@ -18,13 +18,7 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 		// Print each PCB as you move from one PCB to the next
 		logger.info("Printing all process control blocks in ready queue:");
 		Process_Control_Block pcb = getFirst();
-		int i = 0;
-		while (!isEmpty()) {
-			logger.info(pcb.toString());
-			pcb = get(i++);
-
-			logger.info("Printing next process control block:");
-		} // end of while loop
+		logger.info(pcb.toString());
 
 		logger.info("The end of the ready queue has been reached.");
 	} // end of print method

@@ -55,9 +55,9 @@ public class UI {
 			while (running_nullProcess == false) {
 				Byte executionStatus = -1;
 				try {
-				executionStatus = machine.run("userInput", priority--);
+				executionStatus = machine.run(userInput, priority--);
 				} catch (FileNotFoundException e) {
-					logger.error(userInput + " was not found in " + machine.getWorkingDirectory());
+					logger.error(machine.getWorkingDirectory() + userInput + " was not found" );
 					userInput = getInput();
 					break;
 				}
