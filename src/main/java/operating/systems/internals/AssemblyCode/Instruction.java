@@ -1,6 +1,6 @@
 package operating.systems.internals.AssemblyCode;
 
-public class Instruction implements AssemblyLanguage{
+public class Instruction {
 
 	private byte operationCode;
 	private Operands operands;
@@ -29,13 +29,25 @@ public class Instruction implements AssemblyLanguage{
 		return operationCode > 0 && operationCode < 12;
 	}
 
-	public boolean isValid(byte numberOfRegisters) {
+	public boolean isValid() {
 
-		return isValidOperationCode() && operands.isValid(numberOfRegisters);
+		return isValidOperationCode() && operands.isModeValid();
 	}
 	
 	public Operands getOperands() {
 		
 		return operands;
+	}
+
+	public byte getFirstGPRAddress() {
+		
+		byte operand1GprAddress = operands.getOperand1GprAddress();
+		return operand1GprAddress;
+	}
+
+	public byte getSecondGPRAddress() {
+		
+		byte operand1GprAddress = operands.getOperand2GprAddress();
+		return operand1GprAddress;
 	}
 }

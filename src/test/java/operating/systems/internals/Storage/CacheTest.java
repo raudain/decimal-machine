@@ -2,12 +2,14 @@ package operating.systems.internals.Storage;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
+
 import org.junit.Test;
 
 public class CacheTest {
 
 	@Test
-	public void getProgramCounterTest() {
+	public void getProgramCounterTest() throws FileNotFoundException{
 		
 		byte numberOfRegisters = 11;
 		Cache cache = new Cache(numberOfRegisters);

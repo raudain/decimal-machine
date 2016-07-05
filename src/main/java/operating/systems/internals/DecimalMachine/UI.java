@@ -1,5 +1,6 @@
 package operating.systems.internals.DecimalMachine;
 
+import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
@@ -8,26 +9,14 @@ import org.apache.logging.log4j.Logger;
 import operating.systems.internals.DecimalMachine.Machine;
 
 public class UI {
-
+	
 	private static final Logger logger = LogManager.getLogger("App");
 
-	private static String getGreeting() {
+	private static String getInput() {
 
-		return "Welcome to the decimal machine. The first programs entered gets a higher"
-				+ " execution prority then each successive program entered/n";
-	}
-
-	private static String getFirstInput() {
-
-		String s = "";
-
-		s = getGreeting();
-
-		logger.info(s);
-		String commandLineInput = "";
 		Scanner keyboard = new Scanner(System.in);
-		System.out.println("Enter an executable's file name");
-		commandLineInput = keyboard.nextLine();
+		System.out.println("Enter an executable file's name");
+		String commandLineInput = keyboard.nextLine();
 		keyboard.close();
 
 		commandLineInput.toLowerCase();
@@ -53,26 +42,36 @@ public class UI {
 	 */
 	public static void main(String[] args) {
 
+		UI ui = new UI();
 		final Machine machine = new Machine();
 		byte lowestPriority = 0;
-		machine.run("Null_Process", lowestPriority);
 		// Priority one is the lowest priority, and 127 is the highest
 		final byte highestPriority = 127;
 		byte priority = highestPriority;
 
-		String userInput = getFirstInput();
+		String userInput = getInput();
 		while (!(userInput.equals("shutdown"))) {
 			boolean running_nullProcess = false;
 			// Programs are run until in this loop until they halt
 			while (running_nullProcess == false) {
-				Byte executionStatus = machine.run("userInput", priority--);
+				Byte executionStatus = -1;
+				try {
+				executionStatus = machine.run("userInput", priority--);
+				} catch (FileNotFoundException e) {
+					logger.error(userInput + " was not found in " + machine.getWorkingDirectory());
+					getInput();
+				}
 				logger.info("Selecting a process out of the ready Queue");
 
 				byte halt = machine.getHaltCode();
 				
 				if (executionStatus.equals(halt)) {					
 					//machine.terminateProcess();
-					machine.run("Null_Process", lowestPriority);
+					try {
+						machine.run("Null_Process", lowestPriority);
+					} catch (FileNotFoundException e) {
+						
+					}
 				} else
 					executionStatus = machine.execute();
 			} // end of while loop

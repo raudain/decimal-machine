@@ -1,5 +1,6 @@
 package operating.systems.internals.DecimalMachine;
 
+import java.io.FileNotFoundException;
 import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
@@ -72,29 +73,29 @@ public class Machine {
 	 * @return Time it took to execute the instruction;
 	 */
 	private byte executionCount = 1;
-	private short executeInstruction(Instruction instruction, Cache cache) {
+	private short executeInstruction(Instruction instruction, Process_Control_Block pcb) {
 
 		logger.info("Executing instruction number " + executionCount++);
-		// check if instruction is valid. If not valid then error is logged
-		instruction.isValid((byte) cache.size());
 
-		// Execute Cycle
-		// In the execute cycle, fetch operand value(s) based on the opcode
-		// since different opcode has different number of operands
+		byte firstGPRAddress = instruction.getFirstGPRAddress();
+		pcb.isValidGPRAddress(firstGPRAddress);
+		byte secondGPRAddress = instruction.getSecondGPRAddress();
+		pcb.isValidGPRAddress(secondGPRAddress);
+		instruction.isValid();
 
 		Operands operands = instruction.getOperands();
-		final byte valueOfOperand1 = operands.getValueOfOperand1(cache, AM);
-		final byte valueOfOperand2 = operands.getValueOfOperand2(cache, AM);
-		final byte operand1GPRAddress = operands.getOperand1GprAddress();
+		final byte valueOfOperand1;
+		final byte valueOfOperand2;
+		final byte operand1GPRAddress;
 		int result;
-		short pc = cache.getProgramCounter();
+		
 		switch (instruction.getOperationCode()) {
 
 		case 0: 
 			
 			logger.info("Processing halt operation...");
 			logger.info("Dumping CPU registers and used temporary memory.");
-			cache.dump();
+			pcb.dump();
 
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
@@ -110,12 +111,17 @@ public class Machine {
 			 * Add the operand's values and store the result into the first
 			 * operand's address
 			 */
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
+			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
 			result = valueOfOperand1 + valueOfOperand2;
-			cache.load(operand1GPRAddress, result);
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, result);
 
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 
@@ -126,12 +132,17 @@ public class Machine {
 			 * Subtract the operand's values and store the result into the first
 			 * operand's address
 			 */
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
+			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
 			result = valueOfOperand1 - valueOfOperand2;
-			cache.load(operand1GPRAddress, result);
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, result);
 
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 
@@ -142,12 +153,17 @@ public class Machine {
 			 * Multiply the operand's values and store the result into the first
 			 * operand's address
 			 */
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
+			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
 			result = valueOfOperand1 * valueOfOperand2;
-			cache.load(operand1GPRAddress, result);
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, result);
 
 			final byte muliplyOperationDuration = 6;
 			executionTime += muliplyOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 			
@@ -158,31 +174,43 @@ public class Machine {
 			 * Divide the operand's values and store the result into the first
 			 * operand's address
 			 */
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
+			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
 			result = valueOfOperand1 / valueOfOperand2;
-			cache.load(operand1GPRAddress, result);
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, result);
 
 			final byte divideOperationDuration = 6;
 			executionTime += divideOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 
 		case 5: 
 
 			logger.info("Processing move operation...");
-			cache.load(operand1GPRAddress, valueOfOperand2);
+			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, valueOfOperand2);
 
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 
 		case 6: 
 
 			logger.info("Processing jump operation...");
-			cache.setProgramCounter((short) AM.fetch(pc));
-
+			pcb.incrementProgramCounter();	
+			short pc = pcb.getProgramCounter();
+			short jumpToAddress = (short) AM.fetch(pc);
+			pcb.setProgramCounter(jumpToAddress);
+			
 			final byte jumpOperationDuration = 2;
 			executionTime += jumpOperationDuration;
 			logger.info("Execution time equals " + executionTime);
@@ -192,12 +220,13 @@ public class Machine {
 		case 7: 
 
 			logger.info("Processing branch on negitive value operation...");
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			if (valueOfOperand1 < 0)
 				// Store branch address in the PC
-				cache.setProgramCounter((short) AM.fetch(pc));
+				pcb.setProgramCounter((short) AM.fetch(pcb.getProgramCounter()));
 
 			else
-				cache.incrementProgramCounter(); // No branch, skip branch address
+				pcb.incrementProgramCounter(); // No branch, skip branch address
 												// to go to next
 			// instruction
 
@@ -210,14 +239,15 @@ public class Machine {
 		case 8: 
 
 			logger.info("Processing branch on positive value operation...");
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			// Store branch address in the PC is true
 			if (valueOfOperand1 > 0)
 				// Store branch address in the PC
-				cache.setProgramCounter((short) AM.fetch(pc));
+				pcb.setProgramCounter((short) AM.fetch(pcb.getProgramCounter()));
 
 			// No branch, skip branch address to go to next instruction
 			else
-				cache.incrementProgramCounter();
+				pcb.incrementProgramCounter();
 
 			final byte branchOnPositiveOperationDuration = 4;
 			executionTime += branchOnPositiveOperationDuration;
@@ -228,12 +258,13 @@ public class Machine {
 		case 9:
 
 			logger.info("Processing branch on zero operation...");
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			// Store branch address in the PC is true
 			if (valueOfOperand1 == 0)
-				cache.setProgramCounter((short) AM.fetch((short) pc));
+				pcb.setProgramCounter((short) AM.fetch((short) pcb.getProgramCounter()));
 			// No branch, skip branch address to go to next instruction
 			else
-				cache.incrementProgramCounter();
+				pcb.incrementProgramCounter();
 
 			final byte branchOnZeroOperationDuration = 4;
 			executionTime += branchOnZeroOperationDuration;
@@ -244,22 +275,28 @@ public class Machine {
 		case 10:
 
 			logger.info("Processing push operation...");
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			STACK.push(valueOfOperand1);
 
 			final byte pushOperationDuration = 2;
 			executionTime += pushOperationDuration;
 			logger.info("Execution time equals " + executionTime);
 			
+			pcb.incrementProgramCounter();
+			
 			return executionTime;
 
 		case 11:
 
 			logger.info("Processing pop operation...");
-			cache.load(operand1GPRAddress, STACK.pop());
+			operand1GPRAddress = operands.getOperand1GprAddress();
+			pcb.load(operand1GPRAddress, STACK.pop());
 
 			final byte popOperationDuration = 2;
 			executionTime += popOperationDuration;
 			logger.info("Execution time equals " + executionTime);
+			
+			pcb.incrementProgramCounter();
 			
 			return executionTime;
 			
@@ -294,8 +331,7 @@ public class Machine {
 			
 			Instruction instruction = new Instruction(AM.fetch(programCounter));
 			
-			executionTime = (short) (executionTime + executeInstruction(instruction, pcb.getCache()));
-			pcb.incrementProgramCounter();
+			executionTime = (short) (executionTime + executeInstruction(instruction, pcb));
 			RPL.add(pcb);
 		} // end of while loop
 
@@ -315,7 +351,7 @@ public class Machine {
 	/**
 	 * @return halt code or zero if not halted
 	 */
-	public byte run(String fileName, byte priority) {
+	public byte run(String fileName, byte priority) throws FileNotFoundException{
 
 		short amPointer = AM.load(fileName);
 		Process_Control_Block pcb = new Process_Control_Block(amPointer, priority);
@@ -333,5 +369,10 @@ public class Machine {
 	public byte getHaltCode() {
 		
 		return HALT;
+	}
+
+	public String getWorkingDirectory() {
+		
+		return AM.getWorkingDirectory();
 	}
 } // End of Machine class

@@ -1,9 +1,10 @@
 package operating.systems.internals.AssemblyCode;
 
+import operating.systems.internals.DecimalMachine.Process_Control_Block;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Cache;
 
-public class Operands implements AssemblyLanguage {
+public class Operands {
 
 	private byte modeOfOperand1;
 	private byte modeOfOperand2;
@@ -40,23 +41,23 @@ public class Operands implements AssemblyLanguage {
 		operand2 = new Operand(modeOfOperand2, operand2GprAddress);
 	}
 
-	public boolean isValid(byte numberOfRegisters) {
+	public boolean isModeValid() {
 
-		return operand1.isValid(numberOfRegisters) && operand2.isValid(numberOfRegisters);
+		return operand1.isModeValid() && operand2.isModeValid();
 	}
 
-	public byte getValueOfOperand1(Cache cpu, Application_Memory am) {
+	public byte getValueOfOperand1(Process_Control_Block pcb, Application_Memory am) {
 		
-		operand1.setAddress(cpu, am);
-		operand1.setValue(cpu, am);
+		operand1.setAddress(pcb, am);
+		operand1.setValue(pcb, am);
 		
 		return operand1.getValue();
 	}
 	
-	public byte getValueOfOperand2(Cache cpu, Application_Memory am) {
+	public byte getValueOfOperand2(Process_Control_Block pcb, Application_Memory am) {
 		
-		operand2.setAddress(cpu, am);
-		operand2.setValue(cpu, am);
+		operand2.setAddress(pcb, am);
+		operand2.setValue(pcb, am);
 		
 		return operand2.getValue();
 	}
@@ -69,5 +70,10 @@ public class Operands implements AssemblyLanguage {
 	public byte getOperand1GprAddress() {
 		
 		return operand1GprAddress;
+	}
+
+	public byte getOperand2GprAddress() {
+		// TODO Auto-generated method stub
+		return operand2GprAddress;
 	}
 }

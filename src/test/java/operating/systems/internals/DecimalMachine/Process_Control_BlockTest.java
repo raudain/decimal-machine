@@ -2,6 +2,8 @@ package operating.systems.internals.DecimalMachine;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
+
 import org.junit.Test;
 
 import operating.systems.internals.Storage.Application_Memory;
@@ -9,7 +11,7 @@ import operating.systems.internals.Storage.Application_Memory;
 public class Process_Control_BlockTest {
 	
 	@Test
-	public void getProgramCounterTest() {
+	public void getProgramCounterTest() throws FileNotFoundException{
 		
 		short amSize = 20;
 		Application_Memory am = new Application_Memory(amSize);
@@ -22,7 +24,7 @@ public class Process_Control_BlockTest {
 	}
 	
 	@Test
-	public void incrementProgramCounterTest() {
+	public void incrementProgramCounterTest() throws FileNotFoundException{
 		
 		short amSize = 20;
 		Application_Memory am = new Application_Memory(amSize);

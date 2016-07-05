@@ -9,10 +9,9 @@ import org.apache.logging.log4j.Logger;
 
 public class Application_Memory extends Memory {
 
-	// end marker for PCB PCBmemoryFreeList freeHeapMemory and other lists.
-	public static final byte END_OF_LIST_INDICATOR = -1;
-
-	private static final Logger logger = LogManager.getLogger("Main Memory");
+	private String workingDirectory =  "target/classes/";
+	
+	private static final Logger logger = LogManager.getLogger("Application Memory");
 
 	public Application_Memory(short size) {
 
@@ -21,23 +20,23 @@ public class Application_Memory extends Memory {
 
 	private String addPath(String fileName) {
 
-		String directory = "target/classes/";
-		String relativePath = directory + fileName;
+		String relativePath = workingDirectory + fileName;
 
 		return relativePath;
 	}
+	
+	public String getWorkingDirectory() {
+		
+		return workingDirectory;
+	}
 
-	private Scanner getScanner(String fileName) {
+	private Scanner getScanner(String fileName) throws FileNotFoundException{
 
 		Scanner code = null;
 		String s = addPath(fileName);
-		try {
-			File file = new File(s);
-			code = new Scanner(file);
-		} catch (FileNotFoundException e) {
-			logger.error("Program cannot be found in working directory");
-			e.printStackTrace();
-		}
+		
+		File file = new File(s);
+		code = new Scanner(file);
 
 		return code;
 	}
@@ -60,9 +59,10 @@ public class Application_Memory extends Memory {
 	 * 
 	 * @throws FileNotFoundException
 	 * 
-	 * @return First address (origin) of the program first instruction or error code
+	 * @return First address (origin) of the program first instruction or error
+	 *         code
 	 */
-	public short load(String fileName) {
+	public short load(String fileName) throws FileNotFoundException{
 
 		Scanner code = getScanner(fileName);
 
@@ -79,7 +79,7 @@ public class Application_Memory extends Memory {
 			// store program
 			int instruction = code.nextInt();
 			load(address, instruction);
-			if (inJavasShortRange(address)){
+			if (inJavasShortRange(address)) {
 				// read address, content from file
 				if (code.hasNextShort())
 					address = code.nextShort();
@@ -89,7 +89,7 @@ public class Application_Memory extends Memory {
 		// End of file encountered without end of program
 		// display end of file encountered without EOP error message;
 		code.close();
-		logger.info("The loader has reach the end of " + fileName + "'s code");
+		logger.info("The file " + fileName + " has been loaded into the Machine's Application Memory.");
 
 		return origin;
 	} // end of absoluteLoader module

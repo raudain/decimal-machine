@@ -2,6 +2,8 @@ package operating.systems.internals.Storage;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
+
 import org.junit.Test;
 
 import operating.systems.internals.DecimalMachine.Process_Control_Block;
@@ -9,7 +11,7 @@ import operating.systems.internals.DecimalMachine.Process_Control_Block;
 public class Ready_Program_ListTest {
 
 	@Test
-	public void addNullProgramToEmptyListTest() {
+	public void addNullProgramToEmptyListTest() throws FileNotFoundException{
 		
 		short amSize = 20;
 		Application_Memory am = new Application_Memory(amSize);
@@ -22,7 +24,7 @@ public class Ready_Program_ListTest {
 	}
 	
 	@Test
-	public void aTest() {
+	public void aTest() throws FileNotFoundException{
 		
 		short amSize = 20;
 		Application_Memory am = new Application_Memory(amSize);

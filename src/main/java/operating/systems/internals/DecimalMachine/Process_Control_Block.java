@@ -26,12 +26,10 @@ import operating.systems.internals.Storage.Cache;
 18                  SP
 19                  PC
 */
-public class Process_Control_Block {
+public class Process_Control_Block extends Cache{
 
 	private static final byte SIZE = 20;
 	private byte priority;
-	
-	private final Cache CACHE;
 
 	/**
 	 * setPCB fills out some values the child process's process control block
@@ -46,26 +44,17 @@ public class Process_Control_Block {
 	 */
 	public Process_Control_Block(short amPointer, byte priority) {
 
+		super((byte) 3);
+		
 		this.priority = priority;
 		
-		final byte numberOfRegisters = 11;
-		CACHE = new Cache(numberOfRegisters);
-		CACHE.setProgramCounter(amPointer);
+		
+		setProgramCounter(amPointer);
 	} // End of constructor
 
 	public short getSize() {
 
 		return SIZE;
-	}
-
-	public short getProgramCounter() {
-
-		return CACHE.getProgramCounter();
-	}
-	
-	public void incrementProgramCounter() {
-		
-		CACHE.incrementProgramCounter();
 	}
 
 	public byte getPriority() {
@@ -81,10 +70,5 @@ public class Process_Control_Block {
 			return true;
 		else
 			return false;
-	}
-	
-	public Cache getCache() {
-		
-		return CACHE;
 	}
 }

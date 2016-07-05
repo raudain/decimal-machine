@@ -2,12 +2,14 @@ package operating.systems.internals.Storage;
 
 import static org.junit.Assert.*;
 
+import java.io.FileNotFoundException;
+
 import org.junit.Test;
 
 public class Application_MemoryTest {
 
 	@Test
-	public void loadTest() {
+	public void loadTest() throws FileNotFoundException {
 		
 		short size = 19;
 		Application_Memory am = new Application_Memory(size);

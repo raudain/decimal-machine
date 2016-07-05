@@ -3,10 +3,11 @@ package operating.systems.internals.AssemblyCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import operating.systems.internals.DecimalMachine.Process_Control_Block;
 import operating.systems.internals.Storage.Application_Memory;
 import operating.systems.internals.Storage.Cache;
 
-public class Operand implements AssemblyLanguage {
+public class Operand {
 
 	/*
 	 * There are six different addressing modes in the HYPO machine. They are
@@ -58,30 +59,12 @@ public class Operand implements AssemblyLanguage {
 		this.gprAddress = gprAddress;
 	}
 
-	private boolean isModeValid() {
+	public boolean isModeValid() {
 
 		return mode >= 0 && mode <= 6;
 	}
 
-	private boolean isGprAddressValid(byte numberOfRegisters) {
-
-		return gprAddress >= 0 && gprAddress < numberOfRegisters;
-	}
-
-	public boolean isValid(byte numberOfRegisters) {
-
-		boolean isModeValid = isModeValid();
-		if (!isModeValid)
-			logger.error("Mode number " + mode + " is invalid");
-
-		boolean isGprAddressValid = isGprAddressValid(numberOfRegisters);
-		if (!isGprAddressValid)
-			logger.error("The register number " + this.gprAddress + " is out of range");
-
-		return mode > 0 && mode < 6;
-	}
-
-	public void setAddress(Cache cpu, Application_Memory am) {
+	public void setAddress(Process_Control_Block pcb, Application_Memory am) {
 
 		/*
 		 * Next word contains the operand value. Operand value is in the main
@@ -96,13 +79,13 @@ public class Operand implements AssemblyLanguage {
 		 */
 		case REGISTERDEFERRED_ADDRESS_MODE:
 
-			address = (short) cpu.fetch(gprAddress);
+			address = (short) pcb.fetch(gprAddress);
 
 		case DIRECT_ADDRESS_MODE:
 
-			address = (short) am.fetch(cpu.getProgramCounter());
+			address = (short) am.fetch(pcb.getProgramCounter());
 
-			cpu.incrementProgramCounter();
+			pcb.incrementProgramCounter();
 		}
 	}
 

@@ -1124,3 +1124,239 @@
 2016-06-24 12:42:24,839 INFO Machine [main] Processing move operation...
 2016-06-24 12:42:24,839 INFO Machine [main] Execution time equals 114
 2016-06-24 12:42:24,839 INFO Machine [main] Time slice complete
+2016-07-05 09:19:43,999 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 09:19:44,013 INFO Main Memory [main] The loader has reach the end of Null_Process's code
+2016-07-05 12:41:40,692 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 12:41:40,694 INFO Main Memory [main] The loader has reach the end of Null_Process's code
+2016-07-05 12:41:40,695 INFO Machine [main] Execution has started
+2016-07-05 12:41:40,696 INFO Machine [main] Executing instruction number 1
+2016-07-05 12:41:40,696 INFO Machine [main] Processing jump operation...
+2016-07-05 12:41:40,696 INFO Machine [main] Execution time equals 2
+2016-07-05 12:41:40,696 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 12:41:40,696 INFO Machine [main] Executing instruction number 2
+2016-07-05 12:41:40,696 INFO Machine [main] Processing halt operation...
+2016-07-05 12:41:40,696 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 12:41:40,696 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,706 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:41:40,707 INFO Machine [main] Execution time equals 2002
+2016-07-05 12:41:40,707 INFO Machine [main] Program has halted
+2016-07-05 12:41:40,707 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 12:42:09,209 ERROR Main Memory [main] Program cannot be found in working directory
+2016-07-05 12:49:14,015 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 12:49:14,018 INFO Main Memory [main] The loader has reach the end of Null_Process's code
+2016-07-05 12:49:29,522 INFO Machine [main] Execution has started
+2016-07-05 12:49:40,383 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 12:49:40,384 INFO Main Memory [main] The loader has reach the end of Null_Process's code
+2016-07-05 12:49:40,385 INFO Machine [main] Execution has started
+2016-07-05 12:49:40,386 INFO Machine [main] Executing instruction number 1
+2016-07-05 12:49:40,386 INFO Machine [main] Processing jump operation...
+2016-07-05 12:49:40,386 INFO Machine [main] Execution time equals 2
+2016-07-05 12:49:40,386 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 12:49:40,386 INFO Machine [main] Executing instruction number 2
+2016-07-05 12:49:40,386 INFO Machine [main] Processing halt operation...
+2016-07-05 12:49:40,386 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 12:49:40,386 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,387 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,388 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:49:40,388 INFO Machine [main] Execution time equals 2002
+2016-07-05 12:49:40,388 INFO Machine [main] Program has halted
+2016-07-05 12:49:40,388 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 12:54:03,403 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 12:54:03,404 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory
+2016-07-05 12:54:03,405 INFO Machine [main] Execution has started
+2016-07-05 12:54:03,406 INFO Machine [main] Executing instruction number 1
+2016-07-05 12:54:03,406 INFO Machine [main] Processing jump operation...
+2016-07-05 12:54:03,406 INFO Machine [main] Execution time equals 2
+2016-07-05 12:54:03,406 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 12:54:03,406 INFO Machine [main] Executing instruction number 2
+2016-07-05 12:54:03,406 INFO Machine [main] Processing halt operation...
+2016-07-05 12:54:03,406 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 12:54:03,406 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 12:54:03,407 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,407 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,407 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,407 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,407 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine_Implementation [main] 	%d
+2016-07-05 12:54:03,408 INFO Machine [main] Execution time equals 2002
+2016-07-05 12:54:03,408 INFO Machine [main] Program has halted
+2016-07-05 12:54:03,408 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:00:18,444 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:00:18,446 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:00:25,973 INFO Machine [main] Execution has started
+2016-07-05 13:00:25,975 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:01:49,632 INFO Machine [main] Processing jump operation...
+2016-07-05 13:03:18,605 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:03:18,606 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:03:18,607 INFO Machine [main] Execution has started
+2016-07-05 13:03:18,609 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:03:37,981 INFO Machine [main] Processing jump operation...
+2016-07-05 13:07:33,348 INFO Machine [main] Execution time equals 2
+2016-07-05 13:08:14,282 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 13:27:58,198 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:27:58,199 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:27:58,200 INFO Machine [main] Execution has started
+2016-07-05 13:27:58,201 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:27:58,201 INFO Machine [main] Processing jump operation...
+2016-07-05 13:27:58,201 INFO Machine [main] Execution time equals 2
+2016-07-05 13:27:58,201 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 13:27:58,201 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:27:58,201 INFO Machine [main] Processing halt operation...
+2016-07-05 13:27:58,201 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 13:27:58,201 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 13:27:58,202 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:27:58,202 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:27:58,202 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:27:58,202 INFO Machine [main] Execution time equals 2002
+2016-07-05 13:27:58,202 INFO Machine [main] Program has halted
+2016-07-05 13:27:58,202 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:28:13,103 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:28:13,104 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:28:13,104 INFO Machine [main] Execution has started
+2016-07-05 13:28:13,105 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:28:13,105 INFO Machine [main] Processing jump operation...
+2016-07-05 13:28:13,105 INFO Machine [main] Execution time equals 2
+2016-07-05 13:28:13,105 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 13:28:13,106 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:28:13,106 INFO Machine [main] Processing halt operation...
+2016-07-05 13:28:13,106 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 13:28:13,106 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 13:28:13,106 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:28:13,107 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:28:13,107 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:28:13,107 INFO Machine [main] Execution time equals 2002
+2016-07-05 13:28:13,107 INFO Machine [main] Program has halted
+2016-07-05 13:28:13,107 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:29:36,573 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:29:36,574 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:29:36,575 INFO Machine [main] Execution has started
+2016-07-05 13:29:36,576 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:29:36,576 INFO Machine [main] Processing jump operation...
+2016-07-05 13:29:36,576 INFO Machine [main] Execution time equals 2
+2016-07-05 13:29:36,576 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 13:29:36,576 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:29:36,576 INFO Machine [main] Processing halt operation...
+2016-07-05 13:29:36,576 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 13:29:36,576 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 13:29:36,577 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:29:36,577 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:29:36,577 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:29:36,577 INFO Machine [main] Execution time equals 2002
+2016-07-05 13:29:36,577 INFO Machine [main] Program has halted
+2016-07-05 13:29:36,577 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:30:18,306 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:30:18,307 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:30:18,308 INFO Machine [main] Execution has started
+2016-07-05 13:30:18,309 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:30:18,309 INFO Machine [main] Processing jump operation...
+2016-07-05 13:30:18,309 INFO Machine [main] Execution time equals 2
+2016-07-05 13:30:18,309 WARN Memory [main] The data in address numbered -5535 was not in range so could not be fetched
+2016-07-05 13:30:18,309 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:30:18,309 INFO Machine [main] Processing halt operation...
+2016-07-05 13:30:18,309 INFO Machine [main] Dumping CPU registers and used temporary memory.
+2016-07-05 13:30:18,309 INFO Machine_Implementation [main] GPRs:	G0	G1	G2	G3	G4	G5	G6	G7	SP	PC
+2016-07-05 13:30:18,310 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:30:18,310 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:30:18,310 INFO Machine_Implementation [main] 	%d
+2016-07-05 13:30:18,310 INFO Machine [main] Execution time equals 2002
+2016-07-05 13:30:18,310 INFO Machine [main] Program has halted
+2016-07-05 13:30:18,310 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:30:52,238 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:30:52,239 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:30:52,240 INFO Machine [main] Execution has started
+2016-07-05 13:31:03,756 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:31:09,634 INFO Machine [main] Processing jump operation...
+2016-07-05 13:31:09,634 INFO Machine [main] Execution time equals 2
+2016-07-05 13:31:49,652 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:31:49,653 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:31:49,654 INFO Machine [main] Execution has started
+2016-07-05 13:32:23,654 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:32:23,655 INFO Machine [main] Processing jump operation...
+2016-07-05 13:32:23,655 INFO Machine [main] Execution time equals 2
+2016-07-05 13:33:32,488 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:33:32,490 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:33:32,491 INFO Machine [main] Execution has started
+2016-07-05 13:33:32,492 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:33:32,492 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,611 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:42:51,612 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:42:51,612 INFO Machine [main] Execution has started
+2016-07-05 13:42:51,613 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:42:51,613 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,613 INFO Machine [main] Execution time equals 2
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 4
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 3
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 8
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 4
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 16
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 5
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 32
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 6
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 64
+2016-07-05 13:42:51,614 INFO Machine [main] Executing instruction number 7
+2016-07-05 13:42:51,614 INFO Machine [main] Processing jump operation...
+2016-07-05 13:42:51,614 INFO Machine [main] Execution time equals 128
+2016-07-05 13:42:51,614 INFO Machine [main] Time slice complete
+2016-07-05 13:42:51,614 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:43:27,676 INFO Main Memory [main] Loading Null_Process into application memory
+2016-07-05 13:43:27,678 INFO Main Memory [main] The file Null_Process has been loaded into the Machine's Application Memory.
+2016-07-05 13:43:27,678 INFO Machine [main] Execution has started
+2016-07-05 13:43:27,679 INFO Machine [main] Executing instruction number 1
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 2
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 2
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 4
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 3
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 8
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 4
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 16
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 5
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 32
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 6
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 64
+2016-07-05 13:43:27,680 INFO Machine [main] Executing instruction number 7
+2016-07-05 13:43:27,680 INFO Machine [main] Processing jump operation...
+2016-07-05 13:43:27,680 INFO Machine [main] Execution time equals 128
+2016-07-05 13:43:27,680 INFO Machine [main] Time slice complete
+2016-07-05 13:43:27,681 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:45:12,349 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:45:34,330 ERROR Main Memory [main] Program cannot be found in working directory
+2016-07-05 13:59:05,048 INFO App [main] Welcome to the decimal machine. The first programs entered gets a higher execution prority then each successive program entered/n
+2016-07-05 13:59:14,278 INFO App [main] Selecting a process out of the ready Queue
+2016-07-05 13:59:14,278 INFO Machine [main] Execution has started
+2016-07-05 14:18:51,667 ERROR App [main]  was not found in target/classes/
