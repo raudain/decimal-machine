@@ -31,13 +31,13 @@
 #                       register is not used. Use PC to get the address.
 
 # 6 Immediate mode      Next word contains the operand value. Operand value was loaded into the application 
-#						memory when this program was loaded by the machine. A general purpose register is not used.
-#                       Address is in the program counter.
+#						memory when this program was loaded by the machine. A general purpose register is 
+#						not used. Address is in the program counter.
 
 #Address-Content/Value
 #  op M R M R     op: operation code, M: mode, R: register
-11 5  1 2 6 0   # Assign the size of the memory request (150) to GPR # 2. Program starts at address number 11 because
-#			 	  the Null Process program precedes it.
+11 5  1 2 6 0   # Assign the size of the memory request (150) to GPR # 2. Program starts at address number 
+				# 11 because the Null Process program precedes it.
 
 12   150        # 150 is the size of the memory request and also the limit for the loop count.
 

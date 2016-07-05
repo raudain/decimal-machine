@@ -50,39 +50,21 @@ public class UI {
 
 		String userInput = getInput();
 		while (!(userInput.equals("shutdown"))) {
-			boolean running_nullProcess = false;
 			// Programs are run until in this loop until they halt
-			while (running_nullProcess == false) {
-				Byte executionStatus = -1;
-				try {
+			Byte executionStatus = -1;
+			try {
 				executionStatus = machine.run(userInput, priority--);
-				} catch (FileNotFoundException e) {
-					logger.error(machine.getWorkingDirectory() + userInput + " was not found" );
-					userInput = getInput();
-					break;
-				}
-				logger.info("Selecting a process out of the ready Queue");
+			} catch (FileNotFoundException e) {
+				logger.error(machine.getWorkingDirectory() + userInput + " was not found" );
+				userInput = getInput();
+				break;
+			}
 
-				byte halt = machine.getHaltCode();
-				
-				if (executionStatus.equals(halt)) {					
-					//machine.terminateProcess();
-					try {
-						machine.run("Null_Process", lowestPriority);
-					} catch (FileNotFoundException e) {
-						
-					}
-				} else
-					executionStatus = machine.execute();
-			} // end of while loop
-			
-			if ("shutdown".equals(userInput)) {
-				logger.info("System is shutting down");
-				return;
-			} else if ("".equals(userInput))
-				logger.error("Blank entered");
-		} // end of while not shutdown outer loop
-	} // end of
-																		// main
-																		// method
+			byte halt = machine.getHaltCode();			
+			if (executionStatus.equals(halt)) {					
+				userInput = getInput();
+			} else
+				executionStatus = machine.execute();
+		} // end of while loop
+	} // end of main method
 } // end of class
