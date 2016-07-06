@@ -1,6 +1,7 @@
 package operating.systems.internals.DecimalMachine;
 
 import java.io.FileNotFoundException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Stack;
 
@@ -45,7 +46,7 @@ public class Machine {
 
 	private final byte MEMORY_SIZE;
 
-	private final Stack<Byte> STACK;
+	private final Stack<Short> STACK;
 	
 	private final byte HALT;
 
@@ -64,7 +65,7 @@ public class Machine {
 		executionTime = 0;
 		
 		AM = new Application_Memory(MEMORY_SIZE);
-		STACK = new Stack<Byte>();
+		STACK = new Stack<Short>();
 		RPL = new Ready_Program_List();
 		OM = new LinkedList<Short>();
 	} // end of constructor
@@ -88,8 +89,8 @@ public class Machine {
 		instruction.isValid();
 
 		Operands operands = instruction.getOperands();
-		final byte valueOfOperand1;
-		final byte valueOfOperand2;
+		final short valueOfOperand1;
+		final short valueOfOperand2;
 		final byte operand1GPRAddress;
 		int result;
 		
@@ -100,7 +101,13 @@ public class Machine {
 			logger.info("Processing halt operation...");
 			logger.info("Dumping CPU registers and used temporary memory.");
 			pcb.dump();
-
+			
+			for (Short i : OM) {
+				logger.info("Output: ");
+				logger.info(i);
+			}
+			logger.info("End of output");
+					
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
 			logger.info("Execution time equals " + executionTime);
@@ -303,6 +310,16 @@ public class Machine {
 			pcb.incrementProgramCounter();
 			
 			return executionTime;
+			
+		case 12:
+			
+			logger.info("Storing output...");
+			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
+			OM.add(valueOfOperand1);
+			
+			final byte storeOperationDuration = 127;
+			executionTime += storeOperationDuration;
+			logger.info("Execution time equals " + executionTime);
 			
 		default:
 			

@@ -66,5 +66,6 @@ public class UI {
 			} else
 				executionStatus = machine.execute();
 		} // end of while loop
+		System.out.println("The Machine has shutdown. Goodbye!");
 	} // end of main method
 } // end of class

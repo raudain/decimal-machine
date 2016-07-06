@@ -36,29 +36,17 @@
 #  op M R M R     op: operation code, M: mode, R: register
 
 11	5 1 1 6 0	# Set the number one to register one
-12  1
+12   1		
 
 13 12 1 1 3 1   # Store the contents of register number 1 into output memory
 				# and increment
-
-14
-
-15   1
-
-16  5 3 4 1 5   # Assign the appropriate number to the current memory address 
-                # The address in GPR #4 and value count in GPR # 5 is 
-                # auto incremented by the auto increment mode by one.
                 
-17  5 1 6 1 5   # Copies current value of count to general purpose register number 6
+14  5 1 2 1 1   # Copies current value of the count in register one to register two
 
-18  2 1 6 5 0   # Compares current value of count to its maximum amount through subtraction
-            
-19   12       
+15  2 1 2 6 0   # Compares current value of the count to its maximum amount through      
+16   150       	# subtracting the maximum count
 
-20  7 1 6 0 0   # Loops if maximum value for count has not been reached.
-21   18
+17  7 1 2 0 0   # Loops if maximum value for count has not been reached.
+18   13
 
-22 12 6 0 0 0
-
-23   7
-24  0 0 0 0 0   # Halt in the case of the program finishing
+19  0 0 0 0 0   # Halt in the case of the program finishing
