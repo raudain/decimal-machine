@@ -1,6 +1,7 @@
 package operating.systems.internals.DecimalMachine;
 
 import java.io.FileNotFoundException;
+import java.util.LinkedList;
 import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
@@ -42,7 +43,7 @@ public class Machine {
 
 	// private Process_Control_Block PCB;
 
-	private final byte SIZE_OF_AM;
+	private final byte MEMORY_SIZE;
 
 	private final Stack<Byte> STACK;
 	
@@ -54,15 +55,18 @@ public class Machine {
 
 	private static final Logger logger = LogManager.getLogger("Machine");
 	
+	private final LinkedList<Short> OM;
+	
 	public Machine() {
 
-		SIZE_OF_AM = 75;
+		MEMORY_SIZE = 75;
 		HALT = 2;
 		executionTime = 0;
 		
-		AM = new Application_Memory(SIZE_OF_AM);
+		AM = new Application_Memory(MEMORY_SIZE);
 		STACK = new Stack<Byte>();
 		RPL = new Ready_Program_List();
+		OM = new LinkedList<Short>();
 	} // end of constructor
 
 	/*
@@ -301,7 +305,9 @@ public class Machine {
 			return executionTime;
 			
 		default:
-			return executionTime;
+			
+			logger.error("Unknown operation code");
+			return executionTime; // the method must return a short
 		} // end of opcode switch statement
 	} // End of execute instruction class
 

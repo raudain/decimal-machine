@@ -13,9 +13,7 @@
 # Branch on minus   7   If Op1 < 0 then PC next word of the instruction. 
 #                       Op2 is not used.
 
-# System Call       12  Op1 has system call ID as immediate operand. That is, 
-#                       second word of the instruction has the system call 
-#                       identifier.  Op2 is not used.
+# Request memory    12  The second word is the size of the memory requested
 
 # Addressing modes used:
 # 0 Invalid/not used	Mode digit is not used in the instruction
@@ -30,46 +28,37 @@
 #                       Operand value is in the main memory. A general purpose
 #                       register is not used. Use PC to get the address.
 
-# 6 Immediate mode      Next word contains the operand value. Operand value was loaded into the application 
-#						memory when this program was loaded by the machine. A general purpose register is 
-#						not used. Address is in the program counter.
+# 6 Immediate mode      Next word contains the operand value. Operand value was loaded into the 
+#						application memory when this program was loaded by the machine. A 
+#						general purpose register is not used. Address is in the program counter.
 
 #Address-Content/Value
 #  op M R M R     op: operation code, M: mode, R: register
-11 5  1 2 6 0   # Assign the size of the memory request (150) to GPR # 2. Program starts at address number 
-				# 11 because the Null Process program precedes it.
 
-12   150        # 150 is the size of the memory request and also the limit for the loop count.
+11	5 1 1 6 0	# Set the number one to register one
+12  1
 
-13 12 6 0 0 0   # Requests a memory stack from the operating system
+13 12 1 1 3 1   # Store the contents of register number 1 into output memory
+				# and increment
 
-14   4          # The number four is the code for requesting memory.
+14
 
-15  7 1 0 0 0   # End if system call returns error
+15   1
 
-16   28
-
-17  5 1 4 1 1   # Copies the first allocated address of the process's newly 
-                #acquired memory from GPR # 1 to GPR # 4.
-
-18  1 1 5 6 0   # Increment count value by one.
-
-19   1
-
-20  5 3 4 1 5   # Assign the appropriate number to the current memory address 
+16  5 3 4 1 5   # Assign the appropriate number to the current memory address 
                 # The address in GPR #4 and value count in GPR # 5 is 
                 # auto incremented by the auto increment mode by one.
                 
-21  5 1 6 1 5   # Copies current value of count to general purpose register number 6
+17  5 1 6 1 5   # Copies current value of count to general purpose register number 6
 
-22  2 1 6 5 0   # Compares current value of count to its maximum amount through subtraction
+18  2 1 6 5 0   # Compares current value of count to its maximum amount through subtraction
             
-23   12       
+19   12       
 
-24  7 1 6 0 0   # Loops if maximum value for count has not been reached.
-25   18
+20  7 1 6 0 0   # Loops if maximum value for count has not been reached.
+21   18
 
-26 12 6 0 0 0
-27   7
+22 12 6 0 0 0
 
-28  0 0 0 0 0   # Halt in the case of the program finishing
+23   7
+24  0 0 0 0 0   # Halt in the case of the program finishing
