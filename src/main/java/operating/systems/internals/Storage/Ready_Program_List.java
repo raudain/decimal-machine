@@ -79,9 +79,6 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 		}
 
 		addLast(pcb);
-		logger.info("PCB enters at the bottom of the ready queue ");
-		print();
-
 		return true;
 	} // end of insert process into ready queue module
 }

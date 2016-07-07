@@ -46,7 +46,7 @@ public class Operands {
 		return operand1.isModeValid() && operand2.isModeValid();
 	}
 
-	public byte getValueOfOperand1(Process_Control_Block pcb, Application_Memory am) {
+	public short getValueOfOperand1(Process_Control_Block pcb, Application_Memory am) {
 		
 		operand1.setAddress(pcb, am);
 		operand1.setValue(pcb, am);
@@ -54,7 +54,7 @@ public class Operands {
 		return operand1.getValue();
 	}
 	
-	public byte getValueOfOperand2(Process_Control_Block pcb, Application_Memory am) {
+	public short getValueOfOperand2(Process_Control_Block pcb, Application_Memory am) {
 		
 		operand2.setAddress(pcb, am);
 		operand2.setValue(pcb, am);

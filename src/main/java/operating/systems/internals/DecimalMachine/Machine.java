@@ -77,7 +77,12 @@ public class Machine {
 	 * 
 	 * @return Time it took to execute the instruction;
 	 */
-	private byte executionCount = 1;
+	private int executionCount = 1;
+	/**
+	 * @param instruction
+	 * @param pcb
+	 * @return
+	 */
 	private short executeInstruction(Instruction instruction, Process_Control_Block pcb) {
 
 		logger.info("Executing instruction number " + executionCount++);
@@ -99,18 +104,15 @@ public class Machine {
 		case 0: 
 			
 			logger.info("Processing halt operation...");
-			logger.info("Dumping CPU registers and used temporary memory.");
-			pcb.dump();
+			logger.info("Output:");
 			
-			for (Short i : OM) {
-				logger.info("Output: ");
+			for (Short i : OM) 
 				logger.info(i);
-			}
+			
 			logger.info("End of output");
 					
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
-			logger.info("Execution time equals " + executionTime);
 			
 			return executionTime;
 
@@ -230,16 +232,15 @@ public class Machine {
 
 		case 7: 
 
-			logger.info("Processing branch on negitive value operation...");
+			logger.info("Processing branch on negative value operation...");
 			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
-			if (valueOfOperand1 < 0)
+			if (valueOfOperand1 < 0) {
 				// Store branch address in the PC
-				pcb.setProgramCounter((short) AM.fetch(pcb.getProgramCounter()));
-
-			else
-				pcb.incrementProgramCounter(); // No branch, skip branch address
-												// to go to next
-			// instruction
+				short jumpAddress = operands.getValueOfOperand2(pcb, AM);
+				pcb.setProgramCounter(jumpAddress);
+			} else
+				// Don't jump and proceed to next instruction
+				pcb.incrementProgramCounter(); 
 
 			final byte branchOnNegativeOperationDuration = 4;
 			executionTime += branchOnNegativeOperationDuration;
@@ -321,9 +322,15 @@ public class Machine {
 			executionTime += storeOperationDuration;
 			logger.info("Execution time equals " + executionTime);
 			
+			pcb.incrementProgramCounter();
+			
+			return executionTime;
+			
 		default:
 			
 			logger.error("Unknown operation code");
+			pcb.incrementProgramCounter();
+			
 			return executionTime; // the method must return a short
 		} // end of opcode switch statement
 	} // End of execute instruction class
@@ -345,6 +352,7 @@ public class Machine {
 
 		logger.info("Execution has started");
 		final short maximumExecutionTime = 200;
+		byte status;
 		while (executionTime < maximumExecutionTime) {
 			// the first program has the highest priority
 			Process_Control_Block pcb = RPL.removeFirst();
@@ -354,21 +362,28 @@ public class Machine {
 			
 			Instruction instruction = new Instruction(AM.fetch(programCounter));
 			
-			executionTime = (short) (executionTime + executeInstruction(instruction, pcb));
+			executionTime = executeInstruction(instruction, pcb);
 			RPL.add(pcb);
 		} // end of while loop
 
 		short halt = 2000;
 		if (executionTime >= halt) {
 			logger.info("Program has halted");
-			
-			return HALT; 
+			executionTime = 0;
+			status = HALT;
+			return status;
 		}
 		else {
 			logger.info("Time slice complete");
+			executionTime = 0;
+			boolean interrupt = false;
+			if (interrupt) 	
+				return 0;
+			else
+				status = execute();
 			
-			return 0;
-		}	
+		}
+		return status;
 	} // end of execute program module
 	
 	/**

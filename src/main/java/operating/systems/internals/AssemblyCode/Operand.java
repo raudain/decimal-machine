@@ -49,7 +49,7 @@ public class Operand {
 	private byte mode;
 	private byte gprAddress;
 	private short address;
-	private byte value;
+	private short value;
 
 	private static final Logger logger = LogManager.getLogger("Operand");
 
@@ -93,7 +93,7 @@ public class Operand {
 	 * The set value method is dependent on address parameter being set by the
 	 * set address method
 	 */
-	public void setValue(Cache cpu, Application_Memory am) {
+	public void setValue(Process_Control_Block pcb, Application_Memory am) {
 
 		/*
 		 * Next word contains the operand value. Operand value is in the main
@@ -108,47 +108,50 @@ public class Operand {
 		 */
 		case REGISTER_MODE:
 
-			value = (byte) cpu.fetch(gprAddress);
+			value = (short) pcb.fetch(gprAddress);
 			
 			break;
 
 		// Operand address is in the register
 		case REGISTERDEFERRED_ADDRESS_MODE:
 
-			value = (byte) cpu.fetch(address);
+			value = (short) pcb.fetch(address);
 			
 			break;
 			
 		// Increments register by one after fetching address
 		case AUTOINCREMENT_MODE:
 
-			value = (byte) cpu.fetch(gprAddress);
-			cpu.increment(gprAddress);
+			value = (short) pcb.fetch(gprAddress);
+			pcb.increment(gprAddress);
 			
 			break;
 			
 		case AUTODECREMENT_MODE:
 
-			value = (byte) cpu.fetch(gprAddress);
-			cpu.decrement(gprAddress);
+			value = (short) pcb.fetch(gprAddress);
+			pcb.decrement(gprAddress);
 
 			break;
 			
 		// Operand value is in memory
 		case DIRECT_ADDRESS_MODE:
 
-			value = (byte) am.fetch(address);
+			value = (short) am.fetch(address);
 
 			break;
-		// Operand value is in memory
+			
+		// Operand's address is the next word and the value is in application memory
 		case IMMEDIATE_MODE:
 			
-			value = (byte) am.fetch(cpu.getProgramCounter());			
-			cpu.incrementProgramCounter();
+			pcb.incrementProgramCounter();
+			short nextWordsAddress = pcb.getProgramCounter();
+			value = (short) am.fetch(nextWordsAddress);			
+			
 		} // end of switch OpMode
 	} // End of set value method
 	
-	public byte getValue() {
+	public short getValue() {
 		
 		return value;
 	}
