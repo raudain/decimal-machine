@@ -114,6 +114,8 @@ public class Machine {
 			final short haltOperationDuration = 2000;
 			executionTime += haltOperationDuration;
 			
+			releaseMemory();
+			
 			return executionTime;
 
 		case 1: 
@@ -412,5 +414,10 @@ public class Machine {
 	public String getWorkingDirectory() {
 		
 		return AM.getWorkingDirectory();
+	}
+	
+	private void releaseMemory() {
+		// TODO Auto-generated method stub
+		
 	}
 } // End of Machine class
