@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 
 import org.junit.Test;
 
+import operating.systems.internals.DecimalMachine.Program;
+
 public class CacheTest {
 
 	@Test
@@ -13,9 +15,11 @@ public class CacheTest {
 		
 		byte numberOfRegisters = 11;
 		Cache cache = new Cache(numberOfRegisters);
-		short amSize = 20;
-		Application_Memory am = new Application_Memory(amSize);
-		short origin = am.load("Null_Process");
+		Application_Memory am = new Application_Memory();
+		String[] fileNames = new String[1];
+		fileNames[0] = "Null_Process";
+		Program[] programs = am.load(fileNames);
+		short origin = programs[0].getOrigin();
 		cache.setProgramCounter(origin);
 		
 		assertEquals(origin, cache.getProgramCounter());

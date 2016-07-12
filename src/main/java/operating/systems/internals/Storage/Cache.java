@@ -3,8 +3,44 @@ package operating.systems.internals.Storage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Cache extends Memory{
+public class Cache {
 	
+	private int[] memory;
+
+	private final short SIZE;
+
+	public Cache(byte size) {
+
+		SIZE = size;
+		memory = new int[SIZE];
+	}
+
+	protected boolean addressInMemoryRange(short address) {
+
+		if (address < 0 || address >= SIZE)
+			return false;
+		else
+			return true;
+	}
+
+	public void load(short address, int code) {
+
+		if (addressInMemoryRange(address))
+			memory[address] = code;
+		else
+			logger.warn("The address numbered " + address + " was not in range so was not loaded into memory");
+	}
+
+	public int fetch(short address) {
+
+		if (addressInMemoryRange(address))
+			return memory[address];
+		else {
+			logger.warn("The data in address numbered " + address + " was not in range so could not be fetched");
+			return 0;
+		}
+	}
+
 	/*
 	 * A program counter is a register 
 	 * in a computer processor that 
@@ -17,28 +53,8 @@ public class Cache extends Memory{
 	 */
 	private short programCounter;
 	
-	private static final Logger logger = LogManager.getLogger("Machine_Implementation");
+	private static final Logger logger = LogManager.getLogger("Cache");
 	
-	public Cache(byte size) {
-		
-		super(size);
-	}
-	
-	@Override
-	public void dump() {
-
-		// print register titles
-		logger.info("GPRs:\tG0\tG1\tG2\tG3\tG4\tG5\tG6\tG7\tSP\tPC");
-
-		// print register values
-		for (short i = 0; i <= size() - 1; i++)
-			logger.info("\t%d", fetch(i));
-	}
-
-	public void dumpProgramCounter() {
-		
-		logger.info("\t%d\n", programCounter);
-	}
 	
 	public void setProgramCounter(short pc) {
 		
@@ -55,20 +71,8 @@ public class Cache extends Memory{
 		programCounter++;
 	}
 	
-	// increase register's value by one
-	public void increment(byte address) {
-		
-		load(address, fetch(address) + 1);
-	}
-	
-	// decreases register's value by one
-	public void decrement(byte address) {
-		
-		load(address, fetch(address) - 1);
-	}
-	
 	public boolean isValidGPRAddress(byte gprAddress) {
 		
-		return gprAddress >=0 && gprAddress < size();
-	}
+		return gprAddress >=0 && gprAddress < SIZE;
+	}	
 }

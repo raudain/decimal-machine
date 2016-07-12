@@ -10,24 +10,12 @@ import operating.systems.internals.DecimalMachine.Process_Control_Block;;
 public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 
 	private static final long serialVersionUID = 1L;
-	private static final Logger logger = LogManager.getLogger("Ready_Program_List");
-	
-	private void print() {
-
-		// Walk thru the queue from the given pointer until end of list
-		// Print each PCB as you move from one PCB to the next
-		logger.info("Printing all process control blocks in ready queue:");
-		Process_Control_Block pcb = getFirst();
-		logger.info(pcb.toString());
-
-		logger.info("The end of the ready queue has been reached.");
-	} // end of print method
 
 	private void makeSpace(byte index) {
 		
 		Process_Control_Block tempPcb;
 		Process_Control_Block nextPcb;
-		for (int i = index; i < size(); i++) {
+		for (int i = index; i < size()-1; i++) {
 			tempPcb = get(i);
 			nextPcb = get(i + 1);
 			set(i + 1, tempPcb);
@@ -72,12 +60,10 @@ public class Ready_Program_List extends LinkedList<Process_Control_Block> {
 			Process_Control_Block temp = itr.next();
 			if (pcb.hasGreaterPriority(temp.getPriority())) {
 				putAhead(index, pcb);
-				print();
 				
 				return true;
 			}
 		}
-
 		addLast(pcb);
 		return true;
 	} // end of insert process into ready queue module

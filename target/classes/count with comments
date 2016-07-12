@@ -35,20 +35,24 @@
 #Address-Content/Value
 #  op M R M R     op: operation code, M: mode, R: register
 
-11	5 1 1 6 0	# Set the number one to register one
-12   0
+0	5 1 1 6 0	# Sets the count to zero at register number one
+1    0
 
-13	1 1 1 6 0   # Increments register one by one
-14	 1
+2	3 1 2 0 0	# Gets the program's origin address in application memory and stores it to register number 2
 
-15 12 1 1 0 0   # Store the contents of register number 1 into output memory
+3	1 1 2 6 0	# Sets the start of loop address at register two
+4    5
+
+5	1 1 1 6 0   # Increments number one register one by one
+6	 1
+
+7 12 1 1 0 0   # Store the contents of register number 1 into output memory
                 
-16  5 1 2 1 1   # Copies current value of the count in register one to register two
+8  5 1 3 1 1   # Copies current value of the count in register one to register three
 
-17  2 1 2 6 0   # Compares current value of the count to its maximum amount through      
-18   150       	# subtracting the maximum count
+9  2 1 3 6 0   # Compares current value of the count to its maximum amount through      
+10   150       	# subtracting the maximum count
 
-19  7 1 2 6 0   # Loops if maximum value for count has not been reached.
-20   13
+11  7 1 3 1 2   # Loops if maximum value for count has not been reached.
 
-21  0 0 0 0 0   # Halt in the case of the program finishing
+12  0 0 0 0 0   # Halt in the case of the program finishing

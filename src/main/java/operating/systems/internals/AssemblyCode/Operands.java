@@ -46,17 +46,15 @@ public class Operands {
 		return operand1.isModeValid() && operand2.isModeValid();
 	}
 
-	public short getValueOfOperand1(Process_Control_Block pcb, Application_Memory am) {
+	public int getValueOfOperand1(Process_Control_Block pcb, Application_Memory am) {
 		
-		operand1.setAddress(pcb, am);
 		operand1.setValue(pcb, am);
 		
 		return operand1.getValue();
 	}
 	
-	public short getValueOfOperand2(Process_Control_Block pcb, Application_Memory am) {
+	public int getValueOfOperand2(Process_Control_Block pcb, Application_Memory am) {
 		
-		operand2.setAddress(pcb, am);
 		operand2.setValue(pcb, am);
 		
 		return operand2.getValue();
