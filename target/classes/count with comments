@@ -33,26 +33,26 @@
 #						general purpose register is not used. Address is in the program counter.
 
 #Address-Content/Value
-#  op M R M R     op: operation code, M: mode, R: register
+#  op M R M R	op: operation code, M: mode, R: register
 
-0	5 1 1 6 0	# Sets the count to zero at register number one
-1    0
+1	5 1 0 6 0	#1 Sets the count to zero at the first general purpose register
+2    0
 
-2	3 1 2 0 0	# Gets the program's origin address in application memory and stores it to register number 2
+3	3 1 1 0 0	#2 Gets the program's origin address in application memory and stores it into the second register
 
-3	1 1 2 6 0	# Sets the start of loop address at register two
-4    5
+4	1 1 1 6 0	#3 Sets the start of loop address at the second register
+5    5
 
-5	1 1 1 6 0   # Increments number one register one by one
-6	 1
+6	1 1 0 6 0   #4 Increments the first register number by one
+7	 1
 
-7 12 1 1 0 0   # Store the contents of register number 1 into output memory
+8 12 1 0 0 0   	#5 Store the contents of first register into output memory
                 
-8  5 1 3 1 1   # Copies current value of the count in register one to register three
+9  5 1 2 1 0   	#6 Copies current value of the count in the first register to the third register
 
-9  2 1 3 6 0   # Compares current value of the count to its maximum amount through      
-10   150       	# subtracting the maximum count
+10  2 1 2 6 0   #7 Compares the copy of the current value of the count to its maximum amount through      
+11   150       	#8 subtracting the maximum count
 
-11  7 1 3 1 2   # Loops if maximum value for count has not been reached.
+12  7 1 2 1 1   #9 Loops to the loop address, which is at the second register if maximum value for count has not been reached.
 
-12  0 0 0 0 0   # Halt in the case of the program finishing
+13  0 0 0 0 0   #10 Halt in the case of the program finishing

@@ -1,9 +1,7 @@
 package operating.systems.internals.DecimalMachine;
 
 import java.io.FileNotFoundException;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import operating.systems.internals.AssemblyCode.Instruction;
 import operating.systems.internals.AssemblyCode.Operands;
 import operating.systems.internals.Storage.Application_Memory;
-import operating.systems.internals.Storage.Cache;
 import operating.systems.internals.Storage.Ready_Program_List;
 
 /**
@@ -40,14 +37,6 @@ public class Machine {
 
 	private final Application_Memory AM;
 
-	// Process Control Block memory free list set to be empty;
-
-	// private Process_Control_Block PCB;
-
-	private final Stack<Short> STACK;
-
-	private final byte HALT;
-
 	private final Ready_Program_List RPL;
 
 	private short executionTime;
@@ -60,11 +49,9 @@ public class Machine {
 
 	public Machine() {
 
-		HALT = 2;
 		executionTime = 0;
 
 		AM = new Application_Memory();
-		STACK = new Stack<Short>();
 		RPL = new Ready_Program_List();
 		OM = new LinkedList<Short>();
 		numberOfPrograms = 0;
@@ -86,19 +73,18 @@ public class Machine {
 
 		pcb.incrementExecutionCount();
 		logger.info("Executing instruction number " + pcb.getInstructionExecutionCount() + " of the program named "
-				+ pcb.getName());
-
+				+ pcb.getName());		
 		byte firstGPRAddress = instruction.getFirstGPRAddress();
-		pcb.isValidGPRAddress(firstGPRAddress);
+		pcb.isGprAddressWithinRange(firstGPRAddress);
 		byte secondGPRAddress = instruction.getSecondGPRAddress();
-		pcb.isValidGPRAddress(secondGPRAddress);
+		pcb.isGprAddressWithinRange(secondGPRAddress);
 		instruction.isValid();
 
 		Operands operands = instruction.getOperands();
 		final int valueOfOperand1;
 		final int valueOfOperand2;
 		final byte operand1GPRAddress;
-		int result;
+		Integer calculation;
 
 		switch (instruction.getOperationCode()) {
 
@@ -129,16 +115,25 @@ public class Machine {
 			 */
 			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
-			result = valueOfOperand1 + valueOfOperand2;
+			calculation = valueOfOperand1 + valueOfOperand2;
 			operand1GPRAddress = operands.getOperand1GprAddress();
-			pcb.load(operand1GPRAddress, result);
-
+			if (operand1GPRAddress >= pcb.size())
+				pcb.add(operand1GPRAddress, calculation);
+			else
+				pcb.set(operand1GPRAddress, calculation);
+			
+			logger.info("General purpose register number " +  operand1GPRAddress + " = " + calculation);
+			
+			if (!calculation.equals(pcb.get(operand1GPRAddress))) {
+				logger.warn("General purpose register not loaded correctly");
+			}
+			
 			final byte addOperationDuration = 3;
 			executionTime += addOperationDuration;
 			logger.info("Execution time equals " + executionTime);
 
 			pcb.incrementProgramCounter();
-
+			
 			return executionTime;
 
 		case 2:
@@ -150,9 +145,12 @@ public class Machine {
 			 */
 			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
-			result = valueOfOperand1 - valueOfOperand2;
+			calculation = valueOfOperand1 - valueOfOperand2;
 			operand1GPRAddress = operands.getOperand1GprAddress();
-			pcb.load(operand1GPRAddress, result);
+			if (operand1GPRAddress >= pcb.size())
+				pcb.add(operand1GPRAddress, calculation);
+			else
+				pcb.set(operand1GPRAddress, calculation);
 
 			final byte subtractOperationDuration = 3;
 			executionTime += subtractOperationDuration;
@@ -165,14 +163,14 @@ public class Machine {
 		case 3:
 
 			logger.info("Processing origin fetch operation...");
-			/*
-			 * Multiply the operand's values and store the result into the first
-			 * operand's address
-			 */
-			byte origin = pcb.getOrigin();
 			operand1GPRAddress = operands.getOperand1GprAddress();
-			pcb.load(operand1GPRAddress, origin);
-			final byte originFetchOperationDuration = 120;
+			byte origin = pcb.getOrigin();
+			if (operand1GPRAddress >= pcb.size())
+				pcb.add(operand1GPRAddress, (int) origin);
+			else
+				pcb.set(operand1GPRAddress, (int) origin);
+			
+			final byte originFetchOperationDuration = 110;
 			executionTime += originFetchOperationDuration;
 			logger.info("Execution time equals " + executionTime);
 
@@ -185,7 +183,10 @@ public class Machine {
 			logger.info("Processing move operation...");
 			valueOfOperand2 = operands.getValueOfOperand2(pcb, AM);
 			operand1GPRAddress = operands.getOperand1GprAddress();
-			pcb.load(operand1GPRAddress, valueOfOperand2);
+			if (operand1GPRAddress >= pcb.size())
+				pcb.add(operand1GPRAddress, valueOfOperand2);
+			else
+				pcb.set(operand1GPRAddress, valueOfOperand2);
 
 			final byte moveOperationDuration = 2;
 			executionTime += moveOperationDuration;
@@ -204,10 +205,12 @@ public class Machine {
 				short jumpAddress = (short) operands.getValueOfOperand2(pcb, AM);
 				if (pcb.isAddressWithinCode(jumpAddress))
 					pcb.setProgramCounter(jumpAddress);
-				else
+				else {
 					logger.error("The jump address is not within the program's code");
+					
 					// Don't jump and proceed to next instruction
 					pcb.incrementProgramCounter();
+				}
 			} else
 				// Don't jump and proceed to next instruction
 				pcb.incrementProgramCounter();
@@ -222,6 +225,9 @@ public class Machine {
 
 			valueOfOperand1 = operands.getValueOfOperand1(pcb, AM);
 			OM.add((short) valueOfOperand1);
+			if (valueOfOperand1 > 150)
+				logger.warn("Store value is greater than 150");
+
 			logger.info("The number " + valueOfOperand1 + " was stored to output memory");
 
 			final byte storeOperationDuration = 127;
@@ -265,18 +271,19 @@ public class Machine {
 		while (executionTime < maximumExecutionTime) {
 			// Fetch (read) the first word of the instruction pointed by PC
 			short programCounter = pcb.getProgramCounter();
-			int rawinstruction = AM.get(programCounter);
-			Instruction instruction = null;
-			if (programCounter <= AM.size())
-				instruction = new Instruction(rawinstruction);
-			else {
-				logger.error("Invalid application memory address");
-				return;
-			}
+			int rawinstruction = 0; // zero is the halt instruction
+			if (AM.isAddressInRange(programCounter)) 
+					rawinstruction = AM.get(programCounter);
+			else
+				logger.error("The address numbered " + programCounter + " found in the program counter is not within range");
 
+			Instruction instruction = new Instruction(rawinstruction);
 			executionTime = executeInstruction(instruction, pcb);
-		} // end of while loop
-
+			logger.info("Dumping registers");
+			pcb.dumpRegisters();
+			logger.info("Dump complete");
+		}
+		
 		short halt = 2000;
 		if (executionTime >= halt) {
 			logger.info(pcb.getName() + " has halted");
@@ -296,7 +303,7 @@ public class Machine {
 			else
 				execute();
 		}
-	} // end of execute program module
+	} // end of the execute method
 
 	public Program[] load(String[] fileNames) throws FileNotFoundException {
 

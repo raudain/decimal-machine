@@ -1,46 +1,23 @@
 package operating.systems.internals.Storage;
 
+import java.util.LinkedList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class Cache {
+public class Cache extends LinkedList<Integer> {
+
+	private static final long serialVersionUID = 6716543651766640811L;
 	
-	private int[] memory;
-
-	private final short SIZE;
-
-	public Cache(byte size) {
-
-		SIZE = size;
-		memory = new int[SIZE];
+	private byte freeGprAddressPointer;
+	
+	private static final Logger logger = LogManager.getLogger("Cache");
+	
+	public Cache() {
+		super();
+		freeGprAddressPointer = 1;
 	}
-
-	protected boolean addressInMemoryRange(short address) {
-
-		if (address < 0 || address >= SIZE)
-			return false;
-		else
-			return true;
-	}
-
-	public void load(short address, int code) {
-
-		if (addressInMemoryRange(address))
-			memory[address] = code;
-		else
-			logger.warn("The address numbered " + address + " was not in range so was not loaded into memory");
-	}
-
-	public int fetch(short address) {
-
-		if (addressInMemoryRange(address))
-			return memory[address];
-		else {
-			logger.warn("The data in address numbered " + address + " was not in range so could not be fetched");
-			return 0;
-		}
-	}
-
+	
 	/*
 	 * A program counter is a register 
 	 * in a computer processor that 
@@ -53,8 +30,12 @@ public class Cache {
 	 */
 	private short programCounter;
 	
-	private static final Logger logger = LogManager.getLogger("Cache");
-	
+	@Override
+	public void add(int index, Integer element) {
+		
+		freeGprAddressPointer++;
+		super.add(index, element);
+	}
 	
 	public void setProgramCounter(short pc) {
 		
@@ -71,8 +52,15 @@ public class Cache {
 		programCounter++;
 	}
 	
-	public boolean isValidGPRAddress(byte gprAddress) {
+	public boolean isGprAddressWithinRange(byte gprAddress) {
 		
-		return gprAddress >=0 && gprAddress < SIZE;
-	}	
+		return gprAddress >=0 && gprAddress <= freeGprAddressPointer;
+	}
+	
+	public void dumpRegisters() {
+		
+		byte numberOfRegisters = (byte) size();
+		for (int i = 0; i < numberOfRegisters; i++)
+			logger.info("Register number "+ i + " = " + get(i));
+	}
 }

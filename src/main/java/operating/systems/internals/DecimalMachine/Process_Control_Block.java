@@ -4,12 +4,14 @@ import operating.systems.internals.Storage.Cache;
 
 public class Process_Control_Block extends Cache{
 
+	private static final long serialVersionUID = -2032562525756919926L;
 	private static final byte SIZE = 20;
 	private final String NAME;
 	private byte priority;
 	private int instructionExecutionCount;
 	private final byte origin;
 	private final byte haltAddress;
+	
 	/**
 	 * setPCB fills out some values the child process's process control block
 	 * for a waiting process.
@@ -23,7 +25,6 @@ public class Process_Control_Block extends Cache{
 	 */
 	public Process_Control_Block(String fileName, byte amPointer, byte haltInstructionAddress, byte priority) {
 
-		super((byte) 3);
 		NAME = fileName;
 		this.priority = priority;
 		instructionExecutionCount = 0;
@@ -33,6 +34,8 @@ public class Process_Control_Block extends Cache{
 		setProgramCounter(amPointer);
 	} // End of constructor
 
+	
+	
 	public short getSize() {
 
 		return SIZE;

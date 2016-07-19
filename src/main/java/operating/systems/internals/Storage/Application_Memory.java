@@ -50,7 +50,7 @@ public class Application_Memory extends LinkedList<Integer> {
 	}
 	
 	
-	private Program[] programs = new Program[3];
+	private Program[] programs = new Program[4];
 	private byte programsIndex = 0;
 	/**
 	 * Open the file containing HYPO machine program and load the content into
@@ -95,7 +95,7 @@ public class Application_Memory extends LinkedList<Integer> {
 		scanner.close();
 		logger.info("The file \"" + fileName + "\" has been loaded into the Machine's application memory.");
 
-		if (programsIndex == numberOfPrograms)
+		if (programsIndex + 1 == numberOfPrograms)
 			return programs;
 		else {
 			programsIndex++;
@@ -103,4 +103,9 @@ public class Application_Memory extends LinkedList<Integer> {
 			return programs;
 		}
 	} // end of absoluteLoader module
+
+	public boolean isAddressInRange(short programCounter) {
+		
+		return programCounter >= 0 && programCounter < size();
+	}
 }

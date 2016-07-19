@@ -1,11 +1,7 @@
 package operating.systems.internals.AssemblyCode;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import operating.systems.internals.DecimalMachine.Process_Control_Block;
 import operating.systems.internals.Storage.Application_Memory;
-import operating.systems.internals.Storage.Cache;
 
 public class Operand {
 
@@ -23,7 +19,6 @@ public class Operand {
 
 	private byte mode;
 	private byte gprAddress;
-	private short address;
 	private int value;
 
 	public Operand(byte mode, byte gprAddress) {
@@ -56,7 +51,7 @@ public class Operand {
 		 */
 		case REGISTER_MODE:
 
-			value = (short) pcb.fetch(gprAddress);
+			value = pcb.get(gprAddress);
 			
 			break;
 			

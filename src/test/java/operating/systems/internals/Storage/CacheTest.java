@@ -13,8 +13,7 @@ public class CacheTest {
 	@Test
 	public void getProgramCounterTest() throws FileNotFoundException{
 		
-		byte numberOfRegisters = 11;
-		Cache cache = new Cache(numberOfRegisters);
+		Cache cache = new Cache();
 		Application_Memory am = new Application_Memory();
 		String[] fileNames = new String[1];
 		fileNames[0] = "Null_Process";
@@ -28,8 +27,7 @@ public class CacheTest {
 	@Test
 	public void incrementProgramCounterTest() {
 		
-		byte numberOfRegisters = 11;
-		Cache cache = new Cache(numberOfRegisters);
+		Cache cache = new Cache();
 		short unincrementedPc = cache.getProgramCounter();
 		cache.incrementProgramCounter();
 		short incrementedPc = cache.getProgramCounter();
