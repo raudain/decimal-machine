@@ -10730,3 +10730,4 @@
 2016-07-13 17:27:14,512 INFO Cache [main] Register number 1 = 5
 2016-07-13 17:27:14,512 INFO Cache [main] Register number 2 = -149
 2016-07-13 17:28:01,915 INFO Machine [main] Dump complete
+2016-08-07 09:21:51,378 ERROR Application Memory [main] File not found
