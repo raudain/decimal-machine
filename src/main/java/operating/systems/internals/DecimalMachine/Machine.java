@@ -266,7 +266,13 @@ public class Machine {
 	public void execute() {
 
 		final short maximumExecutionTime = 200;
-		Process_Control_Block pcb = RPL.removeFirst();
+		
+		Process_Control_Block pcb = null;
+		if (!RPL.isEmpty())
+			pcb = RPL.removeFirst();
+		else
+			return;
+		
 		logger.info("Executing " + pcb.getName() + "...");
 		while (executionTime < maximumExecutionTime) {
 			// Fetch (read) the first word of the instruction pointed by PC

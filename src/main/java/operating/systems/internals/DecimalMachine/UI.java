@@ -14,7 +14,7 @@ public class UI {
 
 	private static final Logger logger = LogManager.getLogger("Application Memory");
 
-	private static String[] getInput(){
+	private static String[] getInput() {
 
 		System.out.println("Enter an executable file names");
 		BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));
@@ -25,11 +25,9 @@ public class UI {
 			logger.error("Nothing was entered");
 			getInput();
 		}
-		
 
 		return commandLineInput.split(" ");
 	}
-
 
 	/**
 	 * main function that (a) calls InitializeSystem function
@@ -53,6 +51,12 @@ public class UI {
 		// Priority one is the lowest priority, and 127 is the highest
 
 		String[] fileNames = getInput();
+
+		if (fileNames[0].equals("halt")) {
+			System.out.println("The computer has halted");
+			return;
+		}
+
 		Program[] programs = null;
 		try {
 			programs = machine.load(fileNames);
@@ -61,8 +65,10 @@ public class UI {
 			main(args);
 		}
 		machine.createPcbs(programs);
+			
 		// Programs are run until in this loop until they halt
 		machine.execute();
-		System.out.println("The Machine has shutdown. Goodbye!");
+
+		System.out.println("Goodbye!");
 	} // end of main method
 } // end of class

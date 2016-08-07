@@ -14,7 +14,7 @@ public class Application_Memory extends LinkedList<Integer> {
 
 	private static final long serialVersionUID = 1L;
 
-	private String workingDirectory =  "target/classes/";
+	private String workingDirectory =  "target/classes/User_Code/";
 	
 	private byte freeSpacePointer = 0;
 	
