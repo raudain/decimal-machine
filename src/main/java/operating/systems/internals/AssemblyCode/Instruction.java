@@ -8,8 +8,7 @@ public class Instruction {
 	/*
 	 * Decode the first word of the instruction into opcode, mode and general
 	 * purpose register using integer division and modulo operators. Example
-	 * machine code: operation_code | operand_1_mode | R | M | R | 5 | 4 | 3 | 2
-	 * | 1
+	 * machine code: operation_code | operand_1_mode | R | M | R | 5 | 4 | 3 | 2 | 1
 	 */
 	public Instruction(int rawInstruction) {
 
