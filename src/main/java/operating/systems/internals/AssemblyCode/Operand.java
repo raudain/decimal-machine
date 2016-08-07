@@ -5,14 +5,6 @@ import operating.systems.internals.Storage.Application_Memory;
 
 public class Operand {
 
-	/*
-	 * There are six different addressing modes in the HYPO machine. They are
-	 * explained below.
-	 */
-
-	/*
-	 * The specified general purpose register contains the instruction.
-	 */
 	private static final byte REGISTER_MODE = 1;
 	
 	private final static byte IMMEDIATE_MODE = 6;
