@@ -6,7 +6,7 @@
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
     
-    <File name="MyFile" fileName="C:\Users\roody.audain\workspace\Concepts\DecimalMachine\Machine.log">
+    <File name="MyFile" fileName="Machine.log">
       <PatternLayout>
         <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
       </PatternLayout>
