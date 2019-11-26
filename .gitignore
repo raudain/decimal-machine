@@ -13,3 +13,4 @@
 /target/classes/program100 w comments
 /target/classes/program150 w comments
 .settings/org.eclipse.core.resources.prefs
+*.class
