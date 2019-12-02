@@ -92,14 +92,14 @@ public class Examples {
 	 * Example 9 <br>
 	 * O(N)
 	 */
-	public int sum(Node node) {
+	int sum(Node node) {
 		if (node == null) {
 			return 0;
 		}
 		return sum(node.left) + node.value + sum(node.right);
 	}	
 	
-	class Node {
+	private class Node {
 		int value;
 		Node left;
 		Node right;
@@ -134,20 +134,30 @@ public class Examples {
 		}
 	}
 	
+	public static void main(String[] args) {
+		permutation("Boy");
+	}
 	
 	/**
-	 * Example 12 <br>
-	 * O(n^2 * n!)
+	 * <h1>Example 12</h1>
+	 * <h2>This code counts all permutations of a string</h2>
+	 * <h3>O(n^2 * n!)</h3>
+	 * 
+	 * @Param String that the permutations will be printed from
 	 */
-	void permutation(String str) {
+	private  static void permutation(String str) {
 		permutation(str, "");
 	}
 	
-	void permutation(String str, String prefix) {
+	private static void permutation(String str, String prefix) {
+		String left;
+		String right;
 		if (str.length() == 0) {
 			System.out.println(prefix);
 		} else {
 			for (int i = 0; i < str.length(); i++) {
+				left = str.substring(0, i);
+				right = str.substring(i + 1);
 				String rem = str.substring(0, i) + str.substring(i + 1);
 				permutation(rem, prefix + str.charAt(i));
 			}
