@@ -150,15 +150,13 @@ public class Examples {
 	}
 	
 	private static void permutation(String str, String prefix) {
-		String left;
-		String right;
 		if (str.length() == 0) {
 			System.out.println(prefix);
 		} else {
 			for (int i = 0; i < str.length(); i++) {
-				left = str.substring(0, i);
-				right = str.substring(i + 1);
-				String rem = str.substring(0, i) + str.substring(i + 1);
+				String left = str.substring(0, i);
+				String right = str.substring(i + 1);
+				String rem = left + right;
 				permutation(rem, prefix + str.charAt(i));
 			}
 		}
