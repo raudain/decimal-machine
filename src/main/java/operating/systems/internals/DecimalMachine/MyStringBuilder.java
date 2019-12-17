@@ -49,12 +49,6 @@ public class MyStringBuilder implements java.io.Serializable, Appendable, CharSe
         append(str);
     }
 
-	@Override
-	public int length() {
-
-		return count;
-	}
-
 	/**
      * The maximum size of array to allocate (unless necessary).
      * Some VMs reserve some header words in an array.
@@ -107,30 +101,6 @@ public class MyStringBuilder implements java.io.Serializable, Appendable, CharSe
                     newCapacity(minimumCapacity));
         }
     }
-    
-	@Override
-	public char charAt(int index) {
-
-		if ((index < 0) || (index >= count))
-			throw new StringIndexOutOfBoundsException(index);
-		return value[index];
-	}
-
-	@Override
-	public CharSequence subSequence(int start, int end) {
-
-		if ((start < 0) || (start >= count))
-			throw new StringIndexOutOfBoundsException(start);
-		if ((end < 0) || (end >= count))
-			throw new StringIndexOutOfBoundsException(start);
-
-		String s = "";
-		for (int i = start; i < end; i++) {
-			s += value[i];
-		}
-
-		return s;
-	}
 
 	private MyStringBuilder appendNull() {
         int c = count;
@@ -178,22 +148,33 @@ public class MyStringBuilder implements java.io.Serializable, Appendable, CharSe
 		System.out.println(s);
 	}
 
-	@Override
+	public int length() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public char charAt(int index) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public CharSequence subSequence(int start, int end) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Appendable append(CharSequence csq) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public Appendable append(CharSequence csq, int start, int end) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public Appendable append(char c) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
