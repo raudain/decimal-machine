@@ -1,11 +1,9 @@
-package operating.systems.internals.DecimalMachine;
+package glmcdowell;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
-import java.util.Iterator;
 
 public class MyHashtable<K> {
 
@@ -13,7 +11,6 @@ public class MyHashtable<K> {
 	 * The hash table data.
 	 */
 	private LinkedList<String>[] data;
-
 	/**
 	 * Constructs a new, empty hashtable with the specified initial capacity and the
 	 * specified load factor.
@@ -117,5 +114,6 @@ public class MyHashtable<K> {
 				}
 			}
 		}
+		StringBuilder s;
 	}
 }

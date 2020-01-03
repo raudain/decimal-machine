@@ -134,9 +134,6 @@ public class Examples {
 		}
 	}
 	
-	public static void main(String[] args) {
-		permutation("Boy");
-	}
 	
 	/**
 	 * <h1>Example 12</h1>
@@ -221,5 +218,9 @@ public class Examples {
 			System.out.println(curr);
 			return curr;
 		}
+	}
+	
+	public static void main(String[] args) {
+		permutation("Boy");
 	}
 }
