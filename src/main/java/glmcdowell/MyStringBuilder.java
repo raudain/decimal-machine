@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class MyStringBuilder implements java.io.Serializable, Appendable, CharSequence {
+public class MyStringBuilder implements java.io.Serializable, CharSequence {
 
 	/**
 	 * 
@@ -128,9 +128,10 @@ public class MyStringBuilder implements java.io.Serializable, Appendable, CharSe
 	}
 
 	@Override
-	public String toString() {
-		return "MyStringBuilder [value=" + Arrays.toString(value) + ", count=" + count + "]";
-	}
+    public String toString() {
+        // Create a copy, don't share the array
+        return new String(value, 0, count);
+    }
 
 	static String joinWords(String[] words) {
 		MyStringBuilder sentence = new MyStringBuilder();
@@ -173,8 +174,8 @@ public class MyStringBuilder implements java.io.Serializable, Appendable, CharSe
 		return null;
 	}
 
-	public Appendable append(char c) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+	public void append(char c) {
+		ensureCapacityInternal(count + 1);
+		value[count++] = c;
 	}
 }
