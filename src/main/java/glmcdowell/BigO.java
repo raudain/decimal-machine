@@ -1,9 +1,9 @@
-package operating.systems.internals.DecimalMachine;
+package glmcdowell;
 
 /**
  * @author Gayle Laakmann Mcdowell
  */
-public class Examples {
+public class BigO {
 
 	/**
 	 * Example 1 <br>
@@ -142,7 +142,7 @@ public class Examples {
 	 * 
 	 * @Param String that the permutations will be printed from
 	 */
-	private  static void permutation(String str) {
+	private static void permutation(String str) {
 		permutation(str, "");
 	}
 	
@@ -154,6 +154,7 @@ public class Examples {
 				String left = str.substring(0, i);
 				String right = str.substring(i + 1);
 				String rem = left + right;
+				// String rem = str.substring(0, i) + str.substring(i + 1);
 				permutation(rem, prefix + str.charAt(i));
 			}
 		}
@@ -221,6 +222,6 @@ public class Examples {
 	}
 	
 	public static void main(String[] args) {
-		permutation("Boy");
+		permutation("012");
 	}
 }

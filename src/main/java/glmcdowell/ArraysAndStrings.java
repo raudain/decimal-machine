@@ -1,24 +1,11 @@
 package glmcdowell;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
 /**
- * <h1>1.3 URLify</h1>
- * <pre>
- * Write a method to replace all spaces in a string with '%20'. You may assume that the string
- * has sufficient space at the end to hold the additional characters, and that you are given the "true"
- * length of the string. (Note: if implementing in Java, please use a character array so that you can
- * perform this operation in place.)
- * </pre>
- * 
- * <h2>EXAMPLES</h2>
- * Input:	"Mr John Smith    ", 13<br>
- * Output:	"Mr%20John%20Smith"<br>
- * <br>
- * Input:	"Mr John    ", 7<br>
- * Output:	"Mr%20John"
- */ 
+ */
 public class ArraysAndStrings {
 
 	private static boolean isUniqueBruteForce(String string) {
@@ -29,11 +16,12 @@ public class ArraysAndStrings {
 					return false;
 			}
 		}
+		new String(string.toCharArray());
 		return true;
 	}
-	
+
 	private static boolean isUniqueHashMap(String string) {
-		HashMap<Character,Character> hashMap = new HashMap<Character,Character>();
+		HashMap<Character, Character> hashMap = new HashMap<Character, Character>();
 		for (int index = 0; index < string.length(); ++index) {
 			char key = string.charAt(index);
 			Character value = hashMap.putIfAbsent(key, key);
@@ -42,7 +30,7 @@ public class ArraysAndStrings {
 		}
 		return true;
 	}
-	
+
 	private static boolean isUnique(String string) {
 		char biggestChar = '~';
 		int[] bucket = new int[biggestChar];
@@ -55,24 +43,24 @@ public class ArraysAndStrings {
 		}
 		return true;
 	}
-	
+
 	private static boolean isUniqueChars(String str) {
 		int checker = 0;
 		for (int i = 0; i < str.length(); i++) {
 			int val = str.charAt(i) - 'a';
-			if ((checker & (1 << val)) > 0 ) {
+			if ((checker & (1 << val)) > 0) {
 				return false;
 			}
 			checker |= (1 << val);
 		}
 		return true;
 	}
-	
+
 	public static void mergeSort(char[] array) {
 		int l = array.length;
 		mergeSort(array, new char[l], 0, l - 1);
 	}
-	
+
 	private static void mergeSort(char[] array, char[] temp, int leftStart, int rightEnd) {
 		if (leftStart >= rightEnd) {
 			return;
@@ -82,16 +70,16 @@ public class ArraysAndStrings {
 		mergeSort(array, temp, middle + 1, rightEnd);
 		mergeHalves(array, temp, leftStart, rightEnd);
 	}
-	
+
 	private static void mergeHalves(char[] array, char[] temp, int leftStart, int rightEnd) {
 		int leftEnd = (leftStart + rightEnd) / 2;
 		int rightStart = leftEnd + 1;
 		int size = rightEnd - leftStart + 1;
-		
+
 		int left = leftStart;
 		int right = rightStart;
 		int index = leftStart;
-		
+
 		while (left <= leftEnd && right <= rightEnd) {
 			if (array[left] <= array[right]) {
 				temp[index] = array[left];
@@ -102,19 +90,19 @@ public class ArraysAndStrings {
 			}
 			index++;
 		}
-		
+
 		System.arraycopy(array, left, temp, index, leftEnd - left + 1);
 		System.arraycopy(array, right, temp, index, rightEnd - right + 1);
 		System.arraycopy(temp, leftStart, array, leftStart, size);
 	}
-	
-	/** 
-	 * Moves all n < pivot to left of pivot and all n > pivot
-	 * to right of pivot, then returns pivot index.
+
+	/**
+	 * Moves all n < pivot to left of pivot and all n > pivot to right of pivot,
+	 * then returns pivot index.
 	 * 
 	 * @param array
 	 * @param start array index
-	 * @param end array index
+	 * @param end   array index
 	 * @return pivot index
 	 */
 	private static int partition(char[] array, int start, int end) {
@@ -128,28 +116,28 @@ public class ArraysAndStrings {
 		swap(array, start, border - 1);
 		return border - 1;
 	}
-	
+
 	public static boolean isUniqueCharsNoDataStructure(String str) {
-		//mergeSort(array);
+		// mergeSort(array);
 		quickSort(str.toCharArray(), 0, str.length() - 1);
 		for (int index = 0; index < str.length() - 1; ++index) {
 			if (str.charAt(index) == str.charAt(index + 1))
 				return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	private static boolean isPermutationBruteForce(String str1, String str2) {
-		if (str1.length() != str2.length()) 
+		if (str1.length() != str2.length())
 			return false;
-		
+
 		if (permutationBruteForce(str1, str2) && permutationBruteForce(str2, str1)) {
 			return true;
 		}
 		return false;
 	}
-	
+
 	private static boolean permutationBruteForce(String str1, String str2) {
 		for (int i = 0; i < str1.length(); i++) {
 			char c1 = str1.charAt(i);
@@ -163,11 +151,11 @@ public class ArraysAndStrings {
 		}
 		return true;
 	}
-	
+
 	private static boolean isPermutationHashMap(String str1, String str2) {
-		if (str1.length() != str2.length()) 
+		if (str1.length() != str2.length())
 			return false;
-		
+
 		String string = str1.concat(str2);
 		HashMap<Character, Integer> hashMap = new HashMap<Character, Integer>();
 		for (int index = 0; index < string.length(); ++index) {
@@ -189,21 +177,21 @@ public class ArraysAndStrings {
 		}
 		return true;
 	}
-	
+
 	private static boolean isPermutation(String str1, String str2) {
 		String string1 = quickSort(str1.toCharArray(), 0, str1.length() - 1);
 		String string2 = quickSort(str2.toCharArray(), 0, str2.length() - 1);
-		
+
 		return string1.equals(string2);
 	}
-	
+
 	private static boolean isPermutationBucket(String str1, String str2) {
-		if (str1.length() != str2.length()) 
+		if (str1.length() != str2.length())
 			return false;
-		
+
 		String string = str1.concat(str2);
 		int[] bucket = new int['~' - ' '];
-		for (int index = 0; index < string.length(); ++index) 
+		for (int index = 0; index < string.length(); ++index)
 			bucket[string.charAt(index) - ' '] += 1;
 		for (int index = 0; index < string.length(); ++index) {
 			if (bucket[string.charAt(index) - ' '] % 2 != 0)
@@ -211,9 +199,11 @@ public class ArraysAndStrings {
 		}
 		return true;
 	}
-	
+
 	/**
+	 * *
 	 * <h1>1.3 URLify</h1>
+	 * 
 	 * <pre>
 	 * Write a method to replace all spaces in a string with '%20'. You may assume that the string
 	 * has sufficient space at the end to hold the additional characters, and that you are given the "true"
@@ -222,144 +212,221 @@ public class ArraysAndStrings {
 	 * </pre>
 	 * 
 	 * <h2>EXAMPLES</h2>
-	 * <pre>
-	 * Input:  "Mr John Smith    ", 13
-	 * Output: "Mr%20John%20Smith"
 	 * 
-	 * Input:  "Mr John    ", 7
-	 * Output: "Mr%20John"
+	 * <h3>General Cases</h3>
+	 * 
+	 * <pre>
+	 *          0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+	 * Input:  [M] [r] [ ] [J] [o] [h] [n] [ ] [S] [m] [i] [t] [h] , 13
+	 * Output: [M] [r] [%] [2] [0] [J] [o] [h] [n] [%] [2] [0] [S] [m] [i] [t] [h] 
+	 * 
+	 *          0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24
+	 * Input:  [M] [r] [ ] [J] [o] [h] [n] [ ] [J] [a] [c] [o] [b] [ ] [S] [m] [i] [t] [h] ..., 19     
+	 * Output: [M] [r] [%] [2] [0] [J] [o] [h] [n] [%] [2] [0] [J] [a] [c] [o] [b] [%] [2] [0] [S] [m] [i] [t] [h] 
+	 * 
+	 * Input:  [M] [r] [ ] [J] [o] [h] [n] , 7
+	 * Output: [M] [r] [%] [2] [0] [J] [o] [h] [n]
+	 * </pre>
+	 * 
+	 * <h3>Base Cases</h3>
+	 * 
+	 * <pre>
+	 * Input:  [A] , 1
+	 * Output: [A]
+	 * 
+	 * Input:  [ ] , 1
+	 * Output: [ ] [ ] [ ]
+	 * </pre>
+	 * 
+	 * <h3>Special Cases</h3>
+	 * 
+	 * <pre>
+	 * Input:  [null] , 1
+	 * Output: [null]
 	 * </pre>
 	 * 
 	 * <h2>ALGORITHM</h2>
+	 * 
 	 * <pre>
-	 * 1.  Assign the value of the true length of the {@code String} parameter to the index counter variable i and variable l.
-	 * 2.  Check the character at index i of the {@code String} parameter at for a space character.
-	 * 3.  
-	 *     a. 
-	 *        I.   If the character at index i of the {@code String} parameter is a ' ' character, store i to variable s.
-	 *        II.  Store the variable l to the variable i.
-	 *        III. Store the character at index of i {@code String} parameter to index i + 2.
-	 *        IV.  Decrement i by one.
-	 *        V.   Repeat steps III to V until i equals s + 2
-	 *        VI.  Store the character '0' to index i by one.
-	 *        VII. Decrement the variable i.
-	 *        IX.  Store the character '2' to index i by one.
-	 *        X.   Store the character '%' to index i by one.
-	 *        XI.  Decrement the variable i.
-	 *     b. If the character at index i of the {@code String} parameter is not a ' ' character decrement the variable i by one.
-	 * 7.  Repeat steps 2 and 3 until variable i is less than zero.
-	 * </pre>
-	 * 
-	 <h2>Time Complexity</h2>
-	 * O(Length of String *)
-	 * 
-	 * <h2>Space Complexity</h2>
-	 * O(2 * Length of String)
-	 * <br>
-	 * 
-	 * @param string {@code String} to be URLified
-	 */
-	public static void urlifyBruteforce(String string) {
-		
-	}
-	
-	/**
-	 * <h2>ALGORITHM</h2>
-	 * <pre>
-	 * 1. Create the character array arrayCopy with the same physical size of String.
-	 * 2. Assign the value 0 to the index counter variable i.
-	 * 3. Check if the {@code char} value at index i is a space
-	 * 4. a. If it is a space then store a '%' character at arrayCopy[i], increment the variable i,
-	 *       store '2' at arrayCopy[i], increment the variable i, store '0' at arrayCopy[i],
-	 *       and increment the variable i again
-	 *    b. If it is not a space then store the character at the index to arrayCopy[i] and increment the variable i
-	 * 5. Repeat steps 3 and 4 until the variable is greater than the true size of the {@code String} parameter
+	 * (1) Count the number of spaces in the String parameter.
+	 * (2) Scan the String parameter from right to left
+	 *     a. Move the characters not equal to ' ' to the right by two spaces time the number of space character
+	 *     b. Replace the character equal to ' ' with "%20".
 	 * </pre>
 	 * 
 	 * <h2>Time Complexity</h2>
-	 * O(Length of String)
+	 * O(Length of String + (Length of String - index of last space))
 	 * 
 	 * <h2>Space Complexity</h2>
-	 * O(2 * Length of String)
-	 * <br>
+	 * O(2 * Length of String) <br>
 	 * 
 	 * @param string {@code String} to be URLified
 	 */
-	public static void urlifyCopy(String string) {
+	private static String urlify(String str, int trueLength) {
+		int numSpaces = 0;
+		for (int i = 0; i < trueLength; ++i)
+			if (str.charAt(i) == ' ')
+				++numSpaces;
 		
+		int right = numSpaces * 2 + trueLength - 1;
+		char a[] = str.toCharArray();
+		for (int i = trueLength - 1; i < right; --i)
+			right = copyRight(a, i, right);
+		
+		return new String(a);
+	}
+	
+	private static int copyRight(char a[], int i, int right) {
+		if (a[i] == ' ') {
+			a[right] = '0';
+			a[--right] = '2';
+			a[--right] = '%';
+			return right - 1;
+		} else {
+			a[right] = a[i];
+			return right - 1;
+		}
 	}
 	
 	/**
-	 * <h2>ALGORITHM</h2>
+	 * <h1>1.4</h1>
 	 * <pre>
-	 * 1. Store zero to the counter variable i.
-	 * 2. Store zero to the counter variable numberOfSpaces.
-	 * 2. Check the character at index i of the String parameter
-	 *    a.
-	 *       If the character at index i of the String parameter is equal to the character ' ' then increment the counter variables
-	 *       i and numberOfSpaces by one.
-	 *    b.
-	 *       If the character at index i of the String parameter is not equal to the character ' ' then increment the counter 
-	 *       variable by one.
-	 * 3. Repeat steps 2 and 3 until i is equal to the true length of the String parameter
-	 * 4. Check if the character value at index i is a space.
-	 *    a. If the character is equal is ' ' then do the following.
-	 *       I.   Store the character '0' at the index equal to i + numberOfSpaces of the String parameter.
-	 *       II.  Decrement the counter variable i by one.
-	 *       III. Store the character '2' at the index equal to i + numberOfSpaces of the String parameter.
-	 *       IV.  Decrement the counter variable i by one.
-	 *       V.   Store the character '%' at the index equal to i + numberOfSpaces of the String parameter.
-	 *       VI.  Decrement the counter variable i by one.
-	 *    b. If the character is not equal to ' ' then do the following
-	 *       I.   Store the character at the index equal to i String parameter to the index equal to i + numberOfSpaces of the 
-	 *            String parameter.
-	 *       II.  Decrement the counter variable i by one.
-	 * 5. Repeat step 4 until the counter variable i is less than zero.
+	 * Palindrome Permutation: Given a string, write a function to check if it is a permutation of a palin-
+	 * drome. A palindrome is a word or phrase that is the same forwards and backwards. A permutation
+	 * is a rearrangement of letters. The palindrome does not need to be limited to just dictionary words.
 	 * </pre>
 	 * 
+	 * <h2>Examples</h2>
+	 * 
+	 * <h3>General Case</h3>
+	 * <pre>
+	 * Input:   Tact Coa
+	 * Output:  True (permutations: "taco cat", "atco cta", etc.)
+	 * </pre>
+	 * 
+	 * <h3>Base Case</h3>
+	 * <pre>
+	 * Input:   'S'
+	 * Output:  's'
+	 * 
+	 * Input:   ' '
+	 * Output:  
+	 * 
+	 * Input:   "r "
+	 * Output:  
+	 * 
+	 * Input:   " z"
+	 * Output:  
+	 * 
+	 * Input:   "Ra"
+	 * Output:  "ra", "ar"
+	 * </pre>
+	 * 
+	 * <h2>Brute Force Algorithm</h2>
+	 * 1. Add the indexes of the space characters to an array
+	 * 2. Loop through the each character of the string
+	 * 3. Build a permutation by moving a character from the remainder string to the prefix string
+	 * 3. Print the ones where the spaces are at the same index as the input string
+	 * 
 	 * <h2>Time Complexity</h2>
-	 * O(Length of String + Length of String)
+	 * O(n^2 * n!)
 	 * 
 	 * <h2>Space Complexity</h2>
-	 * O(Length of String)
-	 * <br>
-	 * @param string {@code String} to be URLified
+	 * O(95 + Length of String) <br>
+	 * 
+	 * @param input Original String 
+	 * @param str String to check if it is a permutation of a palindrome of parameter {@code input} 
+	 * @return True if parameter {@code str} is a permutation of a palindrome of parameter {@code input} 
 	 */
-	public static void urlify(String string) {
-		
+	private static void printPermPal (String in) {
+		// todo: error check
+		String str = in.toLowerCase();
+		for (int i = 0; i < str.length(); ++i)
+			for (int j = 0; j < str.length(); ++j)
+				//if (str.charAt(i) != ' ' && str.charAt(j) != ' ' && i != j && str.charAt(i) != str.charAt(j))
+					System.out.println("String: " + swap(str, i, j) + " i: " + i + " j: " + j);
 	}
 	
+	private static String swap(String str, int i, int j) {
+		char array[] = str.toCharArray();
+		char t = array[i];
+		array[i] = array[j];
+		array[j] = t;
+		return new String (array);
+	}
+
+	/*
+	 * 1.5
+	 * One Away: There are three types of edits that can be performed on strings: insert a chacter,
+	 * remove a character, or replace a character. Given two strings, write a function to check if they are
+	 * one edit (or zero edits) away.
+	 * 
+	 * Examples
+	 * pale, ple -> true
+	 * pales, pale -> true
+	 * pale, bale -> true
+	 * pale, bake -> false
+	 */
+	
+	/*
+	 * 1.6
+	 * String Compression: Implement a method to perform basic string compression using the counts
+	 * of repeated characters. For example, the string aabcccccaaa would become a2b1c5a3. If the
+	 * "compressed" string would not become smaller than the original string, your method should return
+	 * the original string. You can assume the string has only uppercase and lowercase letters (a-z). 
+	 */
+	
+	/*
+	 * 1.7 
+	 * Rotate Matrix: Given an image represented by an NxN matrix, where each pixel in the image is 4
+	 * bytes, write a method to rotate the image by 90 degrees. Can you do this in place?
+	 */
+	
+	/*
+	 * 1.8
+	 * Zero Matrix: Write an algorithm such that if an element in an MxN matrix is 0, its entire row and
+	 * column are set to 0.
+	 */
+	
+	/*
+	 * 1.9
+	 * String rotation: Assume you have a method isSubstring which checks if one word is a substring
+	 * of another. Given two strings, s1 and s2, write code to check if s2 is a rotation of s1 using only one
+	 * call to isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
+	 */
 	public static void main(String[] args) {
-		String string = "Roody Audain";
-		isUnique(string);
-		isUniqueBruteForce(string);
-		isUniqueHashMap(string);
-		isUniqueChars(string);
-		isUniqueCharsNoDataStructure(string);
-		String string2 = "niaduA Roody";
-		isPermutationBruteForce(string, string2);
-		isPermutationHashMap(string, string2);
-		System.out.println(isPermutation(string, string2));
-		System.out.println(isPermutationBucket(string, string2));
+		String str = "Tact Coa";
+		isUnique(str);
+		isUniqueBruteForce(str);
+		isUniqueHashMap(str);
+		isUniqueChars(str);
+		isUniqueCharsNoDataStructure(str);
+		String str2 = "niaduA Roody";
+		isPermutationBruteForce(str, str2);
+		isPermutationHashMap(str, str2);
+		isPermutation(str, str2);
+		isPermutationBucket(str, str2);
+		urlify(str, 1);
+		printPermPal(str);
 	}
-	
+
 	private static String quickSort(char[] array, int leftStart, int rightEnd) {
 		if (leftStart >= rightEnd) {
 			return new String(array, 0, array.length);
 		}
-		
+
 		int p = partition(array, leftStart, rightEnd);
 		quickSort(array, leftStart, p - 1);
 		quickSort(array, p + 1, rightEnd);
 		return new String(array, 0, array.length);
 	}
-	
+
 	// returns random pivot index between low and high inclusive
 	private static int getPivot(int start, int end) {
-			Random random = new Random();
-			return random.nextInt((end - start) + 1) + start;
+		Random random = new Random();
+		return random.nextInt((end - start) + 1) + start;
 	}
-	
+
 	private static void swap(char[] array, int index1, int index2) {
 		char temp = array[index1];
 		array[index1] = array[index2];
