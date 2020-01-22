@@ -369,30 +369,6 @@ public class ArraysAndStrings {
 	 *         parameter {@code input}
 	 * @throws IOException
 	 */
-	private static boolean isPermutationPalindroneMap(String string) {
-		Map<Character,Integer> map = new HashMap<>();
-		String str = string.toLowerCase();
-		char input[] = str.toCharArray();
-		for (char ch : input) {
-			map.compute(ch, (key, val) -> {
-				if (val == null) {
-					return 1;
-				} else {
-					return val + 1;
-				}
-			});
-		}
-		
-		Collection<Integer> collection = map.values();
-		int noPair = 0;
-		for (Integer value : collection) {
-			if (value % 2 != 0)
-				++noPair;
-		}
-		
-		return noPair < 3;
-	}
-	
 	private static boolean isPermutationPalindrone(String string) {
 		int checker = 0, index;
 		String str = string.toLowerCase();
@@ -412,6 +388,17 @@ public class ArraysAndStrings {
 		}
 		
 		return oddCount < 2;
+	}
+	
+	public static int getCharNumber(Character c) {
+		int a = Character.getNumericValue('a');
+		int z = Character.getNumericValue('z');
+		
+		int val = Character.getNumericValue(c);
+		if (a <= val && val <= z) {
+			return val - a;
+		}
+		return -1;
 	}
 	
 	boolean isPermutationOfPalindrome(String phrase) {
@@ -435,7 +422,18 @@ public class ArraysAndStrings {
 		if (index < 0) return bitVector;
 		
 		int mask = 1 << index;
-		if ()
+		if ((bitVector & mask) == 0) {
+			bitVector |= mask;
+		} else {
+			bitVector &= ~mask;
+		}
+		return bitVector;
+	}
+	
+	/* Check that at most one bit is set by subtracting one from the 
+	 * integer and ANDing it with the original integer. */
+	public static boolean checkExactlyOneBitSet(int bitVector) {
+		return (bitVector & (bitVector - 1)) == 0;
 	}
 	/**
 	 * <h1>1.5</h1>
@@ -461,28 +459,40 @@ public class ArraysAndStrings {
 	 * 2. Toggle the frequency of each character of the input strings
 	 * 3. If there are more than two odd number frequencies than return false else return true.
 	 */
-	public static boolean oneChangeDifference (String str1, String str2) {
+	private static boolean oneChangeDiff (String str1, String str2) {
 		if (Math.abs(str1.length() - str2.length()) > 1)
 			return false;
-		//int bit =  0;
-		return true;
+		int bitVector =  0;
+		for (int i = 0; i < str1.length(); ++i) {
+			int mask = 1 << str1.charAt(i);
+			if ((bitVector & mask) == 0) bitVector |= mask;
+			else bitVector &= ~mask;
+		}
+		for (int i = 0; i < str2.length(); ++i) {
+			int mask = 1 << str1.charAt(i);
+			if ((bitVector & mask) == 0) bitVector |= mask;
+			else bitVector &= ~mask;
+		}
+		
+		
+		return bitVector == 0;
 	}
 	
 	public static void main(String[] args) {
-		String str = "abc cba";
+		String str = "bake";
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
 		isUniqueChars(str);
 		isUniqueCharsNoDataStructure(str);
-		String str2 = "niaduA Roody";
+		String str2 = "faker";
 		isPermutationBruteForce(str, str2);
 		isPermutationHashMap(str, str2);
 		isPermutation(str, str2);
 		isPermutationBucket(str, str2);
 		urlify(str, 1);
-		isPermutationPalindroneMap(str);
-		System.out.println(isPermutationPalindrone(str));
+		isPermutationPalindrone(str);
+		System.out.println(oneChangeDiff(str, str2));
 	}
 
 	private static String quickSort(char[] array, int leftStart, int rightEnd) {
