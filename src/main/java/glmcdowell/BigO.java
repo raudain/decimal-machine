@@ -1,10 +1,16 @@
 package glmcdowell;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 /**
  * @author Gayle Laakmann Mcdowell
  */
 public class BigO {
 
+	private static BufferedWriter writer;
+	
 	/**
 	 * Example 1 <br>
 	 * O(N)
@@ -142,19 +148,24 @@ public class BigO {
 	 * 
 	 * @Param String that the permutations will be printed from
 	 */
-	private static void permutation(String str) {
+	private static void permutation(String str) throws IOException {
+		writer = new BufferedWriter(new FileWriter("C:/Users/Roody/Documents/GitHub/decimal-machine/Output.txt"));
 		permutation(str, "");
+		writer.close();
 	}
 	
-	private static void permutation(String str, String prefix) {
+	private static void permutation(String str, String prefix) throws IOException{
+		/*
+		 * The base case is called n! where n is the length of the string
+		 */
 		if (str.length() == 0) {
+			//writer.write(prefix);
+			//writer.newLine();
+			// The runtime takes O(n) time since each character needs to be printed.
 			System.out.println(prefix);
 		} else {
 			for (int i = 0; i < str.length(); i++) {
-				String left = str.substring(0, i);
-				String right = str.substring(i + 1);
-				String rem = left + right;
-				// String rem = str.substring(0, i) + str.substring(i + 1);
+				String rem = str.substring(0, i) + str.substring(i + 1);
 				permutation(rem, prefix + str.charAt(i));
 			}
 		}
@@ -222,6 +233,14 @@ public class BigO {
 	}
 	
 	public static void main(String[] args) {
-		permutation("012");
+		String str = "Tact Coa";
+		String palindrone = "aoC tcaT";
+		String s = "Tact Coa";
+		try {
+			permutation("AABC");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

@@ -1,12 +1,15 @@
 package glmcdowell;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
  */
 public class ArraysAndStrings {
+
 
 	private static boolean isUniqueBruteForce(String string) {
 		for (int index = 0; index < string.length(); ++index) {
@@ -254,11 +257,10 @@ public class ArraysAndStrings {
 	 *     b. Replace the character equal to ' ' with "%20".
 	 * </pre>
 	 * 
-	 * <h2>Time Complexity</h2>
-	 * O(Length of String + (Length of String - index of last space))
+	 * <h2>Time Complexity</h2> O(Length of String + (Length of String - index of
+	 * last space))
 	 * 
-	 * <h2>Space Complexity</h2>
-	 * O(2 * Length of String) <br>
+	 * <h2>Space Complexity</h2> O(2 * Length of String) <br>
 	 * 
 	 * @param string {@code String} to be URLified
 	 */
@@ -267,15 +269,15 @@ public class ArraysAndStrings {
 		for (int i = 0; i < trueLength; ++i)
 			if (str.charAt(i) == ' ')
 				++numSpaces;
-		
+
 		int right = numSpaces * 2 + trueLength - 1;
 		char a[] = str.toCharArray();
 		for (int i = trueLength - 1; i < right; --i)
 			right = copyRight(a, i, right);
-		
+
 		return new String(a);
 	}
-	
+
 	private static int copyRight(char a[], int i, int right) {
 		if (a[i] == ' ') {
 			a[right] = '0';
@@ -287,9 +289,10 @@ public class ArraysAndStrings {
 			return right - 1;
 		}
 	}
-	
+
 	/**
 	 * <h1>1.4</h1>
+	 * 
 	 * <pre>
 	 * Palindrome Permutation: Given a string, write a function to check if it is a permutation of a palin-
 	 * drome. A palindrome is a word or phrase that is the same forwards and backwards. A permutation
@@ -307,95 +310,166 @@ public class ArraysAndStrings {
 	 * <h3>Base Case</h3>
 	 * <pre>
 	 * Input:   'S'
-	 * Output:  's'
+	 * Output:  true
 	 * 
 	 * Input:   ' '
 	 * Output:  
 	 * 
 	 * Input:   "r "
-	 * Output:  
+	 * Output:  true
 	 * 
 	 * Input:   " z"
-	 * Output:  
+	 * Output:  true
 	 * 
 	 * Input:   "Ra"
-	 * Output:  "ra", "ar"
+	 * Output:  true
 	 * </pre>
 	 * 
-	 * <h2>Brute Force Algorithm</h2>
-	 * 1. Add the indexes of the space characters to an array
-	 * 2. Loop through the each character of the string
-	 * 3. Build a permutation by moving a character from the remainder string to the prefix string
-	 * 3. Print the ones where the spaces are at the same index as the input string
+	 * <h3>Error Case</h3>
+	 * <pre>
+	 * Input:  "abcd"
+	 * Output: false
 	 * 
-	 * <h2>Time Complexity</h2>
-	 * O(n^2 * n!)
+	 * Input:  "bbcef"
+	 * Output: false
+	 * </pre>
 	 * 
-	 * <h2>Space Complexity</h2>
-	 * O(95 + Length of String) <br>
+	 * <h2>Algorithms</h2>
 	 * 
-	 * @param input Original String 
-	 * @param str String to check if it is a permutation of a palindrome of parameter {@code input} 
-	 * @return True if parameter {@code str} is a permutation of a palindrome of parameter {@code input} 
+	 * <h3>Map</h3>
+	 * <pre>
+	 * 1. Map each character included in the input string with its frequency
+	 * 2. If there are more then two characters that don't have a pair then return false.
+	 * 3. Otherwise return true.
+	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2>
+	 * O(Length of String + Length of String)
+	 * 
+	 * <h4>Space Complexity</h2>
+	 * O(Length of String + Length of String)
+	 * 
+	 * <h3>Bit Vector</h3>
+	 * <pre>
+	 * 1. Increment then decrement the frequency of each character in the input string
+	 * 2. If there are more then two bits in the bit vector that are not zer then return false.
+	 * 3. Otherwise return true. 
+	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2>
+	 * O(Length of String + Length of String)
+	 * 
+	 * <h4>Space Complexity</h2>
+	 * O(1)
+	 * 
+	 * @param input Original String
+	 * @param str   String to check if it is a permutation of a palindrome of
+	 *              parameter {@code input}
+	 * @return True if parameter {@code str} is a permutation of a palindrome of
+	 *         parameter {@code input}
+	 * @throws IOException
 	 */
-	private static void printPermPal (String in) {
-		// todo: error check
-		String str = in.toLowerCase();
-		for (int i = 0; i < str.length(); ++i)
-			for (int j = 0; j < str.length(); ++j)
-				//if (str.charAt(i) != ' ' && str.charAt(j) != ' ' && i != j && str.charAt(i) != str.charAt(j))
-					System.out.println("String: " + swap(str, i, j) + " i: " + i + " j: " + j);
+	private static boolean isPermutationPalindroneMap(String string) {
+		Map<Character,Integer> map = new HashMap<>();
+		String str = string.toLowerCase();
+		char input[] = str.toCharArray();
+		for (char ch : input) {
+			map.compute(ch, (key, val) -> {
+				if (val == null) {
+					return 1;
+				} else {
+					return val + 1;
+				}
+			});
+		}
+		
+		Collection<Integer> collection = map.values();
+		int noPair = 0;
+		for (Integer value : collection) {
+			if (value % 2 != 0)
+				++noPair;
+		}
+		
+		return noPair < 3;
 	}
 	
-	private static String swap(String str, int i, int j) {
-		char array[] = str.toCharArray();
-		char t = array[i];
-		array[i] = array[j];
-		array[j] = t;
-		return new String (array);
+	private static boolean isPermutationPalindrone(String string) {
+		int checker = 0, index;
+		String str = string.toLowerCase();
+		for (index = 0; index < str.length(); ++index) {
+			int i = 1 << str.charAt(index);
+			if ((checker & i) == 0)
+				checker |= i;
+			else
+				checker -= i;
+		}
+		
+		int oddCount = 0;
+		for (index = 0; index < str.length(); ++index) {
+			int i = 1 << str.charAt(index);
+			if ((checker & i) != 0)
+				++oddCount;
+		}
+		
+		return oddCount < 2;
 	}
-
-	/*
-	 * 1.5
-	 * One Away: There are three types of edits that can be performed on strings: insert a chacter,
-	 * remove a character, or replace a character. Given two strings, write a function to check if they are
-	 * one edit (or zero edits) away.
+	
+	boolean isPermutationOfPalindrome(String phrase) {
+		int bitVector = createBitVector(phrase);
+		return bitVector == 0 || checkExactlyOneBitSet(bitVector);
+	}
+	
+	/* Create a bit vector for the string. For each letter with value 9, toggle the 
+	 * ith bit. */
+	int createBitVector(String phrase) {
+		int bitVector = 0;
+		for (char c : phrase.toCharArray()) {
+			int x = getCharNumber(c);
+			bitVector = toggle(bitVector, x);
+		}
+		return bitVector;
+	}
+	
+	/* Toggle the ith bit in the integer. */
+	int toggle(int bitVector, int index) {
+		if (index < 0) return bitVector;
+		
+		int mask = 1 << index;
+		if ()
+	}
+	/**
+	 * <h1>1.5</h1>
+	 * <pre>
+	 * One Away: There are three types of edits that can be performed on
+	 * strings: insert a character, remove a character, or replace a character.
+	 * Given two strings, write a function to check if they are one edit (or zero
+	 * edits) away.
+	 * </pre>
 	 * 
-	 * Examples
-	 * pale, ple -> true
-	 * pales, pale -> true
-	 * pale, bale -> true
-	 * pale, bake -> false
+	 * <h2>Examples</h2>
+	 * 
+	 * <h3>General Case</h3>
+	 * <pre>
+	 * pale, ple -> true 
+	 * pales, pale -> true 
+	 * pale, bale -> true pale, 
+	 * bake-> false
+	 * </pre>
+	 * 
+	 * <h2>Algorithms</h2>
+	 * 1. If the difference between the input strings length is more than two then return false
+	 * 2. Toggle the frequency of each character of the input strings
+	 * 3. If there are more than two odd number frequencies than return false else return true.
 	 */
+	public static boolean oneChangeDifference (String str1, String str2) {
+		if (Math.abs(str1.length() - str2.length()) > 1)
+			return false;
+		//int bit =  0;
+		return true;
+	}
 	
-	/*
-	 * 1.6
-	 * String Compression: Implement a method to perform basic string compression using the counts
-	 * of repeated characters. For example, the string aabcccccaaa would become a2b1c5a3. If the
-	 * "compressed" string would not become smaller than the original string, your method should return
-	 * the original string. You can assume the string has only uppercase and lowercase letters (a-z). 
-	 */
-	
-	/*
-	 * 1.7 
-	 * Rotate Matrix: Given an image represented by an NxN matrix, where each pixel in the image is 4
-	 * bytes, write a method to rotate the image by 90 degrees. Can you do this in place?
-	 */
-	
-	/*
-	 * 1.8
-	 * Zero Matrix: Write an algorithm such that if an element in an MxN matrix is 0, its entire row and
-	 * column are set to 0.
-	 */
-	
-	/*
-	 * 1.9
-	 * String rotation: Assume you have a method isSubstring which checks if one word is a substring
-	 * of another. Given two strings, s1 and s2, write code to check if s2 is a rotation of s1 using only one
-	 * call to isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
-	 */
 	public static void main(String[] args) {
-		String str = "Tact Coa";
+		String str = "abc cba";
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
@@ -407,7 +481,8 @@ public class ArraysAndStrings {
 		isPermutation(str, str2);
 		isPermutationBucket(str, str2);
 		urlify(str, 1);
-		printPermPal(str);
+		isPermutationPalindroneMap(str);
+		System.out.println(isPermutationPalindrone(str));
 	}
 
 	private static String quickSort(char[] array, int leftStart, int rightEnd) {
@@ -432,4 +507,33 @@ public class ArraysAndStrings {
 		array[index1] = array[index2];
 		array[index2] = temp;
 	}
+	
 }
+
+
+/*
+ * 1.6 String Compression: Implement a method to perform basic string
+ * compression using the counts of repeated characters. For example, the string
+ * aabcccccaaa would become a2b1c5a3. If the "compressed" string would not
+ * become smaller than the original string, your method should return the
+ * original string. You can assume the string has only uppercase and lowercase
+ * letters (a-z).
+ */
+
+/*
+ * 1.7 Rotate Matrix: Given an image represented by an NxN matrix, where each
+ * pixel in the image is 4 bytes, write a method to rotate the image by 90
+ * degrees. Can you do this in place?
+ */
+
+/*
+ * 1.8 Zero Matrix: Write an algorithm such that if an element in an MxN matrix
+ * is 0, its entire row and column are set to 0.
+ */
+
+/*
+ * 1.9 String rotation: Assume you have a method isSubstring which checks if one
+ * word is a substring of another. Given two strings, s1 and s2, write code to
+ * check if s2 is a rotation of s1 using only one call to
+ * isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
+ */
