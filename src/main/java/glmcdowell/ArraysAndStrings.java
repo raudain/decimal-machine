@@ -435,6 +435,7 @@ public class ArraysAndStrings {
 	public static boolean checkExactlyOneBitSet(int bitVector) {
 		return (bitVector & (bitVector - 1)) == 0;
 	}
+	
 	/**
 	 * <h1>1.5</h1>
 	 * <pre>
@@ -455,9 +456,10 @@ public class ArraysAndStrings {
 	 * </pre>
 	 * 
 	 * <h2>Algorithms</h2>
-	 * 1. If the difference between the input strings length is more than two then return false
-	 * 2. Toggle the frequency of each character of the input strings
-	 * 3. If there are more than two odd number frequencies than return false else return true.
+	 * 1. If the difference between the input strings length is more than two then return false.
+	 * 2. Toggle the frequency of each character of the first input string in a bit vector.
+	 * 3. Toggle the frequency of each character of the second input string in the bit vector.
+	 * 3. Return true if the bit vector equals zero or only has one bit set
 	 */
 	private static boolean oneChangeDiff (String str1, String str2) {
 		if (Math.abs(str1.length() - str2.length()) > 1)
@@ -468,24 +470,28 @@ public class ArraysAndStrings {
 			if ((bitVector & mask) == 0) bitVector |= mask;
 			else bitVector &= ~mask;
 		}
-		for (int i = 0; i < str2.length(); ++i) {
-			int mask = 1 << str1.charAt(i);
+		for (int j = 0; j < str2.length(); ++j) {
+			int mask = 1 << str2.charAt(j);
 			if ((bitVector & mask) == 0) bitVector |= mask;
 			else bitVector &= ~mask;
 		}
 		
-		
-		return bitVector == 0;
+		int countOdd = 0;
+		for (int i = 0; i < str1.length(); ++i) {
+			int mask = 1 << str1.charAt(i);
+			if ((bitVector & mask) != 0) ++countOdd;
+		}
+		return bitVector == 0 || countOdd < 3;
 	}
 	
 	public static void main(String[] args) {
-		String str = "bake";
+		String str = "a";
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
 		isUniqueChars(str);
 		isUniqueCharsNoDataStructure(str);
-		String str2 = "faker";
+		String str2 = "b";
 		isPermutationBruteForce(str, str2);
 		isPermutationHashMap(str, str2);
 		isPermutation(str, str2);
