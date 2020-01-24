@@ -1,16 +1,30 @@
 package glmcdowell;
 
-import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 /**
  */
 public class ArraysAndStrings {
 
-
+	public static void main(String[] args) {
+		String str = "sda";
+		String str2 = "pa";
+		isUnique(str);
+		isUniqueBruteForce(str);
+		isUniqueHashMap(str);
+		isUniqueChars(str);
+		isUniqueCharsNoDataStructure(str);
+		isPermutationBruteForce(str, str2);
+		isPermutationHashMap(str, str2);
+		isPermutation(str, str2);
+		isPermutationBucket(str, str2);
+		urlify(str, 1);
+		isPermutationPalindrone(str);
+		oneChangeDiff(str, str2);
+		System.out.print(compress(str));
+	}
+	
 	private static boolean isUniqueBruteForce(String string) {
 		for (int index = 0; index < string.length(); ++index) {
 			char c = string.charAt(index);
@@ -119,6 +133,18 @@ public class ArraysAndStrings {
 		swap(array, start, border - 1);
 		return border - 1;
 	}
+	
+	private static void swap(char[] array, int index1, int index2) {
+		char temp = array[index1];
+		array[index1] = array[index2];
+		array[index2] = temp;
+	}
+	
+	// returns random pivot index between low and high inclusive
+		private static int getPivot(int start, int end) {
+			Random random = new Random();
+			return random.nextInt((end - start) + 1) + start;
+		}
 
 	public static boolean isUniqueCharsNoDataStructure(String str) {
 		// mergeSort(array);
@@ -186,6 +212,17 @@ public class ArraysAndStrings {
 		String string2 = quickSort(str2.toCharArray(), 0, str2.length() - 1);
 
 		return string1.equals(string2);
+	}
+	
+	private static String quickSort(char[] array, int leftStart, int rightEnd) {
+		if (leftStart >= rightEnd) {
+			return new String(array, 0, array.length);
+		}
+
+		int p = partition(array, leftStart, rightEnd);
+		quickSort(array, leftStart, p - 1);
+		quickSort(array, p + 1, rightEnd);
+		return new String(array, 0, array.length);
 	}
 
 	private static boolean isPermutationBucket(String str1, String str2) {
@@ -302,12 +339,14 @@ public class ArraysAndStrings {
 	 * <h2>Examples</h2>
 	 * 
 	 * <h3>General Case</h3>
+	 * 
 	 * <pre>
 	 * Input:   Tact Coa
 	 * Output:  True (permutations: "taco cat", "atco cta", etc.)
 	 * </pre>
 	 * 
 	 * <h3>Base Case</h3>
+	 * 
 	 * <pre>
 	 * Input:   'S'
 	 * Output:  true
@@ -326,6 +365,7 @@ public class ArraysAndStrings {
 	 * </pre>
 	 * 
 	 * <h3>Error Case</h3>
+	 * 
 	 * <pre>
 	 * Input:  "abcd"
 	 * Output: false
@@ -337,37 +377,34 @@ public class ArraysAndStrings {
 	 * <h2>Algorithms</h2>
 	 * 
 	 * <h3>Map</h3>
+	 * 
 	 * <pre>
 	 * 1. Map each character included in the input string with its frequency
 	 * 2. If there are more then two characters that don't have a pair then return false.
 	 * 3. Otherwise return true.
 	 * </pre>
 	 * 
-	 * <h4>Time Complexity</h2>
-	 * O(Length of String + Length of String)
+	 * <h4>Time Complexity</h2> O(Length of String + Length of String)
 	 * 
-	 * <h4>Space Complexity</h2>
-	 * O(Length of String + Length of String)
+	 * <h4>Space Complexity</h2> O(Length of String + Length of String)
 	 * 
 	 * <h3>Bit Vector</h3>
+	 * 
 	 * <pre>
 	 * 1. Increment then decrement the frequency of each character in the input string
 	 * 2. If there are more then two bits in the bit vector that are not zer then return false.
-	 * 3. Otherwise return true. 
+	 * 3. Otherwise return true.
 	 * </pre>
 	 * 
-	 * <h4>Time Complexity</h2>
-	 * O(Length of String + Length of String)
+	 * <h4>Time Complexity</h2> O(Length of String + Length of String)
 	 * 
-	 * <h4>Space Complexity</h2>
-	 * O(1)
+	 * <h4>Space Complexity</h2> O(1)
 	 * 
 	 * @param input Original String
 	 * @param str   String to check if it is a permutation of a palindrome of
 	 *              parameter {@code input}
 	 * @return True if parameter {@code str} is a permutation of a palindrome of
 	 *         parameter {@code input}
-	 * @throws IOException
 	 */
 	private static boolean isPermutationPalindrone(String string) {
 		int checker = 0, index;
@@ -379,35 +416,37 @@ public class ArraysAndStrings {
 			else
 				checker -= i;
 		}
-		
+
 		int oddCount = 0;
 		for (index = 0; index < str.length(); ++index) {
 			int i = 1 << str.charAt(index);
 			if ((checker & i) != 0)
 				++oddCount;
 		}
-		
+
 		return oddCount < 2;
 	}
-	
+
 	public static int getCharNumber(Character c) {
 		int a = Character.getNumericValue('a');
 		int z = Character.getNumericValue('z');
-		
+
 		int val = Character.getNumericValue(c);
 		if (a <= val && val <= z) {
 			return val - a;
 		}
 		return -1;
 	}
-	
+
 	boolean isPermutationOfPalindrome(String phrase) {
 		int bitVector = createBitVector(phrase);
 		return bitVector == 0 || checkExactlyOneBitSet(bitVector);
 	}
-	
-	/* Create a bit vector for the string. For each letter with value 9, toggle the 
-	 * ith bit. */
+
+	/*
+	 * Create a bit vector for the string. For each letter with value 9, toggle the
+	 * ith bit.
+	 */
 	int createBitVector(String phrase) {
 		int bitVector = 0;
 		for (char c : phrase.toCharArray()) {
@@ -416,11 +455,12 @@ public class ArraysAndStrings {
 		}
 		return bitVector;
 	}
-	
+
 	/* Toggle the ith bit in the integer. */
 	int toggle(int bitVector, int index) {
-		if (index < 0) return bitVector;
-		
+		if (index < 0)
+			return bitVector;
+
 		int mask = 1 << index;
 		if ((bitVector & mask) == 0) {
 			bitVector |= mask;
@@ -429,15 +469,18 @@ public class ArraysAndStrings {
 		}
 		return bitVector;
 	}
-	
-	/* Check that at most one bit is set by subtracting one from the 
-	 * integer and ANDing it with the original integer. */
+
+	/*
+	 * Check that at most one bit is set by subtracting one from the integer and
+	 * ANDing it with the original integer.
+	 */
 	public static boolean checkExactlyOneBitSet(int bitVector) {
 		return (bitVector & (bitVector - 1)) == 0;
 	}
-	
+
 	/**
 	 * <h1>1.5</h1>
+	 * 
 	 * <pre>
 	 * One Away: There are three types of edits that can be performed on
 	 * strings: insert a character, remove a character, or replace a character.
@@ -448,6 +491,7 @@ public class ArraysAndStrings {
 	 * <h2>Examples</h2>
 	 * 
 	 * <h3>General Case</h3>
+	 * 
 	 * <pre>
 	 * pale, ple -> true 
 	 * pales, pale -> true 
@@ -456,100 +500,125 @@ public class ArraysAndStrings {
 	 * </pre>
 	 * 
 	 * <h2>Algorithms</h2>
-	 * 1. If the difference between the input strings length is more than two then return false.
-	 * 2. Toggle the frequency of each character of the first input string in a bit vector.
-	 * 3. Toggle the frequency of each character of the second input string in the bit vector.
-	 * 3. Return true if the bit vector equals zero or only has one bit set
+	 * 
+	 * <pre>
+	 * 1. Loop through each character of each input string and returns false if there is more than one
+	 *    difference.
+	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2> O(Length of the shortest string)
+	 * 
+	 * <h4>Space Complexity</h2> O(1)
+	 * 
+	 * @param str1 First input string to be compared with the second input string
+	 * @param str2 Second input string to be compared with the first input string
+	 *              parameter {@code input}
+	 * @return True if the parameter strings are equal or one edit away from being equal.
+	 *         Else return false.
 	 */
-	private static boolean oneChangeDiff (String str1, String str2) {
-		if (Math.abs(str1.length() - str2.length()) > 1)
-			return false;
-		int bitVector =  0;
-		for (int i = 0; i < str1.length(); ++i) {
-			int mask = 1 << str1.charAt(i);
-			if ((bitVector & mask) == 0) bitVector |= mask;
-			else bitVector &= ~mask;
-		}
-		for (int j = 0; j < str2.length(); ++j) {
-			int mask = 1 << str2.charAt(j);
-			if ((bitVector & mask) == 0) bitVector |= mask;
-			else bitVector &= ~mask;
-		}
+	private static boolean oneChangeDiff(String str1, String str2) {
+		if (Math.abs(str1.length() - str2.length()) > 1) return false;
+		if (str1 == str2) return true;
 		
-		int countOdd = 0;
-		for (int i = 0; i < str1.length(); ++i) {
-			int mask = 1 << str1.charAt(i);
-			if ((bitVector & mask) != 0) ++countOdd;
+		boolean diff = false;
+		int index1 = 0, index2 = 0;
+		if (str1.length() == str2.length()) {
+			while (index1 < str1.length() && index2 < str2.length()) {
+				if (str1.charAt(index1) != str2.charAt(index2)) {
+					if (diff) return false;
+					diff = true;
+				}
+				++index1;
+				++index2;
+			}
+		} else {
+			while (index1 < str1.length() && index2 < str2.length()) {
+				if (str1.charAt(index1) != str2.charAt(index2)) {
+					if (diff) return false;
+					diff = true;
+					if (str1.length() > str2.length()) ++index1;
+					else ++index2;
+				} else {
+					++index1;
+					++index2;
+				}
+			}
 		}
-		return bitVector == 0 || countOdd < 3;
+		return true;
 	}
 	
-	public static void main(String[] args) {
-		String str = "a";
-		isUnique(str);
-		isUniqueBruteForce(str);
-		isUniqueHashMap(str);
-		isUniqueChars(str);
-		isUniqueCharsNoDataStructure(str);
-		String str2 = "b";
-		isPermutationBruteForce(str, str2);
-		isPermutationHashMap(str, str2);
-		isPermutation(str, str2);
-		isPermutationBucket(str, str2);
-		urlify(str, 1);
-		isPermutationPalindrone(str);
-		System.out.println(oneChangeDiff(str, str2));
-	}
-
-	private static String quickSort(char[] array, int leftStart, int rightEnd) {
-		if (leftStart >= rightEnd) {
-			return new String(array, 0, array.length);
+	/**
+	 * 1.6
+	 * String Compression: Implement a method to perform basic string
+	 * compression using the counts of repeated characters. For example, the string
+	 * aabcccccaaa would become a2b1c5a3. If the "compressed" string would not
+	 * become smaller than the original string, your method should return the
+	 * original string. You can assume the string has only uppercase and lowercase
+	 * letters (a-z).
+	 * 
+	 * <h3>General Case</h3>
+	 * <pre>
+	 * aabcccccaaa -> a2b1c5a3
+	 * kglassssssssssssslsdas -> k1g1l1a1s13l1s1d1a1s1
+	 * </pre>
+	 * 
+	 * <h3>Special Case</h3>
+	 * <pre>
+	 * zzee -> zzee
+	 * sda -> sda
+	 * </pre>
+	 * <h2>Algorithms</h2>
+	 * 
+	 * <pre>
+	 * 1. Append each letter with the number of times it is seen consecutively from left to right.
+	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2> O(Length of the string)
+	 * 
+	 * <h4>Space Complexity</h2> O(N)
+	 * 
+	 * @param str Input string to be compressed
+	 * @return The compressed string or the parameter string if it is shorter than the compressed string
+	 */
+	private static String compress(String str) {
+		int count = 1, index = 0;
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append(str.charAt(index));
+		while (index < str.length() - 1) {
+			char letter = str.charAt(index);
+			char nextLetter = str.charAt(index + 1);
+			if (letter == nextLetter) ++count;
+			else {
+				stringBuilder.append(count);
+				stringBuilder.append(nextLetter);
+				letter = nextLetter;
+				count = 1;
+			}
+			++index;
 		}
-
-		int p = partition(array, leftStart, rightEnd);
-		quickSort(array, leftStart, p - 1);
-		quickSort(array, p + 1, rightEnd);
-		return new String(array, 0, array.length);
+		stringBuilder.append(count);
+		String result = stringBuilder.toString();
+		
+		if(result.length() < str.length()) return result;
+		else return str;
 	}
 
-	// returns random pivot index between low and high inclusive
-	private static int getPivot(int start, int end) {
-		Random random = new Random();
-		return random.nextInt((end - start) + 1) + start;
-	}
+	/*
+	 * 1.7
+	 * Rotate Matrix: Given an image represented by an NxN matrix, where each
+	 * pixel in the image is 4 bytes, write a method to rotate the image by 90
+	 * degrees. Can you do this in place?
+	 */
 
-	private static void swap(char[] array, int index1, int index2) {
-		char temp = array[index1];
-		array[index1] = array[index2];
-		array[index2] = temp;
-	}
-	
+	/*
+	 * 1.8 Zero Matrix: Write an algorithm such that if an element in an MxN matrix
+	 * is 0, its entire row and column are set to 0.
+	 */
+
+	/*
+	 * 1.9 String rotation: Assume you have a method isSubstring which checks if one
+	 * word is a substring of another. Given two strings, s1 and s2, write code to
+	 * check if s2 is a rotation of s1 using only one call to
+	 * isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
+	 */
 }
-
-
-/*
- * 1.6 String Compression: Implement a method to perform basic string
- * compression using the counts of repeated characters. For example, the string
- * aabcccccaaa would become a2b1c5a3. If the "compressed" string would not
- * become smaller than the original string, your method should return the
- * original string. You can assume the string has only uppercase and lowercase
- * letters (a-z).
- */
-
-/*
- * 1.7 Rotate Matrix: Given an image represented by an NxN matrix, where each
- * pixel in the image is 4 bytes, write a method to rotate the image by 90
- * degrees. Can you do this in place?
- */
-
-/*
- * 1.8 Zero Matrix: Write an algorithm such that if an element in an MxN matrix
- * is 0, its entire row and column are set to 0.
- */
-
-/*
- * 1.9 String rotation: Assume you have a method isSubstring which checks if one
- * word is a substring of another. Given two strings, s1 and s2, write code to
- * check if s2 is a rotation of s1 using only one call to
- * isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
- */
