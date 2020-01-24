@@ -15,3 +15,4 @@
 .settings/org.eclipse.core.resources.prefs
 *.class
 *.properties
+target/classes/META-INF/MANIFEST.MF
