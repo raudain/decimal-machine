@@ -7,15 +7,10 @@ import java.util.Random;
  */
 public class ArraysAndStrings {
 
-	/*
-	 * pale,  ple  -> true 
-	 * pales, pale -> true 
-	 * pale,  bale -> true
-	 * pale,  bae
-	 */
 	public static void main(String[] args) {
-		String str = "pale";
+		String str = "aabcccccaaa";
 		String str2 = "bale";
+		System.out.println("Input: " + str);
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
@@ -27,10 +22,8 @@ public class ArraysAndStrings {
 		isPermutationBucket(str, str2);
 		urlify(str, 1);
 		isPermutationPalindrone(str);
-		System.out.println("String 1: " + str);
-		System.out.println("String 2: " + str2);
-		System.out.print(oneChangeDiff(str, str2));;
-		compress(str);
+		oneChangeDiff(str, str2);
+		System.out.println(compress(str));;
 	}
 	
 	private static boolean isUniqueBruteForce(String string) {
@@ -591,7 +584,7 @@ public class ArraysAndStrings {
 		int count = 1, index = 0;
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(str.charAt(index));
-		while (index < str.length() - 1) {
+		for (index = 0; index < str.length() - 1; ++index) {
 			char letter = str.charAt(index);
 			char nextLetter = str.charAt(index + 1);
 			if (letter == nextLetter) ++count;
@@ -601,7 +594,6 @@ public class ArraysAndStrings {
 				letter = nextLetter;
 				count = 1;
 			}
-			++index;
 		}
 		stringBuilder.append(count);
 		String result = stringBuilder.toString();
