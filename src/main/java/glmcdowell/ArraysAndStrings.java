@@ -7,9 +7,15 @@ import java.util.Random;
  */
 public class ArraysAndStrings {
 
+	/*
+	 * pale,  ple  -> true 
+	 * pales, pale -> true 
+	 * pale,  bale -> true
+	 * pale,  bae
+	 */
 	public static void main(String[] args) {
-		String str = "sda";
-		String str2 = "pa";
+		String str = "pale";
+		String str2 = "bale";
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
@@ -21,8 +27,10 @@ public class ArraysAndStrings {
 		isPermutationBucket(str, str2);
 		urlify(str, 1);
 		isPermutationPalindrone(str);
-		oneChangeDiff(str, str2);
-		System.out.print(compress(str));
+		System.out.println("String 1: " + str);
+		System.out.println("String 2: " + str2);
+		System.out.print(oneChangeDiff(str, str2));;
+		compress(str);
 	}
 	
 	private static boolean isUniqueBruteForce(String string) {
@@ -493,10 +501,10 @@ public class ArraysAndStrings {
 	 * <h3>General Case</h3>
 	 * 
 	 * <pre>
-	 * pale, ple -> true 
+	 * pale,  ple  -> true 
 	 * pales, pale -> true 
-	 * pale, bale -> true pale, 
-	 * bake-> false
+	 * pale,  bale -> true
+	 * pale,  bae  -> false
 	 * </pre>
 	 * 
 	 * <h2>Algorithms</h2>
@@ -516,27 +524,25 @@ public class ArraysAndStrings {
 	 * @return True if the parameter strings are equal or one edit away from being equal.
 	 *         Else return false.
 	 */
-	private static boolean oneChangeDiff(String str1, String str2) {
-		if (Math.abs(str1.length() - str2.length()) > 1) return false;
-		if (str1 == str2) return true;
+	private static boolean oneChangeDiff(String first, String second) {
+		// todo Error checking
+		
+		if (Math.abs(first.length() - second.length()) > 1) return false;
 		
 		boolean diff = false;
-		int index1 = 0, index2 = 0;
-		if (str1.length() == str2.length()) {
-			while (index1 < str1.length() && index2 < str2.length()) {
-				if (str1.charAt(index1) != str2.charAt(index2)) {
+		if (first.length() == second.length()) {
+			for (int i = 0; i < first.length(); ++i) {
+				if (first.charAt(i) != second.charAt(i)) {
 					if (diff) return false;
 					diff = true;
 				}
-				++index1;
-				++index2;
 			}
 		} else {
-			while (index1 < str1.length() && index2 < str2.length()) {
-				if (str1.charAt(index1) != str2.charAt(index2)) {
-					if (diff) return false;
-					diff = true;
-					if (str1.length() > str2.length()) ++index1;
+			int index1 = 0, index2 = 0;
+			while (index1 < first.length() && index2 < second.length()) {
+				if (first.charAt(index1) != second.charAt(index2)) {
+					if (index1 != index2) return false;
+					if (first.length() > second.length()) ++index1;
 					else ++index2;
 				} else {
 					++index1;
@@ -544,6 +550,7 @@ public class ArraysAndStrings {
 				}
 			}
 		}
+
 		return true;
 	}
 	
