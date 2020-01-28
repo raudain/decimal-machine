@@ -1,5 +1,6 @@
 package glmcdowell;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -10,7 +11,6 @@ public class ArraysAndStrings {
 	public static void main(String[] args) {
 		String str = "aabcccccaaa";
 		String str2 = "bale";
-		System.out.println("Input: " + str);
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
@@ -23,9 +23,36 @@ public class ArraysAndStrings {
 		urlify(str, 1);
 		isPermutationPalindrone(str);
 		oneChangeDiff(str, str2);
-		System.out.println(compress(str));;
+		compress(str);
+		char image[][] = new char[3][3];
+		/*Random random = new Random();
+		image[0][0] = getRandom(random);
+		image[0][1] = getRandom(random);
+		image[0][2] = getRandom(random);
+		image[1][0] = getRandom(random);
+		image[1][1] = getRandom(random);
+		image[1][2] = getRandom(random);
+		image[2][0] = getRandom(random);
+		image[2][1] = getRandom(random);
+		image[2][2] = getRandom(random);*/
+
+		image[0][0] = 'I';
+		image[0][1] = 'P';
+		image[0][2] = 'L';
+		image[1][0] = 'C';
+		image[1][1] = 'D';
+		image[1][2] = 'D';
+		image[2][0] = 'X';
+		image[2][1] = 'Y';
+		image[2][2] = 'G';
+		rotate(image);
 	}
+
 	
+	private static char getRandom(Random random) { 
+		 int c = random.nextInt((90 - 65) + 1) + 65; return (char) c; 
+	}
+
 	private static boolean isUniqueBruteForce(String string) {
 		for (int index = 0; index < string.length(); ++index) {
 			char c = string.charAt(index);
@@ -134,18 +161,18 @@ public class ArraysAndStrings {
 		swap(array, start, border - 1);
 		return border - 1;
 	}
-	
+
 	private static void swap(char[] array, int index1, int index2) {
 		char temp = array[index1];
 		array[index1] = array[index2];
 		array[index2] = temp;
 	}
-	
+
 	// returns random pivot index between low and high inclusive
-		private static int getPivot(int start, int end) {
-			Random random = new Random();
-			return random.nextInt((end - start) + 1) + start;
-		}
+	private static int getPivot(int start, int end) {
+		Random random = new Random();
+		return random.nextInt((end - start) + 1) + start;
+	}
 
 	public static boolean isUniqueCharsNoDataStructure(String str) {
 		// mergeSort(array);
@@ -214,7 +241,7 @@ public class ArraysAndStrings {
 
 		return string1.equals(string2);
 	}
-	
+
 	private static String quickSort(char[] array, int leftStart, int rightEnd) {
 		if (leftStart >= rightEnd) {
 			return new String(array, 0, array.length);
@@ -513,20 +540,22 @@ public class ArraysAndStrings {
 	 * 
 	 * @param str1 First input string to be compared with the second input string
 	 * @param str2 Second input string to be compared with the first input string
-	 *              parameter {@code input}
-	 * @return True if the parameter strings are equal or one edit away from being equal.
-	 *         Else return false.
+	 *             parameter {@code input}
+	 * @return True if the parameter strings are equal or one edit away from being
+	 *         equal. Else return false.
 	 */
 	private static boolean oneChangeDiff(String first, String second) {
 		// todo Error checking
-		
-		if (Math.abs(first.length() - second.length()) > 1) return false;
-		
+
+		if (Math.abs(first.length() - second.length()) > 1)
+			return false;
+
 		boolean diff = false;
 		if (first.length() == second.length()) {
 			for (int i = 0; i < first.length(); ++i) {
 				if (first.charAt(i) != second.charAt(i)) {
-					if (diff) return false;
+					if (diff)
+						return false;
 					diff = true;
 				}
 			}
@@ -534,9 +563,12 @@ public class ArraysAndStrings {
 			int index1 = 0, index2 = 0;
 			while (index1 < first.length() && index2 < second.length()) {
 				if (first.charAt(index1) != second.charAt(index2)) {
-					if (index1 != index2) return false;
-					if (first.length() > second.length()) ++index1;
-					else ++index2;
+					if (index1 != index2)
+						return false;
+					if (first.length() > second.length())
+						++index1;
+					else
+						++index2;
 				} else {
 					++index1;
 					++index2;
@@ -546,28 +578,31 @@ public class ArraysAndStrings {
 
 		return true;
 	}
-	
+
 	/**
-	 * 1.6
-	 * String Compression: Implement a method to perform basic string
+	 * 1.6 String Compression: Implement a method to perform basic string
 	 * compression using the counts of repeated characters. For example, the string
 	 * aabcccccaaa would become a2b1c5a3. If the "compressed" string would not
 	 * become smaller than the original string, your method should return the
 	 * original string. You can assume the string has only uppercase and lowercase
 	 * letters (a-z).
 	 * 
+	 * Examples
 	 * <h3>General Case</h3>
+	 * 
 	 * <pre>
 	 * aabcccccaaa -> a2b1c5a3
 	 * kglassssssssssssslsdas -> k1g1l1a1s13l1s1d1a1s1
 	 * </pre>
 	 * 
 	 * <h3>Special Case</h3>
+	 * 
 	 * <pre>
 	 * zzee -> zzee
 	 * sda -> sda
 	 * </pre>
-	 * <h2>Algorithms</h2>
+	 * 
+	 * <h2>Algorithm</h2>
 	 * 
 	 * <pre>
 	 * 1. Append each letter with the number of times it is seen consecutively from left to right.
@@ -578,7 +613,8 @@ public class ArraysAndStrings {
 	 * <h4>Space Complexity</h2> O(N)
 	 * 
 	 * @param str Input string to be compressed
-	 * @return The compressed string or the parameter string if it is shorter than the compressed string
+	 * @return The compressed string or the parameter string if it is shorter than
+	 *         the compressed string
 	 */
 	private static String compress(String str) {
 		int count = 1, index = 0;
@@ -587,7 +623,8 @@ public class ArraysAndStrings {
 		for (index = 0; index < str.length() - 1; ++index) {
 			char letter = str.charAt(index);
 			char nextLetter = str.charAt(index + 1);
-			if (letter == nextLetter) ++count;
+			if (letter == nextLetter)
+				++count;
 			else {
 				stringBuilder.append(count);
 				stringBuilder.append(nextLetter);
@@ -597,17 +634,145 @@ public class ArraysAndStrings {
 		}
 		stringBuilder.append(count);
 		String result = stringBuilder.toString();
-		
-		if(result.length() < str.length()) return result;
-		else return str;
+
+		if (result.length() < str.length())
+			return result;
+		else
+			return str;
 	}
 
-	/*
-	 * 1.7
-	 * Rotate Matrix: Given an image represented by an NxN matrix, where each
+	/**
+	 * 1.7 Rotate Matrix: Given an image represented by an NxN matrix, where each
 	 * pixel in the image is 4 bytes, write a method to rotate the image by 90
 	 * degrees. Can you do this in place?
+	 * 
+	 * Examples
+	 * <h3>General Case</h3> (0,0) (0,1) (0,2) (0,3) [W] [B] [R] [G]
+	 * 
+	 * (1,0) (1,1) (1,2) (1,3) [G] [A] [C] [H]
+	 * 
+	 * (2,0) (2,1) (2,2) (2,3) [D] [E] [F] [I]
+	 * 
+	 * (3,0) (3,1) (3,2) (3,3) [K] [L] [M] [N]
+	 * 
+	 * || \/
+	 * 
+	 * (0,0) (0,1) (0,2) (0,3) [K] [D] [G] [W]
+	 * 
+	 * (1,0) (1,1) (1,2) (1,3) [L] [E] [A] [B]
+	 * 
+	 * (2,0) (2,1) (2,2) (2,3) [M] [F] [C] [R]
+	 * 
+	 * (3,0) (3,1) (3,2) (3,3) [N] [I] [H] [G]
+	 * 
+	 * <h3>Base Case</h3>
+	 * 
+	 * (0,0) (0,1) [R] [G]
+	 * 
+	 * (1,0) (1,1) [B] [Y]
+	 * 
+	 * || \/
+	 * 
+	 * (0,0) (0,1) [B] [R]
+	 * 
+	 * (1,0) (1,1) [Y] [G]
+	 * 
+	 * <h2>Algorithm</h2>
+	 * 
+	 * <pre>
+	 * 1. Set the first column of the inner cube to be the first row of the inner cube then set the first row to be the right column.
+	 * 2. Set the right column to be the bottom row.
+	 * 3. Expand out and repeat steps 2 and 3.
+	 * 4. Repeat step 3 until done
+	 * </pre>
 	 */
+	private static void rotate(char image[][]) {
+		printImage(image);
+		System.out.println();
+		System.out.println("    ||");
+		System.out.println("    \\/");
+		System.out.println();
+
+		int max = image.length - 1;
+		char topLeft = image[0][0];
+		char topRight = image[0][max];
+		char bottomRight = image[max][max];
+		char bottomLeft = image[max][0];
+		char top[];
+
+		if (max == 1)
+			setCorners(image, topLeft, topRight, bottomRight, bottomLeft);
+		else {
+			// top
+			setSide(image, new Cord(0,0), new Cord(0, max));
+			// left
+			setSide(image, new Cord(0,0), new Cord(max, 0));
+			// bottom
+			setSide(image, new Cord(0,max), new Cord(max, max));
+			//setCorners(image, topLeft, topRight, bottomRight, bottomLeft);
+		}
+			
+		printImage(image);
+	}
+	
+	private static void printImage(char image[][]) {
+		for (int i = 0; i < image.length; ++i)
+			for (int j = 0; j < image.length; ++j) {
+				System.out.print("[" + image[i][j] + "]");
+				if (j == image.length - 1)
+					System.out.println();
+			}
+	}
+	
+	private static void setCorners(char image[][], char topLeft, char topRight, char bottomRight, char bottomLeft) {
+		int max = image.length - 1;
+		image[0][0] = bottomLeft;
+		image[0][max] = topLeft;
+		image[max][max] = topRight;
+		image[max][0] = bottomRight;
+	}
+
+	private static void setSide(char image[][], Cord start, Cord end) {
+		int max = image.length - 1;
+		// top row
+		if (start.row == 0 && start.col == 0 && end.row == 0 && end.col == max) {
+			int count = max;
+			for (int i = 0; i < image.length; ++i) {
+				char temp = image[count][end.row];
+				image[start.row][i] = temp;
+				--count;
+			}
+		}
+		
+		// bottom row
+		if (start.row == max && start.col == 0 && end.row == max && end.col == max) {
+			int count = image.length - 1;
+			for (int i = 0; i < image.length; ++i)
+				image[start.row][i] = image[--count][end.col];
+		}
+		
+		// right column
+		if (start.row == 0 && start.col == max && end.row == max && end.col == max)
+			for (int i = 0; i < image.length; ++i)
+				image[i][start.col] = image[start.row][i];
+				
+		// left column
+		if (start.row == 0 && start.col == 0 && end.row == max && end.col == 0)
+			for (int i = 0; i < image.length; ++i)
+				image[i][start.col] = image[end.row][i];
+		
+		
+	}
+
+	private static class Cord {
+		private int row;
+		private int col;
+
+		public Cord(int row, int column) {
+			this.row = row;
+			this.col = column;
+		}
+	}
 
 	/*
 	 * 1.8 Zero Matrix: Write an algorithm such that if an element in an MxN matrix
