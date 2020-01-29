@@ -24,33 +24,30 @@ public class ArraysAndStrings {
 		isPermutationPalindrone(str);
 		oneChangeDiff(str, str2);
 		compress(str);
-		char image[][] = new char[3][3];
-		/*Random random = new Random();
+		char image[][] = new char[2][2];
+		Random random = new Random();
 		image[0][0] = getRandom(random);
 		image[0][1] = getRandom(random);
-		image[0][2] = getRandom(random);
+		// image[0][2] = getRandom(random);
+		// image[0][3] = getRandom(random);
 		image[1][0] = getRandom(random);
 		image[1][1] = getRandom(random);
-		image[1][2] = getRandom(random);
-		image[2][0] = getRandom(random);
-		image[2][1] = getRandom(random);
-		image[2][2] = getRandom(random);*/
-
-		image[0][0] = 'I';
-		image[0][1] = 'P';
-		image[0][2] = 'L';
-		image[1][0] = 'C';
-		image[1][1] = 'D';
-		image[1][2] = 'D';
-		image[2][0] = 'X';
-		image[2][1] = 'Y';
-		image[2][2] = 'G';
+		// image[1][2] = getRandom(random);
+		// image[1][3] = getRandom(random);
+		// image[2][0] = getRandom(random);
+		// image[2][1] = getRandom(random);
+		// image[2][2] = getRandom(random);
+		/*
+		 * image[2][3] = getRandom(random); image[3][0] = getRandom(random); image[3][1]
+		 * = getRandom(random); image[3][2] = getRandom(random); image[3][3] =
+		 * getRandom(random);
+		 */
 		rotate(image);
 	}
 
-	
-	private static char getRandom(Random random) { 
-		 int c = random.nextInt((90 - 65) + 1) + 65; return (char) c; 
+	private static char getRandom(Random random) {
+		int c = random.nextInt((90 - 65) + 1) + 65;
+		return (char) c;
 	}
 
 	private static boolean isUniqueBruteForce(String string) {
@@ -694,42 +691,42 @@ public class ArraysAndStrings {
 		System.out.println();
 
 		int max = image.length - 1;
-		char topLeft = image[0][0];
-		char topRight = image[0][max];
-		char bottomRight = image[max][max];
-		char bottomLeft = image[max][0];
-		char top[];
 
-		if (max == 1)
-			setCorners(image, topLeft, topRight, bottomRight, bottomLeft);
-		else {
-			// top
-			setSide(image, new Cord(0,0), new Cord(0, max));
-			// left
-			setSide(image, new Cord(0,0), new Cord(max, 0));
-			// bottom
-			setSide(image, new Cord(0,max), new Cord(max, max));
-			//setCorners(image, topLeft, topRight, bottomRight, bottomLeft);
-		}
+		if (image.length % 2 == 0) {
+			int minIndex = max - 1;
+			int maxIndex = minIndex + 1;
+			char topLeft = image[minIndex][minIndex];
+			// top left
+			image[minIndex][minIndex] = image[maxIndex][minIndex];
+			// bottom left
+			image[maxIndex][minIndex] = image[maxIndex][maxIndex];
+			// bottom right
+			image[maxIndex][maxIndex] = image[maxIndex][maxIndex];
+			// top right
+			char temp = image[minIndex][minIndex];
+			image[minIndex][maxIndex] = temp;
 			
-		printImage(image);
-	}
-	
-	private static void printImage(char image[][]) {
-		for (int i = 0; i < image.length; ++i)
-			for (int j = 0; j < image.length; ++j) {
-				System.out.print("[" + image[i][j] + "]");
-				if (j == image.length - 1)
-					System.out.println();
+			
+		}
+
+		if (image.length > 2) {
+			char topRow[] = new char[image.length];
+			for (int i = 0; i < image.length; ++i)
+				topRow[i] = image[0][i];
+			// top
+			setSide(image, new Cord(0, 0), new Cord(0, max));
+			// left
+			setSide(image, new Cord(0, 0), new Cord(max, 0));
+			// bottom
+			setSide(image, new Cord(max, 0), new Cord(max, max));
+			// right
+			for (int i = 0; i < image.length; ++i) {
+				char temp = topRow[i];
+				image[i][max] = temp;
 			}
-	}
-	
-	private static void setCorners(char image[][], char topLeft, char topRight, char bottomRight, char bottomLeft) {
-		int max = image.length - 1;
-		image[0][0] = bottomLeft;
-		image[0][max] = topLeft;
-		image[max][max] = topRight;
-		image[max][0] = bottomRight;
+		}
+
+		printImage(image);
 	}
 
 	private static void setSide(char image[][], Cord start, Cord end) {
@@ -743,25 +740,31 @@ public class ArraysAndStrings {
 				--count;
 			}
 		}
-		
-		// bottom row
-		if (start.row == max && start.col == 0 && end.row == max && end.col == max) {
-			int count = image.length - 1;
-			for (int i = 0; i < image.length; ++i)
-				image[start.row][i] = image[--count][end.col];
-		}
-		
-		// right column
-		if (start.row == 0 && start.col == max && end.row == max && end.col == max)
-			for (int i = 0; i < image.length; ++i)
-				image[i][start.col] = image[start.row][i];
-				
+
 		// left column
 		if (start.row == 0 && start.col == 0 && end.row == max && end.col == 0)
 			for (int i = 0; i < image.length; ++i)
 				image[i][start.col] = image[end.row][i];
-		
-		
+
+		// bottom row
+		if (start.row == max && start.col == 0 && end.row == max && end.col == max) {
+			int count = image.length - 1;
+			for (int i = 0; i < image.length; ++i) {
+				char temp = image[count][end.col];
+				image[start.row][i] = temp;
+				--count;
+			}
+		}
+
+	}
+
+	private static void printImage(char image[][]) {
+		for (int i = 0; i < image.length; ++i)
+			for (int j = 0; j < image.length; ++j) {
+				System.out.print("[" + image[i][j] + "]");
+				if (j == image.length - 1)
+					System.out.println();
+			}
 	}
 
 	private static class Cord {
