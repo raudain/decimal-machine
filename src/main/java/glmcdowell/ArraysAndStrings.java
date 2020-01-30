@@ -24,24 +24,35 @@ public class ArraysAndStrings {
 		isPermutationPalindrone(str);
 		oneChangeDiff(str, str2);
 		compress(str);
-		char image[][] = new char[2][2];
+		int length = 3;
+		char image[][] = new char[length][length];
 		Random random = new Random();
 		image[0][0] = getRandom(random);
 		image[0][1] = getRandom(random);
-		// image[0][2] = getRandom(random);
-		// image[0][3] = getRandom(random);
+		image[0][2] = getRandom(random);
+		//image[0][3] = getRandom(random);
+		//image[0][4] = getRandom(random);
 		image[1][0] = getRandom(random);
 		image[1][1] = getRandom(random);
-		// image[1][2] = getRandom(random);
-		// image[1][3] = getRandom(random);
-		// image[2][0] = getRandom(random);
-		// image[2][1] = getRandom(random);
-		// image[2][2] = getRandom(random);
-		/*
-		 * image[2][3] = getRandom(random); image[3][0] = getRandom(random); image[3][1]
-		 * = getRandom(random); image[3][2] = getRandom(random); image[3][3] =
-		 * getRandom(random);
-		 */
+		image[1][2] = getRandom(random);
+		//image[1][3] = getRandom(random);
+		//image[1][4] = getRandom(random);
+		image[2][0] = getRandom(random);
+		image[2][1] = getRandom(random);
+		image[2][2] = getRandom(random);
+		/*image[2][3] = getRandom(random);
+		image[2][4] = getRandom(random);
+		image[3][0] = getRandom(random);
+		image[3][1] = getRandom(random);
+		image[3][2] = getRandom(random);
+		image[3][3] = getRandom(random);
+		image[3][4] = getRandom(random);
+		image[4][0] = getRandom(random);
+		image[4][1] = getRandom(random);
+		image[4][2] = getRandom(random);
+		image[4][3] = getRandom(random);
+		image[4][4] = getRandom(random);*/
+
 		rotate(image);
 	}
 
@@ -690,68 +701,65 @@ public class ArraysAndStrings {
 		System.out.println("    \\/");
 		System.out.println();
 
-		int max = image.length - 1;
+		int minIndex = image.length > 3 ? (image.length / 2) - 1 : 1;
 
 		if (image.length % 2 == 0) {
-			int minIndex = max - 1;
 			int maxIndex = minIndex + 1;
 			char topLeft = image[minIndex][minIndex];
 			// top left
-			image[minIndex][minIndex] = image[maxIndex][minIndex];
+			char temp = image[maxIndex][minIndex];
+			image[minIndex][minIndex] = temp;
 			// bottom left
 			image[maxIndex][minIndex] = image[maxIndex][maxIndex];
 			// bottom right
-			image[maxIndex][maxIndex] = image[maxIndex][maxIndex];
+			image[maxIndex][maxIndex] = image[minIndex][maxIndex];
 			// top right
-			char temp = image[minIndex][minIndex];
-			image[minIndex][maxIndex] = temp;
-			
-			
+			image[minIndex][maxIndex] = topLeft;
 		}
 
-		if (image.length > 2) {
-			char topRow[] = new char[image.length];
-			for (int i = 0; i < image.length; ++i)
-				topRow[i] = image[0][i];
-			// top
-			setSide(image, new Cord(0, 0), new Cord(0, max));
-			// left
-			setSide(image, new Cord(0, 0), new Cord(max, 0));
-			// bottom
-			setSide(image, new Cord(max, 0), new Cord(max, max));
-			// right
-			for (int i = 0; i < image.length; ++i) {
-				char temp = topRow[i];
-				image[i][max] = temp;
-			}
-		}
+		setSides(image, minIndex - 1);
 
 		printImage(image);
 	}
 
-	private static void setSide(char image[][], Cord start, Cord end) {
+	private static void setSides(char image[][], int ring) {
+		if (ring < 0)
+			return;
+
 		int max = image.length - 1;
-		// top row
-		if (start.row == 0 && start.col == 0 && end.row == 0 && end.col == max) {
-			int count = max;
-			for (int i = 0; i < image.length; ++i) {
-				char temp = image[count][end.row];
-				image[start.row][i] = temp;
-				--count;
-			}
+		char topRow[] = new char[image.length];
+		for (int i = ring; i < image.length; ++i)
+			topRow[i] = image[ring][i];
+		setSide(image, "top", ring);
+		setSide(image, "left", ring);
+		setSide(image, "bottom", ring);
+		for (int i = 0; i < image.length; ++i) {
+			char temp = topRow[i];
+			image[i][max] = temp;
 		}
+		setSides(image, ring - 1);
+	}
 
-		// left column
-		if (start.row == 0 && start.col == 0 && end.row == max && end.col == 0)
-			for (int i = 0; i < image.length; ++i)
-				image[i][start.col] = image[end.row][i];
-
-		// bottom row
-		if (start.row == max && start.col == 0 && end.row == max && end.col == max) {
-			int count = image.length - 1;
-			for (int i = 0; i < image.length; ++i) {
-				char temp = image[count][end.col];
-				image[start.row][i] = temp;
+	private static void setSide(char image[][], String row, int ring) {
+		int max = image.length - 1 - ring;
+		int count;
+		switch(row) {
+		
+		case "top":
+			for (int i = max; i >= ring; ++i) {
+				char temp = image[i][ring];
+				image[ring][i] = temp;
+			}
+			
+		case "left":
+			for (int i = 0; i < image.length - ring; ++i)
+				image[i][ring] = image[max - ring][i];
+			
+		case "bottom":
+			count = image.length - 1;
+			for (int i = 0; i < image.length - ring; ++i) {
+				char temp = image[count][max - ring];
+				image[ring][i] = temp;
 				--count;
 			}
 		}
@@ -765,16 +773,6 @@ public class ArraysAndStrings {
 				if (j == image.length - 1)
 					System.out.println();
 			}
-	}
-
-	private static class Cord {
-		private int row;
-		private int col;
-
-		public Cord(int row, int column) {
-			this.row = row;
-			this.col = column;
-		}
 	}
 
 	/*
