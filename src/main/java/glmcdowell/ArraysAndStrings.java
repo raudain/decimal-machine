@@ -1,16 +1,15 @@
 package glmcdowell;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
 /**
  */
 public class ArraysAndStrings {
-
+	
 	public static void main(String[] args) {
-		String str = "aabcccccaaa";
-		String str2 = "bale";
+		String str  = "waterbottle";
+		String str2 = "erbottlewat";
 		isUnique(str);
 		isUniqueBruteForce(str);
 		isUniqueHashMap(str);
@@ -24,42 +23,89 @@ public class ArraysAndStrings {
 		isPermutationPalindrone(str);
 		oneChangeDiff(str, str2);
 		compress(str);
-		int length = 3;
-		char image[][] = new char[length][length];
-		Random random = new Random();
-		image[0][0] = getRandom(random);
-		image[0][1] = getRandom(random);
-		image[0][2] = getRandom(random);
-		//image[0][3] = getRandom(random);
-		//image[0][4] = getRandom(random);
-		image[1][0] = getRandom(random);
-		image[1][1] = getRandom(random);
-		image[1][2] = getRandom(random);
-		//image[1][3] = getRandom(random);
-		//image[1][4] = getRandom(random);
-		image[2][0] = getRandom(random);
-		image[2][1] = getRandom(random);
-		image[2][2] = getRandom(random);
-		/*image[2][3] = getRandom(random);
-		image[2][4] = getRandom(random);
-		image[3][0] = getRandom(random);
-		image[3][1] = getRandom(random);
-		image[3][2] = getRandom(random);
-		image[3][3] = getRandom(random);
-		image[3][4] = getRandom(random);
-		image[4][0] = getRandom(random);
-		image[4][1] = getRandom(random);
-		image[4][2] = getRandom(random);
-		image[4][3] = getRandom(random);
-		image[4][4] = getRandom(random);*/
-
+		/*int numRows = 4;
+		int numColumns = 3;
+		int matrix[][] = new int[numRows][numColumns];
+		
 		rotate(image);
+		
+		zeroMatrix(matrix, numColumns);*/
+		
+		System.out.println(isRotation(str, str2));
+	}
+	
+	public int[][] getRandomMatrix(int rows, int columns) {
+		int matrix[][] = new int[rows][columns];
+		Random random = new Random();
+		matrix[0][0] = getRandom(random);
+		matrix[0][1] = getRandom(random);
+		matrix[0][2] = getRandom(random);
+		matrix[0][3] = getRandom(random);
+		matrix[0][4] = getRandom(random);
+		matrix[0][5] = getRandom(random);
+		matrix[1][0] = getRandom(random);
+		matrix[1][1] = getRandom(random);
+		matrix[1][2] = getRandom(random);
+		matrix[1][3] = getRandom(random);
+		matrix[1][4] = getRandom(random);
+		matrix[1][5] = getRandom(random);
+		matrix[2][0] = getRandom(random);
+		matrix[2][1] = getRandom(random);
+		matrix[2][2] = getRandom(random);
+		matrix[2][3] = getRandom(random);
+		matrix[2][4] = getRandom(random);
+		matrix[2][5] = getRandom(random);
+		matrix[3][0] = getRandom(random);
+		matrix[3][1] = getRandom(random);
+		matrix[3][2] = getRandom(random);
+		matrix[3][3] = getRandom(random);
+		matrix[3][4] = getRandom(random);
+		matrix[3][5] = getRandom(random);
+		matrix[4][0] = getRandom(random);
+		matrix[4][1] = getRandom(random);
+		matrix[4][2] = getRandom(random);
+		matrix[4][3] = getRandom(random);
+		matrix[4][4] = getRandom(random);
+		matrix[4][5] = getRandom(random);
+		matrix[5][0] = getRandom(random);
+		matrix[5][1] = getRandom(random);
+		matrix[5][2] = getRandom(random);
+		matrix[5][3] = getRandom(random);
+		matrix[5][4] = getRandom(random);
+		matrix[5][5] = getRandom(random);
+		return matrix;
 	}
 
 	private static char getRandom(Random random) {
 		int c = random.nextInt((90 - 65) + 1) + 65;
 		return (char) c;
 	}
+	
+	public int[][] getMatrix(int rows, int columns) {
+		int matrix[][] = new int[rows][columns];
+		matrix[0][0] = 10;
+		matrix[0][1] = 1;
+		matrix[0][2] = 0;
+		matrix[1][0] = 3;
+		matrix[1][1] = 4;
+		matrix[1][2] = 5;
+		matrix[2][0] = 12;
+		matrix[2][1] = 6;
+		matrix[2][2] = 7;
+		matrix[3][0] = 8;
+		matrix[3][1] = 9;
+		matrix[3][2] = 11;
+		
+		printMatrix(matrix, columns);
+		System.out.println();
+		System.out.println("    ||");
+		System.out.println("    \\/");
+		System.out.println();
+		
+		return matrix;
+	}
+	
+	
 
 	private static boolean isUniqueBruteForce(String string) {
 		for (int index = 0; index < string.length(); ++index) {
@@ -655,15 +701,21 @@ public class ArraysAndStrings {
 	 * degrees. Can you do this in place?
 	 * 
 	 * Examples
-	 * <h3>General Case</h3> (0,0) (0,1) (0,2) (0,3) [W] [B] [R] [G]
+	 * <h3>General Case</h3>
+	 * (0,0) (0,1) (0,2) (0,3)
+	 *  [W]   [B]   [R]   [G]
 	 * 
-	 * (1,0) (1,1) (1,2) (1,3) [G] [A] [C] [H]
+	 * (1,0) (1,1) (1,2) (1,3)
+	 *  [G]   [A]   [C]   [H]
 	 * 
-	 * (2,0) (2,1) (2,2) (2,3) [D] [E] [F] [I]
+	 * (2,0) (2,1) (2,2) (2,3)
+	 *  [D]   [E]   [F]   [I]
 	 * 
-	 * (3,0) (3,1) (3,2) (3,3) [K] [L] [M] [N]
+	 * (3,0) (3,1) (3,2) (3,3)
+	 *  [K]   [L]   [M]   [N]
 	 * 
-	 * || \/
+	 *            ||
+	 *            \/
 	 * 
 	 * (0,0) (0,1) (0,2) (0,3) [K] [D] [G] [W]
 	 * 
@@ -679,111 +731,232 @@ public class ArraysAndStrings {
 	 * 
 	 * (1,0) (1,1) [B] [Y]
 	 * 
-	 * || \/
+	 *        ||
+	 *        \/
 	 * 
 	 * (0,0) (0,1) [B] [R]
 	 * 
 	 * (1,0) (1,1) [Y] [G]
 	 * 
 	 * <h2>Algorithm</h2>
-	 * 
 	 * <pre>
-	 * 1. Set the first column of the inner cube to be the first row of the inner cube then set the first row to be the right column.
-	 * 2. Set the right column to be the bottom row.
-	 * 3. Expand out and repeat steps 2 and 3.
-	 * 4. Repeat step 3 until done
+	 * 1. If N is even then rotate the core 2X2 matrix in place
+	 * 2. Rotate the outer rows in columns in place
 	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2> O(N/2)N)
+	 * 
+	 * <h4>Space Complexity</h2> O(N)
+	 * 
+	 * @param str Input string to be compressed
+	 * @return The compressed string or the parameter string if it is shorter than
+	 *         the compressed string
 	 */
-	private static void rotate(char image[][]) {
-		printImage(image);
-		System.out.println();
-		System.out.println("    ||");
-		System.out.println("    \\/");
-		System.out.println();
+	public static void rotate(int image[][]) {
+		boolean evenLength = image.length % 2 == 0;
+		int coreIndex = evenLength ? (image.length / 2) - 1 : image.length / 2;
 
-		int minIndex = image.length > 3 ? (image.length / 2) - 1 : 1;
-
-		if (image.length % 2 == 0) {
-			int maxIndex = minIndex + 1;
-			char topLeft = image[minIndex][minIndex];
+		if (evenLength) {
+			int maxIndex = coreIndex + 1;
+			int topLeft = image[coreIndex][coreIndex];
 			// top left
-			char temp = image[maxIndex][minIndex];
-			image[minIndex][minIndex] = temp;
+			int temp = image[maxIndex][coreIndex];
+			image[coreIndex][coreIndex] = temp;
 			// bottom left
-			image[maxIndex][minIndex] = image[maxIndex][maxIndex];
+			image[maxIndex][coreIndex] = image[maxIndex][maxIndex];
 			// bottom right
-			image[maxIndex][maxIndex] = image[minIndex][maxIndex];
+			image[maxIndex][maxIndex] = image[coreIndex][maxIndex];
 			// top right
-			image[minIndex][maxIndex] = topLeft;
+			image[coreIndex][maxIndex] = topLeft;
 		}
 
-		setSides(image, minIndex - 1);
+		if (image.length > 2) 
+			setSides(image, coreIndex - 1);
 
-		printImage(image);
+		printMatrix(image, image.length);
 	}
 
-	private static void setSides(char image[][], int ring) {
+	private static void setSides(int image[][], int ring) {
 		if (ring < 0)
 			return;
 
-		int max = image.length - 1;
-		char topRow[] = new char[image.length];
-		for (int i = ring; i < image.length; ++i)
-			topRow[i] = image[ring][i];
-		setSide(image, "top", ring);
-		setSide(image, "left", ring);
-		setSide(image, "bottom", ring);
-		for (int i = 0; i < image.length; ++i) {
-			char temp = topRow[i];
-			image[i][max] = temp;
-		}
+		int tempRow[] = new int[image.length - ring];
+		setSide(image, "top", ring, tempRow);
+		setSide(image, "left", ring, tempRow);
+		setSide(image, "bottom", ring, tempRow);
+		setSide(image, "right", ring, tempRow);
 		setSides(image, ring - 1);
 	}
 
-	private static void setSide(char image[][], String row, int ring) {
+	private static void setSide(int image[][], String row, int ring, int tempRow[]) {
 		int max = image.length - 1 - ring;
-		int count;
+		int count = max;
 		switch(row) {
 		
 		case "top":
-			for (int i = max; i >= ring; ++i) {
-				char temp = image[i][ring];
-				image[ring][i] = temp;
-			}
-			
-		case "left":
-			for (int i = 0; i < image.length - ring; ++i)
-				image[i][ring] = image[max - ring][i];
-			
-		case "bottom":
-			count = image.length - 1;
-			for (int i = 0; i < image.length - ring; ++i) {
-				char temp = image[count][max - ring];
-				image[ring][i] = temp;
+			for (int i = ring; i <= max; ++i) {
+				tempRow[count] = image[ring][count];
+				image[ring][count] = image[i][ring];
 				--count;
 			}
+			break;
+			
+		case "left":
+			for (int i = max; i > ring; --i) 
+				image[i][ring] = image[max][i];
+			
+			break;
+			
+		case "bottom":
+			for (int i = ring + 1; i < max; ++i)
+				image[max][--count] = image[i][max];
+			
+			image[max][max] = tempRow[max];
+			break;
+		
+		case "right":
+			for (int i = ring; i < max; ++i) 
+				image[i][max] = tempRow[i];
+			
+			break;
 		}
-
 	}
 
-	private static void printImage(char image[][]) {
-		for (int i = 0; i < image.length; ++i)
-			for (int j = 0; j < image.length; ++j) {
-				System.out.print("[" + image[i][j] + "]");
-				if (j == image.length - 1)
+	private static void printMatrix(int image[][], int numColumns) {
+		for (int row = 0; row < image.length; ++row)
+			for (int column = 0; column < numColumns; ++column) {
+				System.out.print("[" + image[row][column] + "]");
+				if (column == numColumns - 1)
 					System.out.println();
 			}
 	}
 
-	/*
+	/**
 	 * 1.8 Zero Matrix: Write an algorithm such that if an element in an MxN matrix
 	 * is 0, its entire row and column are set to 0.
+	 * 
+	 * Examples
+	 * <h3>General Case</h3>
+	 * (0,0) (0,1) (0,2)
+	 *  [1]   [2]   [3]
+	 *  
+	 *  (1,0) (1,1) (1,2)
+	 *  [4]   [0]   [6] 
+	 *  
+	 *  (2,0) (2,1) (2,2)
+	 *  [7]   [8]   [9]
+	 *  
+	 *        ||
+	 *        \/
+	 *        
+	 *  (0,0) (0,1) (0,2)
+	 *  [1]   [0]   [3]
+	 *  
+	 *  (1,0) (1,1) (1,2)
+	 *  [0]   [0]   [0] 
+	 *  
+	 *  (2,0) (2,1) (2,2)
+	 *  [7]   [0]   [9]
+	 *  
+	 * <h2>Algorithm</h2>
+	 * 
+	 * <h3>Bit Vector<h3>
+	 * <pre>
+	 * 1. Check each row and add the row index a zero is found in to a bit vector and the column index a zero is found in to another
+	 *    bit vector 
+	 * 2. Set zeros for any row or column that a zero is found
+	 * </pre>
+	 * 
+	 * <h4>Time Complexity</h2>
+	 * O(M*N)
+	 * 
+	 * <h4>Space Complexity</h2>
+	 * O(1)
+	 * 
+	 * @param matrix
 	 */
+	public static void zeroMatrix (int matrix[][], int numColumns) {
+		int zeroRows = 0;
+		int zeroColumns = 0;
+		
+		for (int row = 0; row < matrix.length; ++row) {
+			for (int column = 0; column < numColumns; ++column) {
+				if (matrix[row][column] == 0)  {
+					zeroRows |= 1 << row;
+					zeroColumns |= 1 << column;
+				}
+			}
+		}
+		
+		for (int row = 0; row < matrix.length; ++row) {
+			if ((zeroRows & (1 << row)) != 0)
+				for (int column = 0; column < numColumns; ++column)
+					matrix[row][column] = 0;
+		}
+		
+		for (int column = 0; column < numColumns; ++column) {
+			if ((zeroColumns & (1 << column)) != 0)
+				for (int row = 0; row < matrix.length; ++row)
+					matrix[row][column] = 0;
+		}
+		
+		printMatrix(matrix, numColumns);
+	}
 
-	/*
-	 * 1.9 String rotation: Assume you have a method isSubstring which checks if one
+	/**
+	 * <h1>1.9</h1>
+	 * String rotation: Assume you have a method isSubstring which checks if one
 	 * word is a substring of another. Given two strings, s1 and s2, write code to
 	 * check if s2 is a rotation of s1 using only one call to
-	 * isSubstring(eg.,"waterbotle" is a rotation of "erbottlewat").
+	 * isSubstring(eg.,"waterbottle" is a rotation of "erbottlewat").
+	 * 
+	 * <h2>Examples</h2>
+	 * <h3>General Case</h3>
+	 * waterbottle
+	 * erbottlewat
+	 * terbottlewa
+	 * aterbottlew
+	 * 
+	 * <h3>Special Case</h3>
+	 * asabas
+	 * sabasa
+	 * 
+	 * <h2>Algorithm</h2>
+	 * 1. Use the isSubstring method on the s1 with the fist and last character of s2
+	 * 2. If the return is false then return false;
+	 * 2. If the return is true then find the index of the substring in s1;
+	 * 3. Compare if every character is equal from the last character of s2 to the index;
+	 * 4. If they not equal return false.
+	 * 5. Otherwise return true;
+	 * 
+	 * <h4>Time Complexity</h2>
+	 * O(Length of String)
+	 * 
+	 * <h4>Space Complexity</h2>
+	 * O(1)
+	 * 
+	 * @param s1 String to be checked
+	 * @param s2 String to be checked
 	 */
+	private static boolean isRotation(String s1, String s2) {
+		if (s1.length() != s2.length()) return false;
+		
+		String subString = "" + s2.charAt(s2.length() -1) + s2.charAt(0); 
+		
+		int indexSubString = s1.indexOf(subString);
+		
+		if (indexSubString == -1) return false;
+		
+		return isSubString(s2, s1.substring(indexSubString) + s1.substring(0, indexSubString));
+	}
+	
+	private static boolean isSubString(String s2, String subString) {
+		int subStringIndex = 2;
+		for (int i = 1; i < s2.length() - 1; ++i) {
+			if (s2.charAt(i) != subString.charAt(subStringIndex)) return false;
+			
+			++subStringIndex;
+		}
+		return true;
+	}
 }
