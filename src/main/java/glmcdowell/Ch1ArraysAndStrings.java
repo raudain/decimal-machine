@@ -5,7 +5,7 @@ import java.util.Random;
 
 /**
  */
-public class ArraysAndStrings {
+public class Ch1ArraysAndStrings {
 	
 	public static void main(String[] args) {
 		String str  = "waterbottle";
